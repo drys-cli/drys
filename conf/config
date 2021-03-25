@@ -1,0 +1,5 @@
+[general]
+# Prefer the GUI text editor over the one in the terminal
+prefer_visual=false
+# Ask for confirmation if the destination repo is ambiguous
+ask_repo_confirm=true
