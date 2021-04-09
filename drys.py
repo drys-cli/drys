@@ -6,8 +6,9 @@ import drys
 from drys import common
 from drys import add
 from drys import ls
+from drys import put
 
-import argparse
+import argparse, sys
 
 # drys add <file>
 # drys rm <file> --wipe
@@ -15,33 +16,35 @@ import argparse
 # drys where <file|dir>
 # drys link <target file|dir> <symlink>     # alias ln
 # drys ls                                   # alias list
-# drys import 
+# drys put, ., here
 # drys repo
 
-def cmd_drys(parser, args):
-    print('the root command was called')
+argv = sys.argv
 
 parser = argparse.ArgumentParser()
-common.add_common_options(parser)
-parser.set_defaults(func=cmd_drys)
 
-sub = parser.add_subparsers(title='commands', metavar='')
+parser.add_argument('-v', '--version', action='version',
+                    version='%(prog)s version TODO')
+common.add_common_options(parser)
+parser.set_defaults(func=None)
 
 # Setup subcommand parsers
-add.setup_parser(sub)
-ls.setup_parser(sub)
+sub = parser.add_subparsers(title='commands', metavar='')
+add_parser  = add.setup_parser(sub)
+ls_parser   = ls.setup_parser(sub)
+put_parser  = put.setup_parser(sub)
 
-# sub.add_parser('rm',    help='remove files or directories')
-# sub.add_parser('open',  help='open a file')
-# sub.add_parser('find',  help='find a file or directory')
-# sub.add_parser('ln')
+# TODO figure out how to handle config loading to use aliases
+# Parse arguments before reading config. This allows us to process arguments
+# that can potentially terminate the program immediately (like '--help')
+args = parser.parse_args();
 
-# Some sub-commands like 'ls' call system commands, passing any extra arguments
-# to them. That is why we do not want an error when the user specifies arguments
-# that are not defined in the sub-command's parser. For other commands, we want
-# an error when the user specifies arguments that are unrecognized by the
-# parser, so we let each call parser.parse_args if needed.
-args = parser.parse_known_args()
+# Load default configuration
+if args:
+    common.load_config(args.config)
+else:
+    common.load_config()
+print(common.config['ls']['command'])
 
-args[0].func(parser, args[0])
-
+if args.func:
+    args.func(parser, args)

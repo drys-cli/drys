@@ -1,9 +1,9 @@
+import subprocess
+from .common import config
 
-def call(command):
+def run(command, *args, **kwargs):
     """
     Call an external command with the specified arguments, honoring the user's
     command overrides.
     """
-    import subprocess
-    # TODO for now, just call the default command
-    subprocess.call(command)
+    return subprocess.run(config[command], *args, **kwargs)

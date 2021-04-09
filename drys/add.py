@@ -5,9 +5,12 @@ import re
 
 # Local imports
 from . import common
+from .common import config, aliases
 
 def setup_parser(subparsers):
-    p = subparsers.add_parser('add', help='add files or directories to your drys repository')
+    p = subparsers.add_parser('add',
+        help='add files or directories to your drys repository'
+    )
     common.add_common_options(p)
 
     p.add_argument('files', nargs='+', type=common.existing_file,
@@ -29,6 +32,7 @@ def setup_parser(subparsers):
                            help='do not copy directories recursively')
 
     p.set_defaults(func=cmd)
+    return p
 
 def copy(src, dest):
     if os.path.isdir(src):
