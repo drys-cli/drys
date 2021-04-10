@@ -30,9 +30,9 @@ parser.set_defaults(func=None)
 
 # Setup subcommand parsers
 sub = parser.add_subparsers(title='commands', metavar='')
-add_parser  = add.setup_parser(sub)
-ls_parser   = ls.setup_parser(sub)
-put_parser  = put.setup_parser(sub)
+add.setup_parser(sub)
+ls.setup_parser(sub)
+put.setup_parser(sub)
 
 # TODO figure out how to handle config loading to use aliases
 # Parse arguments before reading config. This allows us to process arguments
@@ -44,7 +44,6 @@ if args:
     common.load_config(args.config)
 else:
     common.load_config()
-print(common.config['ls']['command'])
 
 if args.func:
     args.func(parser, args)

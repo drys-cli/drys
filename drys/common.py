@@ -12,7 +12,7 @@ default_config_paths = [
 
 aliases = {}
 
-config = configparser.ConfigParser()
+cfg = configparser.ConfigParser()
 
 def add_common_options(parser):
     """
@@ -32,8 +32,8 @@ def load_config(paths=[]):
     the configuration is only read from the standard paths as specified in `man
     drys-conf`. If no configuration file can be found
     """
-    global config, aliases
-    successful = config.read(default_config_paths + paths)
+    global cfg, aliases
+    successful = cfg.read(default_config_paths + paths)
 
     if not successful:              # No config file could be read
         print('Warning: No configuration file on the system could be read.',
@@ -46,7 +46,7 @@ def load_config(paths=[]):
                   end='\n\t', file=sys.stderr)
             print(*failed, sep='\n\t', file=sys.stderr)
             quit(1)
-    aliases = dict(config['alias'])
+    #aliases = dict(config.get('alias', fallback={}))
 
 def existing_file(path):
     """ Type check for ArgumentParser """

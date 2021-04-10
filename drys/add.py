@@ -5,7 +5,7 @@ import re
 
 # Local imports
 from . import common
-from .common import config, aliases
+from .common import cfg, aliases
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('add',
