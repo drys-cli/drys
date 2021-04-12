@@ -26,6 +26,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-v', '--version', action='version',
                     version='%(prog)s version TODO')
 common.add_common_options(parser)
+parser.add_argument('--debug', action='store_true',
+                    help='start python debugger')
 parser.set_defaults(func=None)
 
 # Setup subcommand parsers
@@ -38,6 +40,9 @@ put.setup_parser(sub)
 # Parse arguments before reading config. This allows us to process arguments
 # that can potentially terminate the program immediately (like '--help')
 args = parser.parse_args();
+
+if args.debug:
+    import pudb; pu.db
 
 # Load default configuration
 if args:

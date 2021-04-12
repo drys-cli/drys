@@ -1,11 +1,10 @@
 import argparse
 import sys, os
-import shutil
 import re
 
 # Local imports
 from . import common
-from .common import cfg, aliases
+from .common import cfg, aliases, copy, move
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('add',
@@ -34,16 +33,6 @@ def setup_parser(subparsers):
     p.set_defaults(func=cmd)
     return p
 
-def copy(src, dest):
-    if os.path.isdir(src):
-        shutil.copytree(src, dest + '/' + os.path.basename(src),
-                        dirs_exist_ok=True, copy_function=copy)
-    else:
-        shutil.copy(src, dest) # TODO Support multiple repos
-
-def move(src, dest):
-    shutil.move(src, dest) # TODO Support multiple repos
-
 def cmd(parser, args):
     args = parser.parse_args() # Unrecognized arguments will exit with an error
 
@@ -61,11 +50,10 @@ def cmd(parser, args):
         # Copy or move the files
         if not args.move:               # copy
             for file in args.files:
-                copy(file, args.repo)
+                copy(file, args.repo + '/' + os.path.basename(file))
         else:                           # move
             for file in args.files:
                 move(file, args.repo)
-
     except Exception as e:
-        print('error:', re.sub(r'^\[Errno [0-9]*\] ', '', str(e)), file=sys.stderr)
+        common.print_error_from_exception(e)
 

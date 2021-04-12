@@ -1,4 +1,5 @@
-import sys, os
+import sys, os, shutil
+import re
 import argparse
 import configparser
 
@@ -13,6 +14,25 @@ default_config_paths = [
 aliases = {}
 
 cfg = configparser.ConfigParser()
+
+def print_error_from_exception(e):
+    print('error:', re.sub(r'^\[Errno [0-9]*\] ', '', str(e)), file=sys.stderr)
+
+def copy(src, dest):
+    try:
+        if os.path.isdir(src):
+            return shutil.copytree(src, dest,
+                            dirs_exist_ok=True, copy_function=copy)
+        else:
+            return shutil.copy(src, dest)
+    except Exception as e:
+        print_error_from_exception(e)
+
+def move(src, dest):
+    try:
+        return shutil.move(src, dest)
+    except Exception as e:
+        print_error_from_exception(e)
 
 def add_common_options(parser):
     """
