@@ -5,4 +5,7 @@ prefer_visual = false
 ask_repo_confirm = true
 
 [ls]
-command = 'lsd'
+command = lsd
+
+[repo]
+test = a

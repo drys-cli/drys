@@ -5,10 +5,15 @@ import configparser
 
 repos = [ os.path.expanduser('~/.local/share/drys/repo') ]
 
+ENV_XDG_CONFIG_HOME = os.environ.get('XDG_CONFIG_HOME')
+ENV_DRYS_CONFIG     = os.environ.get('DRYS_CONFIG')
+
 default_config_paths = [
     '/usr/share/drys/config',
     os.path.expanduser('~/.config/drys/config'),
-    os.path.expanduser('~/.drysconfig')
+    os.path.expanduser('~/.drysconfig'),
+    ENV_XDG_CONFIG_HOME + '/drys/config' if ENV_XDG_CONFIG_HOME else '',
+    ENV_DRYS_CONFIG if ENV_DRYS_CONFIG else ''
 ]
 
 aliases = {}
@@ -45,28 +50,59 @@ def add_common_options(parser):
     parser.add_argument('-c', '--config', metavar='FILE',
                         action='append', default=[],
                         help='Use the specified configuration file')
+    parser.add_argument('-R', '--repo', action='append', default=[],
+                        help='use the repository REPO (can be used multiple times)')
+    # A special None value indicates that all previous config paths should be
+    # ignored
+    parser.add_argument('--reconfigure', dest='config',
+                        action='append_const', const=None,
+                        help='Discard any configuration loaded before reading this option')
 
-def load_config(paths=[]):
+def load_config(paths=[], read_defaults=True):
     """
-    Load configuration from the specified `paths`. If no paths are specified
-    the configuration is only read from the standard paths as specified in `man
-    drys-conf`. If no configuration file can be found
+    Load configuration from `default_config_paths` (if `read_defaults==True`)
+    and from `paths` in that order, together we shall call them `all_paths`. If
+    there are files from `paths` that can't be read, the program exits with an
+    error. Otherwise if `paths` is empty and none of the `default_config_paths`
+    can be read, a warning is shown. In all other cases the function finishes
+    succesfully, even if some of the files from `default_config_paths` can't be
+    read.
+
+    Note: A None item inside `paths` indicates that the '--reconfigure' option
+    was specified. This will cause all paths up to that index to be ignored.
     """
     global cfg, aliases
-    successful = cfg.read(default_config_paths + paths)
 
-    if not successful:              # No config file could be read
+    paths = paths.copy()
+    reconfigured_at_least_once = False
+    # Each ocurrence of None is an ocurrence of the '--reconfigure' option
+    # Delete everything up to (and including) the last ocurrence of None
+    for i in reversed(range(len(paths))):
+        if paths[i] == None:
+            del paths[0:i+1]
+            reconfigured_at_least_once = True
+            break
+
+    all_paths = []
+    if read_defaults and not reconfigured_at_least_once:
+        all_paths =  default_config_paths
+    all_paths += paths
+
+    # No paths are left to read config from
+    if not all_paths:
+        return
+    successful = cfg.read(all_paths)
+
+    failed_from_paths = set(paths) - set(successful)
+    if failed_from_paths:               # Some of the `paths` could not be read
+        print("ERROR: The following configuration files could not be read:",
+              end='\n\t', file=sys.stderr)
+        print(*failed_from_paths, sep='\n\t', file=sys.stderr)
+        quit(1)
+    elif not successful:                # No config file could be read
         print('Warning: No configuration file on the system could be read.',
               'Please check if they exist or if their permissions are wrong.',
               file=sys.stderr, sep='\n')
-    else:
-        failed = set(paths) - set(successful)
-        if failed:                  # None of the specified paths could be read
-            print("ERROR: The following configuration files could not be read:",
-                  end='\n\t', file=sys.stderr)
-            print(*failed, sep='\n\t', file=sys.stderr)
-            quit(1)
-    #aliases = dict(config.get('alias', fallback={}))
 
 def existing_file(path):
     """ Type check for ArgumentParser """

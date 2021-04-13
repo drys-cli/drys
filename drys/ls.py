@@ -9,10 +9,12 @@ def setup_parser(subparsers):
     common.add_common_options(p)
     p.add_argument('-s', '--short', action='store_true',
                    help="don't display headers and decorations")
-    p.add_argument('-r', '--recursive', action='append', default=[],
-                   help='repository to be searched')
-    p.add_argument('-R', '--repo', action='append', default=[],
-                   help='repository to be searched')
+    recursion = p.add_mutually_exclusive_group()
+    recursion.add_argument('-r', '--recursive', action='store_true',
+                           help='recurse into subdirectories')
+    recursion.add_argument('--norecursive', dest='recursive',
+                           action='store_false',
+                           help='do not recurse into subdirectories [default]')
     p.add_argument('templates', nargs='*',
                    help='which templates to list')
     p.add_argument('-F', '--full', action='store_true',

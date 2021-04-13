@@ -20,12 +20,10 @@ def setup_parser(subparsers):
                    help='add the files to an existing template')
     p.add_argument('-m', '--move', action='store_true',
                    help='move the file(s) instead of copying')
-    p.add_argument('-R', '--repo',
-                   help='the repository the file(s) will be saved to')
 
     # Recursion options
     recursion = p.add_mutually_exclusive_group()
-    recursion.add_argument('--recursive', action='store_true',
+    recursion.add_argument('-r', '--recursive', action='store_true',
                            help='copy directories recursively [default]')
     recursion.add_argument('--norecursive', dest='recursive', action='store_false',
                            help='do not copy directories recursively')
@@ -41,19 +39,20 @@ def cmd(parser, args):
         args.repo = common.repos[0]
 
     try:
-        # Create the destination path if it doesn't exist
-        if not os.path.exists(args.repo):
-            os.makedirs(args.repo, mode=0o777)
-            print('The repo directory \'' + args.repo +
-                  '\' does not exist. It was created for you.')
+        for repo in args.repo:
+            # Create the destination path if it doesn't exist
+            if not os.path.exists(repo):
+                os.mkdir(repo, mode=0o777)
+                print("The repo directory '" + repo +
+                      "' did not exist. It was created for you.")
 
-        # Copy or move the files
-        if not args.move:               # copy
-            for file in args.files:
-                copy(file, args.repo + '/' + os.path.basename(file))
-        else:                           # move
-            for file in args.files:
-                move(file, args.repo)
+            # Copy or move the files
+            if not args.move:               # copy
+                for file in args.files:
+                    copy(file, repo + '/' + os.path.basename(file))
+            else:                           # move
+                for file in args.files:
+                    move(file, repo)
     except Exception as e:
         common.print_error_from_exception(e)
 

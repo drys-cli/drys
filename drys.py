@@ -10,7 +10,6 @@ from drys import put
 
 import argparse, sys
 
-# drys add <file>
 # drys rm <file> --wipe
 # drys cd <file|dir>
 # drys where <file|dir>
@@ -44,11 +43,8 @@ args = parser.parse_args();
 if args.debug:
     import pudb; pu.db
 
-# Load default configuration
-if args:
-    common.load_config(args.config)
-else:
-    common.load_config()
+# Load configuration, both default and from arguments
+common.load_config(args.config if args.config else [])
 
 if args.func:
     args.func(parser, args)
