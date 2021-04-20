@@ -1,0 +1,41 @@
+# Maintainer: Haris Gušić <harisgusic.dev@gmail.com>
+pkgname=drys
+pkgver=0.0.0
+pkgrel=1
+epoch=
+pkgdesc="Don't Repeat Yourself. Seriously."
+arch=('x86_64')
+license=('unknown')
+groups=()
+depends=()
+makedepends=()
+checkdepends=()
+optdepends=()
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=()
+install=
+changelog=
+source=("git+https://github.com/HarisGusic/$pkgname")
+noextract=()
+md5sums=('SKIP')
+validpgpkeys=()
+
+prepare() {
+	:
+}
+
+build() {
+	:
+}
+
+check() {
+	:
+}
+
+package() {
+	cd "$srcdir/drys"
+	make install PREFIX=/usr DESTDIR="$pkgdir"
+}

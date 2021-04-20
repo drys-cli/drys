@@ -1,3 +1,5 @@
 __pycache__/
 _out/
+/build/
 _build/
+drys.egg-info

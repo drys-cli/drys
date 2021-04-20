@@ -22,7 +22,6 @@ function complete_put
     argparse -i 'n/condition=' -- $argv
     set -l conditions '__fish_seen_subcommand_from put' 
     [ -n "$_flag_n" ] && set -l conditions "$conditions && $_flag_n"
-    notify-send 'test' "$conditions"
     complete -c drys -n "$conditions" $argv
 end
 
