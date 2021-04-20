@@ -9,12 +9,20 @@ def setup_parser(subparsers):
     common.add_common_options(p)
     p.add_argument('-s', '--short', action='store_true',
                    help="don't display headers and decorations")
+
+    command = p.add_mutually_exclusive_group()
+    command.add_argument('-d', '--default', action='store_true',
+                   help='use default ls command')
+    command.add_argument('-e', '--command', metavar='CMD',
+                   help='ls command to use')
+
     recursion = p.add_mutually_exclusive_group()
     recursion.add_argument('-r', '--recursive', action='store_true',
                            help='recurse into subdirectories')
     recursion.add_argument('--norecursive', dest='recursive',
                            action='store_false',
                            help='do not recurse into subdirectories [default]')
+
     p.add_argument('templates', nargs='*',
                    help='which templates to list')
     p.add_argument('-F', '--full', action='store_true',
@@ -82,8 +90,11 @@ def cmd(parser, args):
         # Any missing file extensions are filled in here
         file_args = fill_in_gaps(file_args)
         # TODO Check for excluded files
-        p = ext.run(['ls', '-1'] + opt_args + file_args,
+        cmd_args = ['ls'] + opt_args + file_args
+        override = 'ls' if args.default else args.command
+        p = ext.run(cmd_args, override=override,
                     encoding='utf-8', stdout=sp.PIPE, stderr=sp.PIPE)
+
         # Print what the command spit out
         if p.returncode != 0:
             if p.stdout: print(p.stdout)

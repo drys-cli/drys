@@ -23,8 +23,5 @@ fi
     [ "$output" = "$(echo file1.txt)" ]
 }
 
-@test "empty test" {
-}
-
 export ___WAS_RUN_BEFORE=true
 
