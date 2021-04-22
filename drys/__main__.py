@@ -18,33 +18,34 @@ import argparse, sys
 # drys put, ., here
 # drys repo
 
-argv = sys.argv
+def main():
+    argv = sys.argv
 
-parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
 
-parser.add_argument('-v', '--version', action='version',
-                    version='%(prog)s version TODO')
-common.add_common_options(parser)
-parser.add_argument('--debug', action='store_true',
-                    help='start python debugger')
-parser.set_defaults(func=None)
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s version TODO')
+    common.add_common_options(parser)
+    parser.add_argument('--debug', action='store_true',
+                        help='start python debugger')
+    parser.set_defaults(func=None)
 
-# Setup subcommand parsers
-sub = parser.add_subparsers(title='commands', metavar='')
-add.setup_parser(sub)
-ls.setup_parser(sub)
-put.setup_parser(sub)
+    # Setup subcommand parsers
+    sub = parser.add_subparsers(title='commands', metavar='')
+    add.setup_parser(sub)
+    ls.setup_parser(sub)
+    put.setup_parser(sub)
 
-# TODO figure out how to handle config loading to use aliases
-# Parse arguments before reading config. This allows us to process arguments
-# that can potentially terminate the program immediately (like '--help')
-args = parser.parse_args();
+    # TODO figure out how to handle config loading to use aliases
+    # Parse arguments before reading config. This allows us to process arguments
+    # that can potentially terminate the program immediately (like '--help')
+    args = parser.parse_args();
 
-if args.debug:
-    import pudb; pu.db
+    if args.debug:
+        import pudb; pu.db
 
-# Load configuration, both default and from arguments
-common.load_config(args.config if args.config else [])
+    # Load configuration, both default and from arguments
+    common.load_config(args.config if args.config else [])
 
-if args.func:
-    args.func(parser, args)
+    if args.func:
+        args.func(parser, args)

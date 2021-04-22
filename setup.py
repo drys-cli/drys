@@ -17,7 +17,7 @@ setup(
     packages=['drys'],
     entry_points={
         'console_scripts': [
-            'drys=drys.__main__'
+            'drys=drys.__main__:main'
         ]
     },
 )
