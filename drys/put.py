@@ -8,6 +8,8 @@ from . import ext
 def setup_parser(subparsers):
     p = subparsers.add_parser('put',
                               help='put template(s) into the desired directory')
+    common.add_common_options(p)
+
     grp = p.add_mutually_exclusive_group()
     grp.add_argument('-o', '--output', metavar='OUT',
                      help='output file or directory')

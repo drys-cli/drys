@@ -7,6 +7,7 @@ import sys, os
 def setup_parser(subparsers):
     p = subparsers.add_parser('ls', help='list templates')
     common.add_common_options(p)
+
     p.add_argument('-s', '--short', action='store_true',
                    help="don't display headers and decorations")
 

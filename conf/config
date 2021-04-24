@@ -1,12 +1,8 @@
 [general]
 default_repo = ~/.local/share/drys/repo
-# Prefer the GUI text editor over the one in the terminal
-prefer_visual = false
 # Ask for confirmation if the destination repo is ambiguous
 ask_repo_confirm = true
+editor = vim
 
 [ls]
 command = ls
-
-[repo]
-test = a

@@ -39,7 +39,8 @@ def move(src, dest):
     except Exception as e:
         print_error_from_exception(e)
 
-def add_common_options(parser):
+# TODO remove this method
+def add_common_options(parser, main_parser=False):
     """
     Add options that are common among various commands. By default, when a
     subcommand is called, all options that are defined for the main command are
@@ -47,7 +48,8 @@ def add_common_options(parser):
     function with each subcommand, the option can be specified after the
     subcommand name.
     """
-    parser.add_argument('-c', '--config', metavar='FILE',
+    config_dest = 'config' if main_parser else '_config'
+    parser.add_argument('-c', '--config', dest=config_dest, metavar='FILE',
                         action='append', default=[],
                         help='Use the specified configuration file')
     parser.add_argument('-R', '--repo', action='append', default=[],
@@ -108,6 +110,20 @@ def existing_file(path):
     """ Type check for ArgumentParser """
     if not os.path.exists(path):
         raise argparse.ArgumentTypeError(path + ' does not exist')
+    else:
+        return path
+
+def explicit_path(path):
+    """
+    If the path is relative, prepend './'. If the path is a directory, append a
+    '/'. In all other cases `path` is returned unmodified
+    """
+    if path and path != '.' and path[0] != '/' and path[0] != '~' \
+        and (path[0] != '.' or path[1] != '/'):
+        path = './' + path
+    if os.path.isdir(path):
+        # Append a '/' if it's not there already
+        return re.sub(r'([^/])$', r'\1/', path)
     else:
         return path
 
