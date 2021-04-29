@@ -8,7 +8,6 @@ from drys import common
 # drys cd <file|dir>
 # drys where <file|dir>
 # drys link <target file|dir> <symlink>     # alias ln
-# drys repo
 
 def main():
     argv = sys.argv
@@ -25,12 +24,14 @@ def main():
     # Setup subcommand parsers
     sub = parser.add_subparsers(title='commands', metavar='')
     from drys import add
-    from drys import ls
     from drys import put
+    from drys import ls
+    from drys import repo
     from drys import config
     add.setup_parser(sub)
-    ls.setup_parser(sub)
     put.setup_parser(sub)
+    ls.setup_parser(sub)
+    repo.setup_parser(sub)
     config.setup_parser(sub)
 
     # TODO figure out how to handle config loading to use aliases

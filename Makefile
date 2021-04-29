@@ -7,3 +7,6 @@ install:
 
 clean:
 	rm -rf build drys.egg-info
+	rm -rf */__pycache__
+	cd tests; ${MAKE} clean
+	cd pkg;   ${MAKE} clean

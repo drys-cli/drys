@@ -99,11 +99,11 @@ def cmd(parser, args):
         # Print what the command spit out
         if p.returncode != 0:
             if p.stdout: print(p.stdout)
-            if p.stderr: print(p.stderr)
+            if p.stderr: print(p.stderr, file=sys.stderr)
             return
         if not args.short:
             message = 'Repository @ ' + repo
             print(message); print('=' * len(message))
         if p.stdout: print(p.stdout[:-1])
-        if p.stderr: print(p.stderr)
+        if p.stderr: print(p.stderr, sys.stderr)
     os.chdir(original_cwd)
