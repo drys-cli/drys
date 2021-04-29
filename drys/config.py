@@ -1,6 +1,7 @@
 import argparse
 import configparser
 import os, sys
+import shutil as sh
 
 from . import common
 from .common import cfg
@@ -69,8 +70,7 @@ def user_init():
         answer = input()
         if answer and answer.lower() != 'y':
             exit(1)
-    import shutil
-    shutil.copy('/usr/share/drys/config', dest)
+    sh.copy('/usr/share/drys/config', dest)
 
 def cmd(parser, args):
     files = determine_config_files_from_args(args)
@@ -97,6 +97,7 @@ def cmd(parser, args):
             p = sp.run(call_args)
         except Exception as e:
             common.print_error_from_exception(e)
+            exit(1)
         exit(p.returncode)
     elif args.option:                       # A config option was specified
         # Extract and separate section name and option name

@@ -21,6 +21,12 @@ def setup_parser(subparsers):
     p.add_argument('-m', '--move', action='store_true',
                    help='move the file(s) instead of copying')
 
+    out = p.add_mutually_exclusive_group()
+    out.add_argument('-o', '--output', metavar='OUT',
+                     help='output file or directory relative to repo')
+    out.add_argument('-d', '--directory', metavar='DIR',
+                     help='directory relative to repo where the file(s) should be placed')
+
     # Recursion options
     recursion = p.add_mutually_exclusive_group()
     recursion.add_argument('-r', '--recursive', action='store_true',
@@ -36,23 +42,27 @@ def cmd(parser, args):
 
     # Determine the repo
     if not args.repo:
-        args.repo = common.repos[0]
+        args.repo = common.repos
 
     try:
-        for repo in args.repo:
-            # Create the destination path if it doesn't exist
-            if not os.path.exists(repo):
-                os.mkdir(repo, mode=0o777)
-                print("The repo directory '" + repo +
-                      "' did not exist. It was created for you.")
-
-            # Copy or move the files
-            if not args.move:               # copy
-                for file in args.files:
-                    copy(file, repo + '/' + os.path.basename(file))
-            else:                           # move
-                for file in args.files:
-                    move(file, repo)
+        # Copy or move the files
+        for file in args.files:
+            basename = os.path.basename(file)
+            dests = [args.directory + '/' + basename if args.directory else None,
+                     args.output, basename]
+            # Get first that is not None
+            dest = next(path for path in dests if path != None)
+            for repo in args.repo:
+                # Create the destination path if it doesn't exist
+                if not os.path.exists(repo):
+                    os.mkdir(repo, mode=0o777)
+                    print("The repo directory '" + repo +
+                          "' did not exist. It was created for you.")
+                if not args.move:                                       # copy
+                    copy(file, repo + '/' + dest)
+                else:                                                   # move
+                    move(file, repo + '/' + dest)
     except Exception as e:
         common.print_error_from_exception(e)
+        exit(1)
 

@@ -1,16 +1,14 @@
 #!/usr/bin/env bats
-# vim: ft=sh sw=4
 
-[ -z "$EXE" ] && EXE=drys
+. common.bats.in
 
-print() { echo -e "$*" >&2; }
 compare_output_expected() {
     echo -e "Unexpected output." \
         "\n### Output:\n$output\n### Expected:\n$expected"
 }
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then
-    print "\033[1;33mTest 'config'\033[0m"
+    begin_test 'config'
     mkdir -p _out/;
 fi
 
@@ -50,9 +48,9 @@ fi
     expected="$(
         echo ../conf/config:
         section=
-        while read line; do
+        while read -r line; do
             if echo "$line" | grep -q '^\[.*\]$'; then
-                section="$(sed 's_\[\(.*\)\]_\1_' <<< "$line")"
+                section="$(sed 's_^\[\(.*\)\]_\1_' <<< "$line")"
             elif [ -n "$(sed -e '/^#/d' -e '/^$/d' <<< "$line")" ]; then
                 echo "    $section.$line"
             fi
@@ -65,3 +63,5 @@ fi
 }
 
 export ___WAS_RUN_BEFORE=true
+
+# vim: ft=sh sw=4

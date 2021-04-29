@@ -1,0 +1,19 @@
+
+[ -z "$EXE" ] && EXE=drys
+shopt -s globstar
+
+print() { echo -e "$*" >&2; }
+begin_test() {
+    print "\033[1;33mTest '$1'\033[0m"
+}
+
+# Compare the contents of the directory at $1 with the files specified in the
+# remaining arguments. Perform a diff between each specified file with its
+# counterpart in the directory at $2.
+compare_trees() {
+    original="$(cat "$1"/** 2>/dev/null || true)"
+    repo="$(cat "${@:2}" 2>/dev/null || true)"
+    run diff <(echo "$original") <(echo "$repo")
+    echo Diff:; echo "$output" | awk '{print "\t",$0}'
+    [ "$status" == 0 ]
+}

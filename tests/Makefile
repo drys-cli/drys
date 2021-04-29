@@ -1,13 +1,14 @@
 BATS = bats --formatter pretty --timing
-EXE := ../drys.py
+EXE := $(realpath ../drys.py)
 
 export EXE
 
 tests:
 	@${BATS} test_help.bats
-	@${BATS} test_add.bats
-	@${BATS} test_ls.bats
 	@${BATS} test_config.bats
+	@${BATS} test_ls.bats
+	@${BATS} test_add.bats
+	@${BATS} test_put.bats
 
 clean:
 	rm -rf _out/

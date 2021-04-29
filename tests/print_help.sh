@@ -3,9 +3,9 @@
 [ -z "$EXE" ] && EXE=drys
 
 print_help() {
-    mid="┃ Command: $EXE $@ ┃"
-    top="$(echo $mid | sed 's_._━_g' | sed 's_.\(.*\)._┏\1┓_')"
-    bot="$(echo $mid | sed 's_._━_g' | sed 's_.\(.*\)._┗\1┛_')"
+    mid="┃ Command: $EXE $* ┃"
+    top="$(echo "$mid" | sed 's_._━_g' | sed 's_.\(.*\)._┏\1┓_')"
+    bot="$(echo "$mid" | sed 's_._━_g' | sed 's_.\(.*\)._┗\1┛_')"
 
     echo "$top"
     echo "$mid"

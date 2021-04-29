@@ -23,21 +23,26 @@ cfg = configparser.ConfigParser()
 def print_error_from_exception(e):
     print('error:', re.sub(r'^\[Errno [0-9]*\] ', '', str(e)), file=sys.stderr)
 
-def copy(src, dest):
+def copy(src, dest='.'):
+    dirname = os.path.dirname(dest)
+    if dirname and not os.path.exists(dirname):
+        os.makedirs(dirname, exist_ok=True)
     try:
         if os.path.isdir(src):
             return shutil.copytree(src, dest,
-                            dirs_exist_ok=True, copy_function=copy)
+                            dirs_exist_ok=True, copy_function=shutil.copy)
         else:
             return shutil.copy(src, dest)
     except Exception as e:
         print_error_from_exception(e)
+        exit(1)
 
 def move(src, dest):
     try:
         return shutil.move(src, dest)
     except Exception as e:
         print_error_from_exception(e)
+        exit(1)
 
 # TODO remove this method
 def add_common_options(parser, main_parser=False):
@@ -113,6 +118,7 @@ def existing_file(path):
     else:
         return path
 
+# TODO try to remember where I wanted to use this?
 def explicit_path(path):
     """
     If the path is relative, prepend './'. If the path is a directory, append a

@@ -10,10 +10,10 @@ def setup_parser(subparsers):
                               help='put template(s) into the desired directory')
     common.add_common_options(p)
 
-    grp = p.add_mutually_exclusive_group()
-    grp.add_argument('-o', '--output', metavar='OUT',
+    out = p.add_mutually_exclusive_group()
+    out.add_argument('-o', '--output', metavar='OUT',
                      help='output file or directory')
-    grp.add_argument('-d', '--directory', metavar='DIR',
+    out.add_argument('-d', '--directory', metavar='DIR',
                      help='directory where the file(s) should be placed')
     p.add_argument('templates', nargs='+', help='which templates to put')
     p.set_defaults(func=cmd)
@@ -33,8 +33,6 @@ def _error_exists_but_not_dir(path):
 def cmd(parser, args):
     repos = args.repo if args.repo else common.repos
 
-    dest = '.'          # Current dir by default
-
     if args.output:
         # --output option works only for single files or directories
         if len(args.templates) != 1:
@@ -50,8 +48,6 @@ def cmd(parser, args):
             if args.output:                             # --output was specified
                 copy(repo + '/' + src, args.output)
             elif args.directory:                    # --directory was specified
-                if not os.path.exists(args.directory):
-                    os.mkdir(args.directory)
-                copy(repo + '/' + src, args.directory)
-            else:
-                copy(repo + '/' + src, '.')
+                copy(repo + '/' + src, args.directory + '/' + os.path.basename(src))
+            else:                                       # neither were specified
+                copy(repo + '/' + src, os.path.basename(src))

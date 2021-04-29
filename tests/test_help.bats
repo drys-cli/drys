@@ -1,10 +1,9 @@
 #!/usr/bin/env bats
 
-[ -z "$EXE" ] && EXE=drys
-print() { echo -e "$*" >&2; }
+. common.bats.in
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then
-    print "\033[1;33mTest 'help'\033[0m"
+    begin_test 'help'
 fi
 
 @test "drys {each_command...} --help" {
@@ -12,3 +11,5 @@ fi
 }
 
 export ___WAS_RUN_BEFORE=true
+
+# vim: ft=sh sw=4
