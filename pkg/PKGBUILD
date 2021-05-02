@@ -18,7 +18,7 @@ backup=()
 options=()
 install=
 changelog=
-source=("git+https://github.com/HarisGusic/$pkgname")
+source=("git+https://github.com/drys-cli/$pkgname")
 noextract=()
 md5sums=('SKIP')
 validpgpkeys=()
@@ -36,6 +36,6 @@ check() {
 }
 
 package() {
-	cd "$srcdir/drys"
+	cd "$srcdir/$pkgname"
 	make install PREFIX=/usr DESTDIR="$pkgdir"
 }

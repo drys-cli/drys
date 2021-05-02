@@ -20,7 +20,8 @@ def setup_parser(subparsers):
 
 def _error_output_multiple_templates():
     print('error: ' + sys.argv[0] +
-          ': option -o/--output is allowed only with a single template',
+          ''': option -o/--output is allowed with multiple templates
+          only if all of them are directories''',
           file=sys.stderr)
     quit(1)
 
@@ -34,9 +35,13 @@ def cmd(parser, args):
     repos = args.repo if args.repo else common.repos
 
     if args.output:
-        # --output option works only for single files or directories
+        # --output option doesn't make sense for multiple files
+        # (multiple directories are OK)
         if len(args.templates) != 1:
-            _error_output_multiple_templates()
+            for file in args.templates:
+                if os.path.isfile(file):
+                    _error_output_multiple_templates()
+                    return
 
     if args.directory:
         # The path exists and is not a directory

@@ -3,7 +3,7 @@ EXE := $(realpath ../drys.py)
 
 export EXE
 
-tests:
+test:
 	@${BATS} test_help.bats
 	@${BATS} test_config.bats
 	@${BATS} test_ls.bats

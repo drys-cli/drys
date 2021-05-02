@@ -55,7 +55,7 @@ fi
     prepare _out/add_multifile/
 
     $drys_add _out/files/file1.txt _out/files/file2.txt
-    compare_trees '_out/repo' _out/files/file{1,2}.txt
+    compare_trees "$REPO" _out/files/file{1,2}.txt
 }
 
 # TODO both -o and -d error
