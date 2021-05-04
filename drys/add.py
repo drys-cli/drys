@@ -38,11 +38,8 @@ def setup_parser(subparsers):
     return p
 
 def cmd(parser, args):
-    args = parser.parse_args() # Unrecognized arguments will exit with an error
-
-    # Determine the repo
-    if not args.repo:
-        args.repo = common.repos
+    repos = args.repo if args.repo else common.default_repos
+    repos = [ common.resolve_repo(r) for r in repos ]
 
     try:
         # Copy or move the files
@@ -52,10 +49,10 @@ def cmd(parser, args):
                      args.output, basename]
             # Get first that is not None
             dest = next(path for path in dests if path != None)
-            for repo in args.repo:
+            for repo in repos:
                 # Create the destination path if it doesn't exist
                 if not os.path.exists(repo):
-                    os.mkdir(repo, mode=0o777)
+                    os.makedirs(repo, mode=0o777)
                     print("The repo directory '" + repo +
                           "' did not exist. It was created for you.")
                 if not args.move:                                       # copy

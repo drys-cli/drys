@@ -32,7 +32,8 @@ def _error_exists_but_not_dir(path):
     quit(1)
 
 def cmd(parser, args):
-    repos = args.repo if args.repo else common.repos
+    repos = args.repo if args.repo else common.default_repos
+    repos = [ common.resolve_repo(r) for r in repos ]
 
     if args.output:
         # --output option doesn't make sense for multiple files
@@ -48,11 +49,20 @@ def cmd(parser, args):
         if os.path.exists(args.directory) and not os.path.isdir(args.directory):
             _error_exists_but_not_dir(args.directory)
 
-    for repo in repos:
-        for src in args.templates:
-            if args.output:                             # --output was specified
-                copy(repo + '/' + src, args.output)
-            elif args.directory:                    # --directory was specified
-                copy(repo + '/' + src, args.directory + '/' + os.path.basename(src))
-            else:                                       # neither were specified
-                copy(repo + '/' + src, os.path.basename(src))
+    for src in args.templates:
+        exists = False
+        for repo in repos:
+            src_file = repo + '/' + src
+            dest_candidates = [
+                args.output,                                    # --output
+                args.directory + '/' + os.path.basename(src)    # --directory
+                if args.directory else None,
+                os.path.basename(src),                          # neither
+            ]
+            result = copy(src_file, next(x for x in dest_candidates if x), True)
+            if not exists and result:
+                exists = True
+        if not exists:
+            print('drys: error: the following template was not found in the'
+                  'available repositories:', src, file=sys.stderr)
+            exit(1)

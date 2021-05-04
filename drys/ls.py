@@ -78,7 +78,7 @@ def fill_in_gaps(incomplete_paths):
 def cmd(parser, args):
     import subprocess as sp
     # The repos that will be considered
-    repos = args.repo if args.repo else common.repos
+    repos = args.repo if args.repo else common.default_repos
     ls_args = args.templates + args.ls_arguments
 
     original_cwd = os.getcwd()

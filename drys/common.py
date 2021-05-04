@@ -3,18 +3,26 @@ import re
 import argparse
 import configparser
 
-repos = [ os.path.expanduser('~/.local/share/drys/repo') ]
+from . import __prefix__
+
+default_repos = []
 
 ENV_XDG_CONFIG_HOME = os.environ.get('XDG_CONFIG_HOME')
 ENV_DRYS_CONFIG     = os.environ.get('DRYS_CONFIG')
 
-default_config_paths = [
-    '/usr/share/drys/config',
+# All possible user configuration files in their lookup order
+user_config_paths = [
     os.path.expanduser('~/.config/drys/config'),
     os.path.expanduser('~/.drysconfig'),
     ENV_XDG_CONFIG_HOME + '/drys/config' if ENV_XDG_CONFIG_HOME else '',
     ENV_DRYS_CONFIG if ENV_DRYS_CONFIG else ''
 ]
+
+def get_user_config_path():
+    lst = [ user_config_paths[i] for i in [3,2,0,1] ]
+    return next(path for path in lst if path)
+
+default_config_paths = [__prefix__ + '/share/drys/config'] + user_config_paths
 
 aliases = {}
 
@@ -23,7 +31,7 @@ cfg = configparser.ConfigParser()
 def print_error_from_exception(e):
     print('error:', re.sub(r'^\[Errno [0-9]*\] ', '', str(e)), file=sys.stderr)
 
-def copy(src, dest='.'):
+def copy(src, dest='.', ignore_nonexistent=False):
     dirname = os.path.dirname(dest)
     if dirname and not os.path.exists(dirname):
         os.makedirs(dirname, exist_ok=True)
@@ -34,17 +42,29 @@ def copy(src, dest='.'):
         else:
             return shutil.copy(src, dest)
     except Exception as e:
-        print_error_from_exception(e)
-        exit(1)
+        if not ignore_nonexistent:
+            print_error_from_exception(e)
+            exit(1)
 
-def move(src, dest):
+def move(src, dest, ignore_nonexistent=False):
     try:
         return shutil.move(src, dest)
+    except Exception as e:
+        if not ignore_nonexistent:
+            print_error_from_exception(e)
+            exit(1)
+
+def remove(path):
+    try:
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
     except Exception as e:
         print_error_from_exception(e)
         exit(1)
 
-# TODO remove this method
+# TODO remove this method (why did I want to remove it??)
 def add_common_options(parser, main_parser=False):
     """
     Add options that are common among various commands. By default, when a
@@ -53,6 +73,7 @@ def add_common_options(parser, main_parser=False):
     function with each subcommand, the option can be specified after the
     subcommand name.
     """
+    # TODO remove this after a tryout period
     config_dest = 'config' if main_parser else '_config'
     parser.add_argument('-c', '--config', dest=config_dest, metavar='FILE',
                         action='append', default=[],
@@ -110,6 +131,10 @@ def load_config(paths=[], read_defaults=True):
         print('Warning: No configuration file on the system could be read.',
               'Please check if they exist or if their permissions are wrong.',
               file=sys.stderr, sep='\n')
+    else:                               # No problems
+        global default_repos
+        default_repos += cfg.get('general', 'default_repos', fallback='').split('\n')
+        default_repos = [ os.path.expanduser(repo) for repo in default_repos ]
 
 def existing_file(path):
     """ Type check for ArgumentParser """
@@ -133,5 +158,22 @@ def explicit_path(path):
     else:
         return path
 
+def resolve_repo(path):
+    """Resolve a pseudo-path to the absolute path of a repo."""
+    if not path:        return ''
+    # Path is absolute or explicitly relative (starts with . or ..)
+    if path[0] == '/' or path in ['.', '..'] or re.match(r'\.\.*/', path):
+        return path
+
+    # Otherwise try to find a repo whose name is `path` (TODO)
+
+    # If all else fails, try to find a repo whose basename is equal to `path`
+    print(default_repos)
+    for repo in default_repos:
+        if os.path.basename(repo) == path:
+            return repo
+    # The `path` is so wrong, nothing can be done with it
+    return path
+
 def add_repo(repo):
-    repos.append(repo)
+    default_repos.append(repo)

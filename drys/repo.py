@@ -15,7 +15,8 @@ def setup_parser(subparsers):
     p.set_defaults(func=cmd)
 
 def cmd(parser, args):
+    repos = args.repo if args.repo else common.default_repos
     if args.list:
-        for repo in common.repos:
+        for repo in repos:
             print(repo)
 

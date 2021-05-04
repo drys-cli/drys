@@ -1,7 +1,5 @@
 [general]
-default_repo = ~/.local/share/drys/repo
-# Ask for confirmation if the destination repo is ambiguous
-ask_repo_confirm = true
+default_repos = ~/.local/share/drys/repo
 editor = vim
 
 [ls]

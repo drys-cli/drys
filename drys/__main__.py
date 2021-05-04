@@ -2,12 +2,23 @@
 
 import drys
 
-import argparse, sys
+import argparse, sys, os
 from drys import common
-# drys rm <file> --wipe
-# drys cd <file|dir>
 # drys where <file|dir>
 # drys link <target file|dir> <symlink>     # alias ln
+
+def init_config():
+    existent_cfg = [path for path in common.user_config_paths
+                if os.path.exists(path)]
+    if existent_cfg:
+        # User config file already exists
+        print('drys: error: configuration already exists at '
+              + existent_cfg[0], file=sys.stderr)
+        exit(1)
+    else:
+        common.copy(drys.__prefix__ + '/share/drys/config',
+                    common.get_user_config_path())
+        exit(0)
 
 def main():
     argv = sys.argv
@@ -17,18 +28,22 @@ def main():
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s version TODO')
     common.add_common_options(parser, main_parser=True)
+    parser.add_argument('--init-config', action='store_true',
+                        help='initialize user configuration file')
     parser.add_argument('--debug', action='store_true',
-                        help='start python debugger')
+                        help='start in debugger mode')
     parser.set_defaults(func=None)
 
     # Setup subcommand parsers
     sub = parser.add_subparsers(title='commands', metavar='')
     from drys import add
+    from drys import rm
     from drys import put
     from drys import ls
     from drys import repo
     from drys import config
     add.setup_parser(sub)
+    rm.setup_parser(sub)
     put.setup_parser(sub)
     ls.setup_parser(sub)
     repo.setup_parser(sub)
@@ -42,9 +57,9 @@ def main():
     if args.debug:
         import pudb; pu.db
 
+    if args.init_config:
+        init_config()
 
-    config = args._config if args.func else []
-    if args.config: config += args.config
     # ┏━━━━━━┓
     # ┃ NOTE ┃
     # ┗━━━━━━┛
@@ -57,12 +72,10 @@ def main():
     #
     # This is a workaround I intend to remove once I figure out a proper way
     # around it
-    if not args.config:
-        for i in range(1, len(sys.argv)):
-            if sys.argv[i] and sys.argv[i][0] != '-':
-                break
-            if sys.argv[i] in ['--config', '-c'] and i+1 < len(sys.argv):
-                config += [ sys.argv[i+1] ]
+    config = []
+    for i in range(1, len(sys.argv)):
+        if sys.argv[i] in ['--config', '-c'] and i < len(sys.argv) - 1:
+            config.append(sys.argv[i+1])
 
     # Load configuration, both default and from arguments
     common.load_config(config)

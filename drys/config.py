@@ -5,6 +5,7 @@ import shutil as sh
 
 from . import common
 from .common import cfg
+from . import __prefix__
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('config', help='Get and set repository or global options')
@@ -41,7 +42,7 @@ def determine_config_files_from_args(args):
     if args.glob:
         files.append(os.path.expanduser('~/.config/drys/config'))
     if args.system:
-        files.append('/usr/share/drys/config') # TODO
+        files.append(__prefix__ + '/share/drys/config') # TODO
     return files
 
 def get_section_and_name(full_name):
@@ -70,7 +71,7 @@ def user_init():
         answer = input()
         if answer and answer.lower() != 'y':
             exit(1)
-    sh.copy('/usr/share/drys/config', dest)
+    sh.copy(__prefix__ + '/share/drys/config', dest)
 
 def cmd(parser, args):
     files = determine_config_files_from_args(args)

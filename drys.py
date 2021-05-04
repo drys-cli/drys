@@ -9,4 +9,6 @@ import sys, os
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from drys import __main__ as main
+sys.argv += ['--reconfigure', '--config', os.path.dirname(__file__) +
+             '/conf/config']
 main.main()
