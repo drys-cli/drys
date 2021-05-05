@@ -38,8 +38,8 @@ def setup_parser(subparsers):
     return p
 
 def cmd(parser, args):
-    repos = args.repo if args.repo else common.default_repos
-    repos = [ common.resolve_repo(r) for r in repos ]
+    repos = common.form_repo_list(args.repo, cmd='add')
+    repos = common.resolve_and_validate_repos(repos)
 
     try:
         # Copy or move the files

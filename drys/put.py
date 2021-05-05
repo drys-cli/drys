@@ -32,8 +32,8 @@ def _error_exists_but_not_dir(path):
     quit(1)
 
 def cmd(parser, args):
-    repos = args.repo if args.repo else common.default_repos
-    repos = [ common.resolve_repo(r) for r in repos ]
+    repos = common.form_repo_list(args.repo, cmd='put')
+    repos = common.resolve_and_validate_repos(repos)
 
     if args.output:
         # --output option doesn't make sense for multiple files

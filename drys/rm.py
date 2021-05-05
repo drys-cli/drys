@@ -11,7 +11,8 @@ def setup_parser(subparsers):
     p.set_defaults(func=cmd)
 
 def cmd(parser, args):
-    repos = args.repo if args.repo else common.default_repos
+    repos = common.form_repo_list(args.repo, cmd='rm')
+    repos = common.resolve_and_validate_repos(repos)
 
     for repo in repos:
         for file in args.files:

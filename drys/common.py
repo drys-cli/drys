@@ -133,8 +133,7 @@ def load_config(paths=[], read_defaults=True):
               file=sys.stderr, sep='\n')
     else:                               # No problems
         global default_repos
-        default_repos += cfg.get('general', 'default_repos', fallback='').split('\n')
-        default_repos = [ os.path.expanduser(repo) for repo in default_repos ]
+        default_repos = default_repos_from_config(cfg)
 
 def existing_file(path):
     """ Type check for ArgumentParser """
@@ -158,22 +157,71 @@ def explicit_path(path):
     else:
         return path
 
-def resolve_repo(path):
-    """Resolve a pseudo-path to the absolute path of a repo."""
-    if not path:        return ''
+def resolve_repo(repo_id, lookup_repos=None):
+    """
+    Resolve a repo id (path, partial path or name) to the absolute path of a
+    repo.
+    """
+    if not repo_id:
+        return ''
     # Path is absolute or explicitly relative (starts with . or ..)
-    if path[0] == '/' or path in ['.', '..'] or re.match(r'\.\.*/', path):
-        return path
+    if repo_id[0] == '/' or repo_id in ['.', '..'] or re.match(r'\.\.*/', repo_id):
+        return repo_id
 
-    # Otherwise try to find a repo whose name is `path` (TODO)
+    # Otherwise try to find a repo whose name is `repo_id`
+    if not lookup_repos:
+        global default_repos
+        lookup_repos = default_repos
+
+    for repo in lookup_repos:
+        if os.path.exists(repo) and fetch_name(repo) == repo_id:
+            return os.path.abspath(repo)
 
     # If all else fails, try to find a repo whose basename is equal to `path`
-    print(default_repos)
-    for repo in default_repos:
-        if os.path.basename(repo) == path:
+    for repo in lookup_repos:
+        if os.path.basename(repo) == repo_id:
             return repo
-    # The `path` is so wrong, nothing can be done with it
-    return path
 
-def add_repo(repo):
-    default_repos.append(repo)
+    # The `path` is so fabulously wrong, nothing can be done with it
+    return repo_id
+
+# TODO change this concept later
+def default_repos_from_config(config):
+    if not config:
+        return []
+    return [ os.path.expanduser(repo) for repo in
+            cfg.get('general', 'default_repos', fallback='').split('\n') ]
+
+def form_repo_list(repo_ids, cmd=None):
+    # TODO command-specific default repos
+    global default_repos
+    repos = repo_ids if repo_ids else default_repos
+    if '-' in repos:
+        repos += common.default_repos
+    return repos
+
+def fetch_name(repo_path):
+    import configparser
+    cfg = configparser.ConfigParser(default_section='general')
+    cfg.read(repo_path + '/.drys/repo')
+    name = cfg.get('general', 'name', fallback=None)
+    if name:
+        return name
+    else:
+        return os.path.basename(os.path.abspath(repo_path))
+
+def resolve_and_validate_repos(repo_ids):
+    resolved_repos = []         # this will be returned
+    any_repo_valid = False      # indicates if any repo_ids are valid
+    for repo in repo_ids:
+        if os.path.exists(r := resolve_repo(repo)):
+            any_repo_valid = True
+            resolved_repos.append(r)
+        else:
+            print("drys: warning: repository '{}' not valid".format(repo),
+                  file=sys.stderr)
+    if not any_repo_valid:
+        print('drys: error: no valid repositories', file=sys.stderr)
+        exit(1)
+
+    return resolved_repos

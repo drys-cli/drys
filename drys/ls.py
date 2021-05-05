@@ -1,7 +1,6 @@
 import argparse
 
 from . import common
-from . import ext
 import sys, os
 
 def setup_parser(subparsers):
@@ -76,16 +75,17 @@ def fill_in_gaps(incomplete_paths):
     return paths
 
 def cmd(parser, args):
+    from . import ext
     import subprocess as sp
     # The repos that will be considered
-    repos = args.repo if args.repo else common.default_repos
+    repos = common.form_repo_list(args.repo, cmd='ls')
+    repos = common.resolve_and_validate_repos(repos)
     ls_args = args.templates + args.ls_arguments
 
     original_cwd = os.getcwd()
     # TODO Make it so that ls is always displayed per-file, so that other file
     # info can be appended or prepended on each line
     for repo in repos:
-        # TODO should convert repos to absolute path maybe?
         os.chdir(repo)
         file_args, opt_args = separate_files_options(ls_args)
         # Any missing file extensions are filled in here
@@ -102,7 +102,7 @@ def cmd(parser, args):
             if p.stderr: print(p.stderr, file=sys.stderr)
             return
         if not args.short:
-            message = 'Repository @ ' + repo
+            message = common.fetch_name(repo) + ' @ ' + repo
             print(message); print('=' * len(message))
         if p.stdout: print(p.stdout[:-1])
         if p.stderr: print(p.stderr, sys.stderr)
