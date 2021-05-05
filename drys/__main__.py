@@ -29,7 +29,7 @@ def main():
                         version='%(prog)s version TODO')
     common.add_common_options(parser, main_parser=True)
     parser.add_argument('--init-config', action='store_true',
-                        help='initialize user configuration file')
+                        help='generate initial user configuration file')
     parser.add_argument('--debug', action='store_true',
                         help='start in debugger mode')
     parser.set_defaults(func=None)
