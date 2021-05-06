@@ -1,5 +1,6 @@
 """Functions and utilites used to properly call external commands."""
 from .common import cfg
+from . import common
 import subprocess as sp
 
 def parse_args(args):
@@ -26,5 +27,9 @@ def run(command, override=None, *args, **kwargs):
         cmd_string = cfg.get(command[0], 'command', fallback=command[0])
     parsed_args = parse_args(cmd_string)
     # Parse the command with the substitution in mind
-    return sp.run(parsed_args + command[1:],
-               *args, **kwargs)
+    try:
+        return sp.run(parsed_args + command[1:],
+                   *args, **kwargs)
+    except Exception as e:
+        common.print_error_from_exception(e)
+        exit(1)

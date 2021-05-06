@@ -7,6 +7,7 @@ test:
 	@${BATS} test_help.bats
 	@${BATS} test_config.bats
 	@${BATS} test_ls.bats
+	@${BATS} test_repo.bats
 	@${BATS} test_add.bats
 	@${BATS} test_put.bats
 

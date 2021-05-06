@@ -29,7 +29,7 @@ aliases = {}
 cfg = configparser.ConfigParser()
 
 def print_error_from_exception(e):
-    print('error:', re.sub(r'^\[Errno [0-9]*\] ', '', str(e)), file=sys.stderr)
+    print('drys: error:', re.sub(r'^\[Errno [0-9]*\] ', '', str(e)), file=sys.stderr)
 
 def copy(src, dest='.', ignore_nonexistent=False):
     dirname = os.path.dirname(dest)
@@ -195,9 +195,34 @@ def default_repos_from_config(config):
 def form_repo_list(repo_ids, cmd=None):
     # TODO command-specific default repos
     global default_repos
-    repos = repo_ids if repo_ids else default_repos
-    if '-' in repos:
-        repos += common.default_repos
+    repos = []
+
+    if repo_ids:                        # repos specified with -R/--repo option
+        include_def_repos = False
+        read_from_stdin = False
+        for repo in repo_ids:
+            if repo == '/':             # '/' is a special indicator
+                include_def_repos = True
+            elif '\n' in repo:         # multiline text, each line is a repo
+                repos += [ line for line in repo.split('\n') if line != '']
+            elif repo == '-':           # Repos will be taken from stdin as well
+                read_from_stdin = True
+            else:                       # Regular repo id, just add it
+                repos.append(repo)
+        if include_def_repos:           # Include default repos
+            repos += default_repos
+        if read_from_stdin:
+            try:
+                while True:             # Read repos until empty line or EOF
+                    line = input()
+                    if line == '':
+                        break
+                    repos.append(line)
+            except EOFError:
+                pass
+    else:                               # No repos were specified by -R/--repo
+        repos = default_repos
+
     return repos
 
 def fetch_name(repo_path):
