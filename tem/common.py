@@ -12,9 +12,9 @@ ENV_DRYS_CONFIG     = os.environ.get('DRYS_CONFIG')
 
 # All possible user configuration files in their lookup order
 user_config_paths = [
-    os.path.expanduser('~/.config/drys/config'),
-    os.path.expanduser('~/.drysconfig'),
-    ENV_XDG_CONFIG_HOME + '/drys/config' if ENV_XDG_CONFIG_HOME else '',
+    os.path.expanduser('~/.config/tem/config'),
+    os.path.expanduser('~/.temconfig'),
+    ENV_XDG_CONFIG_HOME + '/tem/config' if ENV_XDG_CONFIG_HOME else '',
     ENV_DRYS_CONFIG if ENV_DRYS_CONFIG else ''
 ]
 
@@ -22,14 +22,14 @@ def get_user_config_path():
     lst = [ user_config_paths[i] for i in [3,2,0,1] ]
     return next(path for path in lst if path)
 
-default_config_paths = [__prefix__ + '/share/drys/config'] + user_config_paths
+default_config_paths = [__prefix__ + '/share/tem/config'] + user_config_paths
 
 aliases = {}
 
 cfg = configparser.ConfigParser()
 
 def print_error_from_exception(e):
-    print('drys: error:', re.sub(r'^\[Errno [0-9]*\] ', '', str(e)), file=sys.stderr)
+    print('tem: error:', re.sub(r'^\[Errno [0-9]*\] ', '', str(e)), file=sys.stderr)
 
 def copy(src, dest='.', ignore_nonexistent=False):
     dirname = os.path.dirname(dest)
@@ -228,7 +228,7 @@ def form_repo_list(repo_ids, cmd=None):
 def fetch_name(repo_path):
     import configparser
     cfg = configparser.ConfigParser(default_section='general')
-    cfg.read(repo_path + '/.drys/repo')
+    cfg.read(repo_path + '/.tem/repo')
     name = cfg.get('general', 'name', fallback=None)
     if name:
         return name
@@ -243,10 +243,10 @@ def resolve_and_validate_repos(repo_ids):
             any_repo_valid = True
             resolved_repos.append(r)
         else:
-            print("drys: warning: repository '{}' not valid".format(repo),
+            print("tem: warning: repository '{}' not valid".format(repo),
                   file=sys.stderr)
     if not any_repo_valid:
-        print('drys: error: no valid repositories', file=sys.stderr)
+        print('tem: error: no valid repositories', file=sys.stderr)
         exit(1)
 
     return resolved_repos

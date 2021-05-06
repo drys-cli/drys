@@ -1,5 +1,5 @@
 BATS = bats --formatter pretty --timing
-EXE := $(realpath ../drys.py)
+EXE := $(realpath ../tem.py)
 
 export EXE
 

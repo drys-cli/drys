@@ -25,7 +25,7 @@ def setup_parser(subparsers):
     p.add_argument('-i', '--instance', action='store_true',
                    help='print config options that are active in the running instance')
     p.add_argument('--user-init', action='store_true',
-                   help='initialize config at ~/.config/drys')
+                   help='initialize config at ~/.config/tem')
 
     p.add_argument('option', nargs='?', help='configuration option to get or set')
     p.add_argument('value', nargs='*', help='value for the specified configuration option')
@@ -34,15 +34,15 @@ def setup_parser(subparsers):
 
 def determine_config_files_from_args(args):
     files = []
-    local_config = './.drys/config'
+    local_config = './.tem/config'
     if args.file:
         files += args.file
     if args.local or not (args.instance or args.glob or args.system or args.file):
         files.append(local_config)
     if args.glob:
-        files.append(os.path.expanduser('~/.config/drys/config'))
+        files.append(os.path.expanduser('~/.config/tem/config'))
     if args.system:
-        files.append(__prefix__ + '/share/drys/config') # TODO
+        files.append(__prefix__ + '/share/tem/config') # TODO
     return files
 
 def get_section_and_name(full_name):
@@ -65,13 +65,13 @@ def set_option_carefree(cfg, section, option, value):
         cfg[section][option] = value
 
 def user_init():
-    dest = os.path.expanduser('~/.config/drys/config')
+    dest = os.path.expanduser('~/.config/tem/config')
     if os.path.exists(dest):
         print("Warning: file '" + dest + "' already exists. Overwrite? [Y/n]")
         answer = input()
         if answer and answer.lower() != 'y':
             exit(1)
-    sh.copy(__prefix__ + '/share/drys/config', dest)
+    sh.copy(__prefix__ + '/share/tem/config', dest)
 
 def cmd(parser, args):
     files = determine_config_files_from_args(args)
@@ -91,7 +91,7 @@ def cmd(parser, args):
         call_args = ext.parse_args(editor) + files
         # Check if the executable exists
         if not sh.which(editor):
-            print("drys config: error: invalid editor: '" + call_args[0] + "'",
+            print("tem config: error: invalid editor: '" + call_args[0] + "'",
                   file=sys.stderr)
             exit(1)
         try:

@@ -1,23 +1,23 @@
 from setuptools import setup
 
-import drys
+import tem
 
 setup(
-    name="drys",
-    version=drys.__version__,
+    name="tem",
+    version=tem.__version__,
     description="Don't Repeat Yourself. Seriously.",
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/harisgusic/drys',
+    url='https://github.com/harisgusic/tem',
     author='Haris Gušić',
     author_email='harisgusic.dev@gmail.com',
     classifiers=[
         'Programming Language :: Python :: 3.9'
     ],
-    packages=['drys'],
+    packages=['tem'],
     entry_points={
         'console_scripts': [
-            'drys=drys.__main__:main'
+            'tem=tem.__main__:main'
         ]
     },
 )

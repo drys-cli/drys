@@ -7,7 +7,7 @@ prepare() {
     REPO="$1"
     mkdir -p "$REPO"
     rm -rf "$REPO"/*
-    drys_add="$EXE add -R $REPO"
+    tem_add="$EXE add -R $REPO"
 }
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then
@@ -17,44 +17,44 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
     ./prepare_files.sh files _out/files
 fi
 
-@test "drys add {FILE}" {
+@test "tem add {FILE}" {
     prepare _out/add_singlefile1/
 
-    $drys_add _out/files/file1.txt
+    $tem_add _out/files/file1.txt
     [ "$(cat $REPO/file1.txt)" = "$(cat _out/files/file1.txt)" ]
 }
 
-@test "drys add {FILE} [with -o xor -d]" {
+@test "tem add {FILE} [with -o xor -d]" {
     prepare _out/add_singlefile2/
 
-    $drys_add _out/files/file1.txt -o _file1.txt
+    $tem_add _out/files/file1.txt -o _file1.txt
     [ "$(cat $REPO/_file1.txt)" = "$(cat _out/files/file1.txt)" ]
 
-    $drys_add _out/files/file1.txt -d dir
+    $tem_add _out/files/file1.txt -d dir
     [ "$(cat $REPO/dir/file1.txt)" = "$(cat _out/files/file1.txt)" ]
 }
 
-@test "drys add {DIR}" {
+@test "tem add {DIR}" {
     prepare _out/add_singledir/
 
-    $drys_add _out/files
+    $tem_add _out/files
     compare_trees "$REPO/files" _out/files/**
 }
 
-@test "drys add {DIR} [with -o xor -d]" {
+@test "tem add {DIR} [with -o xor -d]" {
     prepare _out/add_singledir1/
 
-    $drys_add _out/files -o dir
+    $tem_add _out/files -o dir
     compare_trees "$REPO/dir" _out/files/**
 
-    $drys_add _out/files -d _dir
+    $tem_add _out/files -d _dir
     compare_trees "$REPO/_dir/files" _out/files/**
 }
 
-@test "drys add {FILE1,FILE2}" {
+@test "tem add {FILE1,FILE2}" {
     prepare _out/add_multifile/
 
-    $drys_add _out/files/file1.txt _out/files/file2.txt
+    $tem_add _out/files/file1.txt _out/files/file2.txt
     compare_trees "$REPO" _out/files/file{1,2}.txt
 }
 

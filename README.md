@@ -1,4 +1,5 @@
-# Don't Repeat Yourself. Seriously
+# Template and Environment Manager
+## DRY Ever Again!
 
 A command line utility that helps you to achieve that goal.
 

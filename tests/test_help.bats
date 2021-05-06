@@ -6,7 +6,7 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
     begin_test 'help'
 fi
 
-@test "drys {each_command...} --help" {
+@test "tem {each_command...} --help" {
     ./print_help.sh
 }
 

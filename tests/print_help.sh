@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-[ -z "$EXE" ] && EXE=drys
+[ -z "$EXE" ] && EXE=tem
 
 print_help() {
     mid="┃ Command: $EXE $* ┃"

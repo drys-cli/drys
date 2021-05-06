@@ -8,7 +8,7 @@ from .common import cfg, aliases, copy, move
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('add',
-        help='add files or directories to your drys repository'
+        help='add files or directories to your tem repository'
     )
     common.add_common_options(p)
 

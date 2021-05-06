@@ -9,12 +9,12 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
     ./prepare_files.sh files _out/repo
 fi
 
-@test "drys ls -R _out/repo -s" {
+@test "tem ls -R _out/repo -s" {
     run $EXE ls --reconfigure -R _out/repo -s
     [ "$output" = "$(ls _out/repo)" ]
 }
 
-@test "drys ls -R _out/repo -s file1" {
+@test "tem ls -R _out/repo -s file1" {
     run $EXE ls --reconfigure -R _out/repo -s file1
     [ "$output" = "file1.txt" ]
 }

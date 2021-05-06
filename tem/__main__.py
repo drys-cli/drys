@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 
-import drys
+import tem
 
 import argparse, sys, os
-from drys import common
-# drys where <file|dir>
-# drys link <target file|dir> <symlink>     # alias ln
+from tem import common
+# tem where <file|dir>
+# tem link <target file|dir> <symlink>     # alias ln
 
 def init_config():
     existent_cfg = [path for path in common.user_config_paths
                 if os.path.exists(path)]
     if existent_cfg:
         # User config file already exists
-        print('drys: error: configuration already exists at '
+        print('tem: error: configuration already exists at '
               + existent_cfg[0], file=sys.stderr)
         exit(1)
     else:
-        common.copy(drys.__prefix__ + '/share/drys/config',
+        common.copy(tem.__prefix__ + '/share/tem/config',
                     common.get_user_config_path())
         exit(0)
 
@@ -36,12 +36,12 @@ def main():
 
     # Setup subcommand parsers
     sub = parser.add_subparsers(title='commands', metavar='')
-    from drys import add
-    from drys import rm
-    from drys import put
-    from drys import ls
-    from drys import repo
-    from drys import config
+    from tem import add
+    from tem import rm
+    from tem import put
+    from tem import ls
+    from tem import repo
+    from tem import config
     add.setup_parser(sub)
     rm.setup_parser(sub)
     put.setup_parser(sub)
@@ -67,7 +67,7 @@ def main():
     # subparsers, whenever a command is specified, the contents of args.config
     # are reset. So, args.config contains only those occurrences that are
     # specified AFTER a subcommand.
-    # For example after running: drys -c file1 ls -c file2 -c file3
+    # For example after running: tem -c file1 ls -c file2 -c file3
     #   args.config will be [ 'file2', 'file3' ]
     #
     # This is a workaround I intend to remove once I figure out a proper way

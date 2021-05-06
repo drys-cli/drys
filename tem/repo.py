@@ -59,7 +59,7 @@ def cmd(parser, args):
 
     for i, match in enumerate(matches):
         if not match:
-            print("drys: info: repository '{}' not found"
+            print("tem: info: repository '{}' not found"
                   .format(args.repositories[i]), file=sys.stderr)
     if not any_matching_repos:
         exit(1)

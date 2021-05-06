@@ -12,7 +12,7 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
     mkdir -p _out/;
 fi
 
-@test "drys config section.option value -f _out/empty.cfg [MULTIPLE CONFIG OPTIONS]" {
+@test "tem config section.option value -f _out/empty.cfg [MULTIPLE CONFIG OPTIONS]" {
     rm -f _out/empty.cfg
     $EXE config option1 value1 -f _out/empty.cfg
     $EXE config section2.option2 value2 -f _out/empty.cfg
@@ -31,7 +31,7 @@ fi
     [ "$output" = "$expected" ]
 }
 
-@test "drys config section.option 'multi word' value -f _out/empty.cfg" {
+@test "tem config section.option 'multi word' value -f _out/empty.cfg" {
     rm -f _out/empty.cfg
     $EXE config section.option 'multi word' value -f _out/empty.cfg
 
@@ -42,7 +42,7 @@ fi
     [ "$output" = "$expected" ]
 }
 
-@test "drys config -f ../conf/config" {
+@test "tem config -f ../conf/config" {
     run $EXE config -f ../conf/config
 
     expected="$(

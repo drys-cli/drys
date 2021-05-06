@@ -1,5 +1,5 @@
 [general]
-default_repos = ~/.local/share/drys/repo
+default_repos = ~/.local/share/tem/repo
 editor = vim
 
 [ls]

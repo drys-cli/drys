@@ -63,6 +63,6 @@ def cmd(parser, args):
             if not exists and result:
                 exists = True
         if not exists:
-            print('drys: error: the following template was not found in the'
+            print('tem: error: the following template was not found in the'
                   'available repositories:', src, file=sys.stderr)
             exit(1)
