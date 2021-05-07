@@ -13,7 +13,7 @@ help:
 html: prepare-man
 	@${SPHINXBUILD} -M $@ "${SOURCEDIR}" "${BUILDDIR}" ${SPHINXOPTS} ${O}
 man:
-	@${SPHINXBUILD} -M $@ "${SOURCEDIR}" "${BUILDDIR}" ${SPHINXOPTS} ${O}
+	@${SPHINXBUILD} -M $@ "${SOURCEDIR}/man" "${BUILDDIR}" ${SPHINXOPTS} ${O}
 
 # Tweak manpage sources for inclusion in the HTML version of the docs.
 # A NAME section containing the description is added to each manpage source file.
@@ -22,8 +22,8 @@ man:
 prepare-man: man
 	@echo Converting manpages back to rst...
 	@mkdir -p _intermediate/man
-	@for file in tem*.rst; do \
-		./prepare-man.sh "$$file" _intermediate/man; \
+	@for file in man/tem*.rst; do \
+		man/prepare-man.sh "$$file" _intermediate/man; \
 	done
 
 clean:

@@ -6,7 +6,7 @@ install:
 	@[ -f ${__INIT__} ] && rm -f ${__INIT__} || true
 	python3 setup.py install --root="${DESTDIR}/" --prefix="${PREFIX}"
 	@echo "__prefix__ = '/${PREFIX}'" >> ${__INIT__}
-	install -Dm644 conf/config ${DESTDIR}/${PREFIX}/share/tem/config
+	install -Dm644 conf/config "${DESTDIR}/${PREFIX}/share/tem/config"
 
 test:
 	cd tests; ${MAKE} test
@@ -14,5 +14,6 @@ test:
 clean:
 	rm -rf build tem.egg-info
 	rm -rf */__pycache__
+	cd docs;  ${MAKE} clean
 	cd tests; ${MAKE} clean
 	cd pkg;   ${MAKE} clean

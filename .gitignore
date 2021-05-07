@@ -4,4 +4,5 @@ _out/
 /dist/
 _build/
 .tem/
+/docs/_intermediate/
 tem.egg-info
