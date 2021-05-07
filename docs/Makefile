@@ -1,0 +1,31 @@
+
+SPHINXOPTS    ?=
+SPHINXBUILD   ?= sphinx-build
+SOURCEDIR     = .
+BUILDDIR      = _build
+
+# Put it first so that "make" without argument is like "make help".
+help:
+	@${SPHINXBUILD} -M help "${SOURCEDIR}" "${BUILDDIR}" ${SPHINXOPTS} ${O}
+
+.PHONY: help man html
+
+html: prepare-man
+	@${SPHINXBUILD} -M $@ "${SOURCEDIR}" "${BUILDDIR}" ${SPHINXOPTS} ${O}
+man:
+	@${SPHINXBUILD} -M $@ "${SOURCEDIR}" "${BUILDDIR}" ${SPHINXOPTS} ${O}
+
+# Tweak manpage sources for inclusion in the HTML version of the docs.
+# A NAME section containing the description is added to each manpage source file.
+# The reason why the NAME section is excluded from the source files in the first
+# place is because `sphinx-build -M man` automatically creates that section.
+prepare-man: man
+	@echo Converting manpages back to rst...
+	@mkdir -p _intermediate/man
+	@for file in tem*.rst; do \
+		./prepare-man.sh "$$file" _intermediate/man; \
+	done
+
+clean:
+	rm -rf "${BUILDDIR}"
+	rm -rf _intermediate/

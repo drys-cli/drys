@@ -1,8 +1,0 @@
-#!/usr/bin/env sh
-
-# SOURCEDIR
-# DESTDIR
-
-echo -n 'Project name: '
-read -r PROJECT_NAME
-

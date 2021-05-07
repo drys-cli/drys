@@ -1,6 +1,7 @@
 __pycache__/
 _out/
 /build/
+/dist/
 _build/
-.drys/
-drys.egg-info
+.tem/
+tem.egg-info
