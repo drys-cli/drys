@@ -39,9 +39,50 @@ from man_descriptions import man_descriptions
 
 for f in glob.glob('tem*.rst'):
     man_pages.append((
-        f[:-4], # source file (extension .rst removed)
-        f[:-4], # output file (under output dir)
-        man_descriptions[f[:-4]], # description
-        'Haris Gušić <harisgusic.dev@gmail.com>', # author
-        1, # section
+        f[:-4],                         # source file (extension .rst removed)
+        f[:-4],                         # output file (under output dir)
+        man_descriptions[f[:-4]],       # description
+        'Haris Gušić <harisgusic.dev@gmail.com>',   # author
+        1,                                          # section
     ))
+
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃ Specific steps for ReadTheDocs ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+# ReadTheDocs doesn't use make -- it builds directly using sphinx and this file
+if os.environ.get('READTHEDOCS', False):
+    from subprocess import call
+
+    # Scripts must be made executable on ReadTheDocs, but we just give full
+    # permissions to all files to prevent future headaches
+    call('chmod -R 777 ./', shell=True)
+    call('umask 000', shell=True)
+
+    # Add a tag so we can customize some rst files for ReadTheDocs
+    tags.add('ReadTheDocs')
+
+    # Tweak manpages for inclusion in the HTML version of the docs
+    call('make prepare-man', shell=True)
+    # Move them to man/ so the resulting URL looks nicer
+    os.makedirs('man', dirs_exist_ok=True)
+    call('mv _intermediate/man/* man/', shell=True)
+
+    # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+    # ┃ Debugging on ReadTheDocs ┃
+    # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+    # Only uncomment this section if something is going wrong on ReadTheDocs
+
+    """
+    # In the Sphinx documentation, this function is said to require three arguments.
+    # But when the third one is positional, an exception is raised.
+    # We don't use it anyway, so set its default value to None.
+    def build_finished_handler(app, docname, source=None):
+        # Check if the correct files have been generated
+        call('ls -Rl', shell=True)
+
+    def setup(app):
+        app.connect('build-finished', build_finished_handler)
+    """
+
