@@ -1,6 +1,6 @@
 import argparse
 
-from . import common
+from . import common, util
 import sys, os
 
 def setup_parser(subparsers):
@@ -102,8 +102,8 @@ def cmd(parser, args):
             if p.stderr: print(p.stderr, file=sys.stderr)
             return
         if not args.short:
-            message = common.fetch_name(repo) + ' @ ' + repo
+            message = util.fetch_name(repo) + ' @ ' + repo
             print(message); print('=' * len(message))
         if p.stdout: print(p.stdout[:-1])
-        if p.stderr: print(p.stderr, sys.stderr)
+        if p.stderr: print(p.stderr, file=sys.stderr)
     os.chdir(original_cwd)

@@ -1,6 +1,6 @@
 """Functions and utilites used to properly call external commands."""
 from .common import cfg
-from . import common
+from . import util
 import subprocess as sp
 
 def parse_args(args):
@@ -31,5 +31,5 @@ def run(command, override=None, *args, **kwargs):
         return sp.run(parsed_args + command[1:],
                    *args, **kwargs)
     except Exception as e:
-        common.print_error_from_exception(e)
+        util.print_error_from_exception(e)
         exit(1)

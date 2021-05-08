@@ -6,6 +6,13 @@ print() { echo -e "$*" >&2; }
 begin_test() {
     print "\033[1;33mTest '$1'\033[0m"
 }
+expect()    { expected="$("$@")"; }
+compare_output_expected() {
+    echo        "Unexpected output."
+    echo -e     "### Output:\n$output"
+    echo -e     "### Expected:\n$expected"
+    [ "$output" = "$expected" ]
+}
 
 # Compare the contents of the directory at $1 with the files specified in the
 # remaining arguments. Perform a diff between each specified file with its

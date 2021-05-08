@@ -1,8 +1,7 @@
 import argparse
 import os, sys
 
-from . import common
-from .common import copy, move
+from . import common, util
 from . import ext
 
 def setup_parser(subparsers):
@@ -59,7 +58,7 @@ def cmd(parser, args):
                 if args.directory else None,
                 os.path.basename(src),                          # neither
             ]
-            result = copy(src_file, next(x for x in dest_candidates if x), True)
+            result = util.copy(src_file, next(x for x in dest_candidates if x), True)
             if not exists and result:
                 exists = True
         if not exists:

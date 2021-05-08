@@ -1,5 +1,5 @@
 BATS = bats --formatter pretty --timing
-EXE := $(realpath ../tem.py)
+EXE ?= $(realpath ../tem.py)
 
 export EXE
 
@@ -10,6 +10,10 @@ test:
 	@${BATS} test_repo.bats
 	@${BATS} test_add.bats
 	@${BATS} test_put.bats
+
+test-pip:
+	pipenv install
+	pipenv run "${MAKE}" test
 
 clean:
 	rm -rf _out/

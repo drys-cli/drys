@@ -2,12 +2,6 @@
 
 . common.bats.in
 
-compare_output_expected() {
-    echo -e "Output:\n$output"
-    echo -e "Expected:\n$expected"
-    [ "$output" = "$expected" ]
-}
-
 tem_repo() {
     $EXE repo --reconfigure "$@"
 }

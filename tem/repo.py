@@ -1,6 +1,6 @@
 import argparse
 
-from . import common
+from . import common, util
 import sys, os
 
 def setup_parser(subparsers):
@@ -24,7 +24,7 @@ def print_repo(repo, args):
     # TODO align output, too lazy at the moment
     pr = lambda *args, **kwargs: print(*args, **kwargs, sep=' ', end='')
     if args.name:
-        pr(common.fetch_name(repo))
+        pr(util.fetch_name(repo))
         if args.path:
             pr(' @ ')
     if args.path:
@@ -32,7 +32,7 @@ def print_repo(repo, args):
 
     if not args.name and not args.path:
         pr('{} @ {}'
-              .format(common.fetch_name(repo), os.path.abspath(repo)))
+              .format(util.fetch_name(repo), os.path.abspath(repo)))
     print() # New line at the end
 
 def cmd(parser, args):
@@ -46,7 +46,7 @@ def cmd(parser, args):
 
     for repo in repos:
         if args.repositories:
-            name = common.fetch_name(repo)
+            name = util.fetch_name(repo)
             # Does the repo match any of the ids in args.repositories?
             for i, repo_id in enumerate(args.repositories):
                 if repo_id == name or repo_id == os.path.basename(repo):

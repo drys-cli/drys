@@ -3,8 +3,8 @@ import sys, os
 import re
 
 # Local imports
-from . import common
-from .common import cfg, aliases, copy, move
+from . import common, util
+from .common import cfg, aliases
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('add',
@@ -56,10 +56,10 @@ def cmd(parser, args):
                     print("The repo directory '" + repo +
                           "' did not exist. It was created for you.")
                 if not args.move:                                       # copy
-                    copy(file, repo + '/' + dest)
+                    util.copy(file, repo + '/' + dest)
                 else:                                                   # move
-                    move(file, repo + '/' + dest)
+                    util.move(file, repo + '/' + dest)
     except Exception as e:
-        common.print_error_from_exception(e)
+        util.print_error_from_exception(e)
         exit(1)
 

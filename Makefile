@@ -18,6 +18,9 @@ install:
 test:
 	cd tests; ${MAKE} test
 
+test-pip:
+	cd tests; ${MAKE} test-pip
+
 clean:
 	rm -rf build tem.egg-info
 	rm -rf */__pycache__

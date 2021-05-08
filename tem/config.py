@@ -3,7 +3,7 @@ import configparser
 import os, sys
 import shutil as sh
 
-from . import common
+from . import common, util
 from .common import cfg
 from . import __prefix__
 
@@ -97,7 +97,7 @@ def cmd(parser, args):
         try:
             p = sp.run(call_args)
         except Exception as e:
-            common.print_error_from_exception(e)
+            util.print_error_from_exception(e)
             exit(1)
         exit(p.returncode)
     elif args.option:                       # A config option was specified

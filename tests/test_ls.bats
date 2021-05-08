@@ -9,14 +9,30 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
     ./prepare_files.sh files _out/repo
 fi
 
+tem_ls() {
+    $EXE ls --reconfigure "$@"
+}
+
+@test "tem ls -R _out/repo" {
+    run tem_ls -R _out/repo
+    expected="$(
+        echo "repo @ _out/repo"
+        echo "================"
+        ls _out/repo
+    )"
+    compare_output_expected
+}
+
 @test "tem ls -R _out/repo -s" {
-    run $EXE ls --reconfigure -R _out/repo -s
-    [ "$output" = "$(ls _out/repo)" ]
+    run tem_ls -R _out/repo -s
+    expect ls _out/repo
+    compare_output_expected
 }
 
 @test "tem ls -R _out/repo -s file1" {
-    run $EXE ls --reconfigure -R _out/repo -s file1
-    [ "$output" = "file1.txt" ]
+    run tem_ls -R _out/repo -s file1
+    expected='file1.txt'
+    compare_output_expected
 }
 
 export ___WAS_RUN_BEFORE=true

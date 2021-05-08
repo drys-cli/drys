@@ -2,11 +2,6 @@
 
 . common.bats.in
 
-compare_output_expected() {
-    echo -e "Unexpected output." \
-        "\n### Output:\n$output\n### Expected:\n$expected"
-}
-
 if [ -z "$___WAS_RUN_BEFORE" ]; then
     begin_test 'config'
     mkdir -p _out/;
@@ -28,7 +23,6 @@ fi
         )"
 
     compare_output_expected
-    [ "$output" = "$expected" ]
 }
 
 @test "tem config section.option 'multi word' value -f _out/empty.cfg" {
@@ -36,10 +30,9 @@ fi
     $EXE config section.option 'multi word' value -f _out/empty.cfg
 
     output="$(cat _out/empty.cfg)"
-    expected="$(echo -e "[section]\noption = multi word value")"
+    expect echo -e "[section]\noption = multi word value"
 
     compare_output_expected
-    [ "$output" = "$expected" ]
 }
 
 @test "tem config -f ../conf/config" {
@@ -59,7 +52,6 @@ fi
 
     [ $status = 0 ]
     compare_output_expected
-    [ "$output" = "$expected" ]
 }
 
 export ___WAS_RUN_BEFORE=true

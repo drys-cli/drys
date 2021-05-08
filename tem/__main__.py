@@ -3,7 +3,7 @@
 import tem
 
 import argparse, sys, os
-from tem import common
+from tem import common, util
 # tem where <file|dir>
 # tem link <target file|dir> <symlink>     # alias ln
 
@@ -16,7 +16,7 @@ def init_config():
               + existent_cfg[0], file=sys.stderr)
         exit(1)
     else:
-        common.copy(tem.__prefix__ + '/share/tem/config',
+        util.copy(tem.__prefix__ + '/share/tem/config',
                     common.get_user_config_path())
         exit(0)
 
@@ -76,6 +76,8 @@ def main():
     for i in range(1, len(sys.argv)):
         if sys.argv[i] in ['--config', '-c'] and i < len(sys.argv) - 1:
             config.append(sys.argv[i+1])
+        elif sys.argv[i] == '--reconfigure':
+            config.append(None)
 
     # Load configuration, both default and from arguments
     common.load_config(config)

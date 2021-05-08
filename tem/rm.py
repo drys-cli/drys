@@ -1,6 +1,6 @@
 import argparse, os
 
-from . import common
+from . import common, util
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('rm', help='remove files from a repository')
@@ -16,4 +16,4 @@ def cmd(parser, args):
 
     for repo in repos:
         for file in args.files:
-            common.remove(repo + '/' + file)
+            util.remove(repo + '/' + file)
