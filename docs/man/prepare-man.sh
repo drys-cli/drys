@@ -21,6 +21,6 @@ name="$(basename "$noextension")"
 desc_file="$(dirname "$0")/man_descriptions.py"
 description="$(python3 "$desc_file" "$name")"
 
-head -4 "$src" > "$dest/$name.rst"
+head -6 "$src" > "$dest/$name.rst"
 echo "NAME\n====\n\n    $name - $description\n" >> "$dest/$name.rst"
-tail +5 "$src" >> "$dest/$name.rst"
+tail +7 "$src" >> "$dest/$name.rst"

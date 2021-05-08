@@ -2,6 +2,8 @@
 
 man_descriptions = {
     'tem': 'Template and Environment Manager',
+    'tem-tutorial': 'tutorial for new users of tem',
+    'tem-config': 'tem configuration file specification',
     }
 
 if __name__ == '__main__':

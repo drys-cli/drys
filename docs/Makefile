@@ -10,7 +10,7 @@ help:
 
 .PHONY: help man html
 
-html: prepare-man
+html:
 	@${SPHINXBUILD} -M $@ "${SOURCEDIR}" "${BUILDDIR}" ${SPHINXOPTS} ${O}
 man:
 	@${SPHINXBUILD} -M $@ "${SOURCEDIR}/man" "${BUILDDIR}" ${SPHINXOPTS} ${O}

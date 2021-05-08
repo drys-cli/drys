@@ -1,6 +1,8 @@
 import glob, sys, os
 
 man_pages = []
+project = 'tem manual'
+extensions = [ 'sphinx.ext.todo' ]
 
 # Provides function get_description to load command descriptions for man pages
 sys.path.insert(0, os.path.dirname(__file__))

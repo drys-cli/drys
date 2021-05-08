@@ -27,6 +27,10 @@ default_role = 'envvar' # Like :code: role, but the text is black
 # ┃ HTML ┃
 # ┗━━━━━━┛
 html_theme = 'sphinx_rtd_theme'
+# Tweak manpages for inclusion in the HTML version of the docs
+if 'html' in sys.argv:
+    from subprocess import call
+    call(['make', 'prepare-man'])
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ Specific steps for ReadTheDocs ┃
@@ -46,8 +50,6 @@ if os.environ.get('READTHEDOCS', False):
     # Confer [*]
     exclude_patterns.remove('man')
 
-    # Tweak manpages for inclusion in the HTML version of the docs
-    call('make prepare-man', shell=True)
     # Move them to man/ so the resulting URL looks nicer [*]
     call('mv _intermediate/man/* man/', shell=True)
 
