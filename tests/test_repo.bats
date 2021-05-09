@@ -12,11 +12,20 @@ fi
 
 REPOS="$PWD"/repos
 
-@test "tem repo --list" {
+# Helper function for the first two tests because they are identical
+tem_repo_list_or_noargs() {
     run tem_repo -R "$REPOS/repo1"
     expected="name1 @ $REPOS/repo1"
     compare_output_expected
     [ "$status" = 0 ]
+}
+
+@test "tem repo" {
+    tem_repo_list_or_noargs
+}
+
+@test "tem repo --list" {
+    tem_repo_list_or_noargs
 }
 
 @test "tem repo --list [Multiple repos]" {
@@ -70,6 +79,26 @@ REPOS="$PWD"/repos
     run tem_repo_through_pipe
     compare_output_expected
     [ "$status" = 0 ]
+}
+
+@test "tem repo --add --list [MULTIPLE REPOS]" {
+    mkdir -p _out
+    cp tem/config _out/config
+    export TEM_CONFIG=_out/config
+
+    # The command will output the resulting REPO_PATH
+    run tem_repo -c _out/config -alp "$REPOS"/repo*/
+    expect realpath "$REPOS"/repo*/
+    compare_output_expected
+}
+
+@test "tem repo --remove --list [MULTIPLE REPOS]" {
+    export TEM_CONFIG=_out/config
+
+    # The command will output the resulting REPO_PATH
+    run tem_repo -c _out/config -rlp "$REPOS"/repo{1,2}
+    expect realpath "$REPOS"/repo3
+    compare_output_expected
 }
 
 export ___WAS_RUN_BEFORE=true

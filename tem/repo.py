@@ -13,8 +13,13 @@ def setup_parser(subparsers):
                    help='print the repository name')
     p.add_argument('-p', '--path', action='store_true',
                    help='print the repository path')
-    p.add_argument('-a', '--add', action='store_true',
-                   help='add repositories to the list of default repositories')
+
+    add_rem = p.add_mutually_exclusive_group()
+    add_rem.add_argument('-a', '--add', action='store_true',
+                   help='add repositories to REPO_PATH')
+    add_rem.add_argument('-r', '--remove', action='store_true',
+                   help='remove repositories from REPO_PATH')
+
     p.add_argument('repositories', nargs='*',
                    help='repository paths, partial paths or names')
 
@@ -34,32 +39,81 @@ def print_repo(repo, args):
         pr('{} @ {}'
               .format(util.fetch_name(repo), os.path.abspath(repo)))
     print() # New line at the end
+    if not os.path.exists(repo):
+        print("tem: warning: repository '{}' does not exist".format(repo),
+              file=sys.stderr)
+
+def list_repos(args):
+        repos = common.form_repo_list(args.repo, cmd='repo')
+        repos = common.resolve_and_validate_repos(repos)
+
+        # True marks a repository from args.repositories as found
+        matches = [False] * len(args.repositories)
+        # indicates if any item in `args.repositories` was matched
+        any_matching_repos = not args.repositories or args.add or args.remove
+
+        # With --add or --remove, or with no args.repositories print all repos
+        if args.add or args.remove or not args.repositories:
+            for repo in repos: print_repo(repo, args)
+        else:
+            for repo in repos:
+                name = util.fetch_name(repo)
+                # Does the repo match any of the ids in args.repositories?
+                for i, repo_id in enumerate(args.repositories):
+                    if repo_id == name or repo_id == util.basename(repo):
+                        # Yes: print absolute path
+                        print_repo(repo, args)
+                        # also mark repo as found
+                        any_matching_repos = matches[i] = True
+
+        if not args.add and not args.remove:
+            for i, match in enumerate(matches):
+                if not match:
+                    print("tem: info: repository '{}' not found"
+                          .format(args.repositories[i]), file=sys.stderr)
+        if not any_matching_repos:
+            exit(1)
 
 def cmd(parser, args):
-    repos = common.form_repo_list(args.repo, cmd='repo')
-    repos = common.resolve_and_validate_repos(repos)
 
-    # True marks a repository from args.repositories as found
-    matches = [False] * len(args.repositories)
-    # indicates if any item in `args.repositories` was matched
-    any_matching_repos = not args.repositories
+    if args.add or args.remove:
+        user_cfg_path = common.get_user_config_path()
+        if user_cfg_path:
+            from configparser import ConfigParser
+            cfg = ConfigParser()
+            cfg.read(user_cfg_path)
+            # Read contents of REPO_PATH from the user config file
+            paths = [ r for r in
+                     cfg.get('general', 'default_repos', fallback='').split('\n')
+                     if r ]
+            # TODO notify if repo already exists (add) or doesn't exist (remove)
+            if args.add:
+                arg_repos = [ util.realpath(r) for r in args.repositories ]
+                paths += arg_repos
+            elif args.remove:
+                arg_repos = [ os.path.realpath(util.resolve_repo(r))
+                             for r in args.repositories ]
+                # Remove matching paths from REPO_PATH
+                paths = [ cfg_path for cfg_path in paths
+                         if util.realpath(cfg_path) not in arg_repos ]
+            # Remove any duplicates
+            paths = list(dict.fromkeys([ r for r in paths ]))
+            # Save modified data to the same file
+            if not cfg.has_section('general'):
+                cfg.add_section('general')
+            cfg.set('general', 'default_repos', '\n'.join(paths))
+            with open(user_cfg_path, 'w') as file_object:
+                try:
+                    cfg.write(file_object)
+                    common.default_repos = paths
+                    if args.list: list_repos(args)
+                except Exception as e:
+                    if args.list: list_repos(args)
+                    util.print_error_from_exception(e)
+                    exit(1)
+        else:
+            print('tem: error: no user configuration file was found')
+            exit(1)
+        return
 
-    for repo in repos:
-        if args.repositories:
-            name = util.fetch_name(repo)
-            # Does the repo match any of the ids in args.repositories?
-            for i, repo_id in enumerate(args.repositories):
-                if repo_id == name or repo_id == os.path.basename(repo):
-                    # Yes: print absolute path
-                    print_repo(repo, args)
-                    # also mark repo as found
-                    any_matching_repos = matches[i] = True
-        elif os.path.exists(repo):
-            print_repo(repo, args)
-
-    for i, match in enumerate(matches):
-        if not match:
-            print("tem: info: repository '{}' not found"
-                  .format(args.repositories[i]), file=sys.stderr)
-    if not any_matching_repos:
-        exit(1)
+    list_repos(args)

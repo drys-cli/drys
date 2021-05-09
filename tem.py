@@ -9,6 +9,7 @@ import sys, os
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from tem import __main__ as main
-sys.argv += ['--reconfigure', '--config', os.path.dirname(__file__) +
-             '/conf/config']
+sys.argv.insert(1, os.path.dirname(__file__) + '/conf/config')
+sys.argv.insert(1, '--config')
+sys.argv.insert(1, '--reconfigure')
 main.main()

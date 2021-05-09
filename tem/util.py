@@ -3,8 +3,11 @@ import sys, os, shutil, re
 def print_error_from_exception(e):
     print('tem: error:', re.sub(r'^\[Errno [0-9]*\] ', '', str(e)), file=sys.stderr)
 
+def realpath(path):
+    return os.path.realpath(os.path.expanduser(path))
+
 def basename(path):
-    return os.path.basename(os.path.realpath(path))
+    return os.path.basename(realpath(path))
 
 def copy(src, dest='.', ignore_nonexistent=False):
     dirname = os.path.dirname(dest)
@@ -47,7 +50,12 @@ def fetch_name(repo_path):
     if name:
         return name
     else:
-        return os.path.basename(os.path.abspath(repo_path))
+        return basename(repo_path)
+
+def repo_ids_equal(id1, id2):
+    return id1 == id2 or \
+        realpath(id1) == realpath(id2) or \
+        fetch_name(id1) == fetch_name(id2)
 
 def resolve_repo(repo_id, lookup_repos=None):
     """
@@ -67,13 +75,13 @@ def resolve_repo(repo_id, lookup_repos=None):
 
     for repo in lookup_repos:
         if os.path.exists(repo) and fetch_name(repo) == repo_id:
-            return os.path.abspath(repo)
+            return realpath(repo)
 
     # If all else fails, try to find a repo whose basename is equal to `path`
     for repo in lookup_repos:
-        if os.path.basename(repo) == repo_id:
+        if basename(repo) == repo_id:
             return repo
 
-    # The `path` is so fabulously wrong, nothing can be done with it
-    return repo_id
+    # The `path` must be relative/absolute then
+    return os.path.expanduser(repo_id)
 

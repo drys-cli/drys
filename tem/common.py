@@ -8,14 +8,14 @@ from . import util
 default_repos = []
 
 ENV_XDG_CONFIG_HOME = os.environ.get('XDG_CONFIG_HOME')
-ENV_DRYS_CONFIG     = os.environ.get('DRYS_CONFIG')
+ENV_TEM_CONFIG     = os.environ.get('TEM_CONFIG')
 
-# All possible user configuration files in their lookup order
+# All possible user configuration files in the order in which they are loaded
 user_config_paths = [
     os.path.expanduser('~/.config/tem/config'),
     os.path.expanduser('~/.temconfig'),
     ENV_XDG_CONFIG_HOME + '/tem/config' if ENV_XDG_CONFIG_HOME else '',
-    ENV_DRYS_CONFIG if ENV_DRYS_CONFIG else ''
+    ENV_TEM_CONFIG if ENV_TEM_CONFIG else ''
 ]
 
 def get_user_config_path():
@@ -43,13 +43,14 @@ def add_common_options(parser, main_parser=False):
     parser.add_argument('-c', '--config', dest=config_dest, metavar='FILE',
                         action='append', default=[],
                         help='Use the specified configuration file')
-    parser.add_argument('-R', '--repo', action='append', default=[],
-                        help='use the repository REPO (can be used multiple times)')
     # A special None value indicates that all previous config paths should be
     # ignored
     parser.add_argument('--reconfigure', dest='config',
                         action='append_const', const=None,
                         help='Discard any configuration loaded before reading this option')
+
+    parser.add_argument('-R', '--repo', action='append', default=[],
+                        help='use the repository REPO (can be used multiple times)')
 
 def load_config(paths=[], read_defaults=True):
     """
@@ -127,7 +128,7 @@ def default_repos_from_config(config):
     if not config:
         return []
     return [ os.path.expanduser(repo) for repo in
-            cfg.get('general', 'default_repos', fallback='').split('\n') ]
+            cfg.get('general', 'default_repos', fallback='').split('\n') if repo ]
 
 def form_repo_list(repo_ids, cmd=None):
     # TODO command-specific default repos
