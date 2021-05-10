@@ -17,8 +17,8 @@ install:
 	@echo "__prefix__ = '/${PREFIX}'" >> ${__INIT__}
 	install -Dm644 conf/config  ${SHARE_DIR}/
 	install -Dm644 conf/ignore  ${SHARE_DIR}/
-	install -Dm644 conf/include ${SHARE_DIR}/
-	install -Dm644 conf/hooks/* ${SHARE_DIR}/hooks/
+	install -Dm644 conf/repo    ${SHARE_DIR}/
+	install -Dm744 conf/hooks/* ${SHARE_DIR}/hooks/
 	install -Dm444 docs/_build/man/*.1 ${MAN_DIR}
 	install -Dm444 LICENSE ${DOC_DIR}
 
