@@ -1,5 +1,32 @@
 import sys, os, shutil, re
 
+import configparser
+
+class ConfigParser(configparser.ConfigParser):
+    def __init__(self, files=None, **kwargs):
+        super().__init__(**kwargs)
+        # Allow reading files on construction
+        if files:
+            self.read(files)
+
+    def set(self, section, option, value, *args, **kwargs):
+        if not self.has_section(section):
+            self.add_section(section)
+        super().set(section, option, value, *args, **kwargs)
+
+    def __getitem__(self, option):
+        split = option.split('.', 1)
+        if len(split) == 1:
+            split.insert(0, 'general')
+        return self.get(*split, fallback='')
+
+    def __setitem__(self, option, value):
+        split = option.split('.', 1)
+        if len(split) == 1:
+            split.insert(0, 'general')
+        section, option = tuple(split)
+        self.set(section, option, value)
+
 def print_error_from_exception(e):
     print('tem: error:', re.sub(r'^\[Errno [0-9]*\] ', '', str(e)), file=sys.stderr)
 
@@ -9,10 +36,13 @@ def realpath(path):
 def basename(path):
     return os.path.basename(realpath(path))
 
+def dirname(path):
+    return os.path.dirname(realpath(path))
+
 def copy(src, dest='.', ignore_nonexistent=False):
-    dirname = os.path.dirname(dest)
-    if dirname and not os.path.exists(dirname):
-        os.makedirs(dirname, exist_ok=True)
+    _dirname = dirname(dest)
+    if _dirname and not os.path.exists(_dirname):
+        os.makedirs(_dirname, exist_ok=True)
     try:
         if os.path.isdir(src):
             return shutil.copytree(src, dest,
@@ -43,10 +73,8 @@ def remove(path):
         exit(1)
 
 def fetch_name(repo_path):
-    import configparser
-    cfg = configparser.ConfigParser(default_section='general')
-    cfg.read(repo_path + '/.tem/repo')
-    name = cfg.get('general', 'name', fallback=None)
+    cfg = ConfigParser(repo_path + '/.tem/repo')
+    name = cfg['general.name']
     if name:
         return name
     else:
@@ -70,8 +98,8 @@ def resolve_repo(repo_id, lookup_repos=None):
 
     # Otherwise try to find a repo whose name is `repo_id`
     if not lookup_repos:
-        from .common import default_repos
-        lookup_repos = default_repos
+        from . import common
+        lookup_repos = common.repo_path
 
     for repo in lookup_repos:
         if os.path.exists(repo) and fetch_name(repo) == repo_id:

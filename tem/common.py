@@ -1,11 +1,10 @@
 import sys, os, shutil
 import re
 import argparse
-import configparser
 
 from . import util
 
-default_repos = []
+repo_path = []
 
 ENV_XDG_CONFIG_HOME = os.environ.get('XDG_CONFIG_HOME')
 ENV_TEM_CONFIG     = os.environ.get('TEM_CONFIG')
@@ -27,7 +26,7 @@ default_config_paths = [__prefix__ + '/share/tem/config'] + user_config_paths
 
 aliases = {}
 
-cfg = configparser.ConfigParser()
+cfg = util.ConfigParser()
 
 # TODO remove this method (why did I want to remove it??)
 def add_common_options(parser, main_parser=False):
@@ -98,8 +97,8 @@ def load_config(paths=[], read_defaults=True):
               'Please check if they exist or if their permissions are wrong.',
               file=sys.stderr, sep='\n')
     else:                               # No problems
-        global default_repos
-        default_repos = default_repos_from_config(cfg)
+        global repo_path
+        repo_path = repo_path_from_config(cfg)
 
 def existing_file(path):
     """ Type check for ArgumentParser """
@@ -124,15 +123,16 @@ def explicit_path(path):
         return path
 
 # TODO change this concept later
-def default_repos_from_config(config):
+def repo_path_from_config(config):
     if not config:
         return []
     return [ os.path.expanduser(repo) for repo in
-            cfg.get('general', 'default_repos', fallback='').split('\n') if repo ]
+            cfg['general.repo_path'].split('\n')
+            if repo ]
 
 def form_repo_list(repo_ids, cmd=None):
     # TODO command-specific default repos
-    global default_repos
+    global repo_path
     repos = []
 
     if repo_ids:                        # repos specified with -R/--repo option
@@ -148,7 +148,7 @@ def form_repo_list(repo_ids, cmd=None):
             else:                       # Regular repo id, just add it
                 repos.append(repo)
         if include_def_repos:           # Include default repos
-            repos += default_repos
+            repos += repo_path
         if read_from_stdin:
             try:
                 while True:             # Read repos until empty line or EOF
@@ -159,7 +159,7 @@ def form_repo_list(repo_ids, cmd=None):
             except EOFError:
                 pass
     else:                               # No repos were specified by -R/--repo
-        repos = default_repos
+        repos = repo_path
 
     return repos
 

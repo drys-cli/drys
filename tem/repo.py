@@ -79,13 +79,9 @@ def cmd(parser, args):
     if args.add or args.remove:
         user_cfg_path = common.get_user_config_path()
         if user_cfg_path:
-            from configparser import ConfigParser
-            cfg = ConfigParser()
-            cfg.read(user_cfg_path)
+            cfg = util.ConfigParser(user_cfg_path)
             # Read contents of REPO_PATH from the user config file
-            paths = [ r for r in
-                     cfg.get('general', 'default_repos', fallback='').split('\n')
-                     if r ]
+            paths = [ r for r in cfg['general.repo_path'].split('\n') if r ]
             # TODO notify if repo already exists (add) or doesn't exist (remove)
             if args.add:
                 arg_repos = [ util.realpath(r) for r in args.repositories ]
@@ -98,14 +94,12 @@ def cmd(parser, args):
                          if util.realpath(cfg_path) not in arg_repos ]
             # Remove any duplicates
             paths = list(dict.fromkeys([ r for r in paths ]))
+            cfg['general.repo_path'] = '\n'.join(paths)
             # Save modified data to the same file
-            if not cfg.has_section('general'):
-                cfg.add_section('general')
-            cfg.set('general', 'default_repos', '\n'.join(paths))
             with open(user_cfg_path, 'w') as file_object:
                 try:
                     cfg.write(file_object)
-                    common.default_repos = paths
+                    common.repo_path = paths
                     if args.list: list_repos(args)
                 except Exception as e:
                     if args.list: list_repos(args)
@@ -114,6 +108,6 @@ def cmd(parser, args):
         else:
             print('tem: error: no user configuration file was found')
             exit(1)
-        return
 
-    list_repos(args)
+    else:
+        list_repos(args)

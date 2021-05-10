@@ -37,9 +37,9 @@ Using tem:
 
    tem repo --add path/to/repoX
 
-This will register a path as a default repository. There can be multiple default
-repositories, and they are kept inside the user's configuration file as
-'`general.default_repos`' (see :ref:`tem-config(1)<man_tem_config>`).
+This will register a path as a repository to be looked by default. There can be
+multiple default repositories, and they are kept inside the user's configuration
+file as '`general.repo_path`' (see :ref:`tem-config(1)<man_tem_config>`).
 
 2. Add a project directory or file as a template
 

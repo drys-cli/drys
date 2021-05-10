@@ -4,14 +4,11 @@ import tem
 
 import argparse, sys, os
 from tem import common, util
-# tem where <file|dir>
-# tem link <target file|dir> <symlink>     # alias ln
 
 def init_config():
-    existent_cfg = [path for path in common.user_config_paths
-                if os.path.exists(path)]
+    existent_cfg = next(path for path in common.user_config_paths
+                if os.path.exists(path))
     if existent_cfg:
-        # User config file already exists
         print('tem: error: configuration already exists at '
               + existent_cfg[0], file=sys.stderr)
         exit(1)

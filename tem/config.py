@@ -1,5 +1,4 @@
 import argparse
-import configparser
 import os, sys
 import shutil as sh
 
@@ -45,25 +44,6 @@ def determine_config_files_from_args(args):
         files.append(__prefix__ + '/share/tem/config') # TODO
     return files
 
-def get_section_and_name(full_name):
-    split = full_name.split('.', maxsplit=1)
-    option = split[-1]
-    if len(split) == 1: section = 'general'
-    else:               section = split[0]
-    return section, option
-
-# TODO add this to a class derived from ConfigParser
-def set_option_carefree(cfg, section, option, value):
-    """
-    Convenience function. Same as cfg.set(section, option, value), but never
-    throws an error. Missing sections are generated automatically and if the
-    option already exists it will be overwritten.
-    """
-    if not cfg.has_section(section):
-        cfg[section] = { option: value }
-    else:
-        cfg[section][option] = value
-
 def user_init():
     dest = os.path.expanduser('~/.config/tem/config')
     if os.path.exists(dest):
@@ -101,17 +81,14 @@ def cmd(parser, args):
             exit(1)
         exit(p.returncode)
     elif args.option:                       # A config option was specified
-        # Extract and separate section name and option name
-        section, option = get_section_and_name(args.option)
         # Form value by concatenating arguments
         value = ' '.join(args.value) if args.value else ''
         # Write the configuration to all config files
         for file in files:
             # Parse the file's original contents
-            cfg = configparser.ConfigParser()
-            cfg.read(file)
+            cfg = util.ConfigParser(file)
             # Set the option's value to the one specified
-            set_option_carefree(cfg, section, option, value)
+            cfg[args.option] = value
             if not os.path.exists(os.path.dirname(file)):
                 os.makedirs(os.path.dirname(file))
             # Write the changes
@@ -128,8 +105,7 @@ def cmd(parser, args):
                       file=sys.stderr)
             else:
                 if file:
-                    cfg = configparser.ConfigParser()
-                    cfg.read(file)
+                    cfg = util.ConfigParser(file)
                 else:
                     cfg = common.cfg
                 print((file if file else 'INSTANCE') + ':')

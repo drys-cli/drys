@@ -61,7 +61,7 @@ The following options are common to all subcommands:
 
 `-R \<REPO\>`\ , `--repo \<REPO\>`
    By default, the repositories that are used by subcommands are taken from the
-   configuration key '`general.default_repos`'. Use this option to ditch those
+   configuration key '`general.repo_path`'. Use this option to ditch those
    default repositories and use REPO, which is a repository pseudo-path (see
    :ref:`Locating repositories<locating_repositories>`). If specified multiple
    times, then all specified repositories are used.
