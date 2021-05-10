@@ -208,3 +208,22 @@ def try_open_in_editor(editor, files):
     except Exception as e:
         util.print_error_from_exception(e)
         exit(1)
+
+def run_hooks(trigger, template_dir, environment=None):
+    import glob, subprocess
+
+    template_dir = util.realpath(template_dir)
+
+    if environment != None:
+        if 'TEM_TEMPLATEDIR' not in environment:
+            environment['TEM_TEMPLATEDIR'] = template_dir
+        if 'PATH' not in environment:
+            environment['PATH'] = os.environ.get('PATH', '')
+
+        environment['PATH'] = template_dir + '/.tem/path:' + environment['PATH']
+        for var, value in environment.items():
+            os.environ.setdefault(var, value)
+
+    for file in glob.glob(template_dir +
+                          '/.tem/hooks/*.{}'.format(trigger)):
+        subprocess.run(file, cwd=os.path.dirname(file))

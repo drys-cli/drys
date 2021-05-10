@@ -9,6 +9,8 @@ def setup_parser(subparsers):
 
     p.add_argument('-H', '--example-hooks', action='store_true',
                    help='generate documented example hooks')
+    p.add_argument('-n', '--example-env', action='store_true',
+                   help='generate documented example environment scripts')
     p.add_argument('-r', '--as-repo', action='store_true',
                    help='current directory will be initialized as a repository')
     p.add_argument('-e', '--edit', action='store_true',
@@ -51,11 +53,14 @@ def cmd(parser, args):
         os.mkdir('.tem')
         os.mkdir('.tem/path')
         os.mkdir('.tem/hooks')
+        os.mkdir('.tem/env')
         # Create a list of files that will be copied
         files = [ SHARE_DIR + file for file in ['config', 'ignore'] ]
         if args.as_repo: files.append(SHARE_DIR + 'repo')
         if args.example_hooks:
-            files += [file for file in glob.glob(SHARE_DIR + 'hooks/*')]
+            files += [ file for file in glob.glob(SHARE_DIR + 'hooks/*') ]
+        if args.example_env:
+            files += [ file for file in glob.glob(SHARE_DIR + 'env/*') ]
         # Copy files to .tem/
         for i, file in enumerate(files):
             dest = sh.copy(file, '.tem/' + file.replace(SHARE_DIR, ''))

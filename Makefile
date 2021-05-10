@@ -10,8 +10,9 @@ install:
 	@[ -f ${__INIT__} ] && rm -f ${__INIT__} || true
 	python3 setup.py install --root="${DESTDIR}/" --prefix="${PREFIX}"
 	@cd docs; "${MAKE}" man
-	mkdir -p ${SHARE_DIR}		\
+	@mkdir -p ${SHARE_DIR}		\
 			 ${SHARE_DIR}/hooks	\
+			 ${SHARE_DIR}/env	\
 			 ${MAN_DIR}		   	\
 			 ${DOC_DIR}
 	@echo "__prefix__ = '/${PREFIX}'" >> ${__INIT__}
@@ -19,6 +20,7 @@ install:
 	install -Dm644 conf/ignore  ${SHARE_DIR}/
 	install -Dm644 conf/repo    ${SHARE_DIR}/
 	install -Dm744 conf/hooks/* ${SHARE_DIR}/hooks/
+	install -Dm744 conf/env/* ${SHARE_DIR}/env/
 	install -Dm444 docs/_build/man/*.1 ${MAN_DIR}
 	install -Dm444 LICENSE ${DOC_DIR}
 

@@ -48,20 +48,38 @@ def cmd(parser, args):
         if os.path.exists(args.directory) and not os.path.isdir(args.directory):
             _error_exists_but_not_dir(args.directory)
 
-    for src in args.templates:
-        exists = False
+    for template in args.templates:
+        exists = False      # Indicates that file exists in at least one repo
         for repo in repos:
-            src_file = repo + '/' + src
-            dest_candidates = [
-                args.output,                                    # --output
-                args.directory + '/' + os.path.basename(src)    # --directory
-                if args.directory else None,
-                os.path.basename(src),                          # neither
-            ]
-            result = util.copy(src_file, next(x for x in dest_candidates if x), True)
-            if not exists and result:
+            src = repo + '/' + template
+            if os.path.exists(src):
                 exists = True
+            else: continue
+
+            # Determine destination file based on arguments
+            dest_candidates = [
+                args.output,                                        # --output
+                args.directory + '/' + os.path.basename(template)   # --directory
+                if args.directory else None,
+                os.path.basename(template),                         # neither
+            ]
+            dest = next(x for x in dest_candidates if x)
+
+            # If template is a directory, run pre hooks
+            if os.path.isdir(src):
+                environment = { 'TEM_DESTDIR': os.path.realpath(dest) }
+                common.run_hooks('put.pre', src, environment)
+            try:
+                dest = util.copy(src, dest)
+            except Exception as e:
+                util.print_error_from_exception(e)
+                exit(1)
+
+            # If template is a directory, run pre hooks
+            if os.path.isdir(src):
+                common.run_hooks('put.post', src)
+
         if not exists:
             print('tem: error: the following template was not found in the'
-                  'available repositories:', src, file=sys.stderr)
+                  'available repositories:', template, file=sys.stderr)
             exit(1)
