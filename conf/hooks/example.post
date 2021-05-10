@@ -1,0 +1,15 @@
+# A post hook gets run after the `tem put` command is run for each template.
+# It must be executable by the system
+#
+# This script gets called with the following environment variables set:
+#   - TEM_SOURCEDIR
+#   - TEM_DESTDIR
+#
+# Additionally, PATH will contain the 'path' folder under the .tem/ directory
+# tree where this script resides.
+#
+# For more information, consult the manpage
+
+
+
+# vim: ft=sh

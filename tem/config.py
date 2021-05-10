@@ -19,8 +19,9 @@ def setup_parser(subparsers):
     p.add_argument('-l', '--local', action='store_true',
                    help='local repository configuration file will be used')
     p.add_argument('-e', '--edit', action='store_true',
-                   help='edit the file(s) in $EDITOR')
-    p.add_argument('-E', '--editor', help='editor to use instead of $EDITOR')
+                   help='open the files for editing')
+    p.add_argument('-E', '--editor',
+                   help='same as -e but override editor with EDITOR')
     p.add_argument('-i', '--instance', action='store_true',
                    help='print config options that are active in the running instance')
     p.add_argument('--user-init', action='store_true',
@@ -58,27 +59,9 @@ def cmd(parser, args):
 
     if args.user_init:
         user_init()
-    elif args.edit:
-        from .common import cfg
-        editors = [args.editor,
-                   cfg.get('general', 'editor', fallback=None),
-                   os.environ.get('EDITOR') if os.environ.get('EDITOR') else None,
-                   os.environ.get('VISUAL') if os.environ.get('VISUAL') else None,
-                   'vim']
-        # Get the first editor that is not None
-        editor = next(ed for ed in editors if ed != None)
-        from . import ext; import subprocess as sp;
-        call_args = ext.parse_args(editor) + files
-        # Check if the executable exists
-        if not sh.which(editor):
-            print("tem config: error: invalid editor: '" + call_args[0] + "'",
-                  file=sys.stderr)
-            exit(1)
-        try:
-            p = sp.run(call_args)
-        except Exception as e:
-            util.print_error_from_exception(e)
-            exit(1)
+    elif args.edit or args.editor:
+        editor = common.get_editor(override=args.editor)
+        p = common.try_open_in_editor(editor, files)
         exit(p.returncode)
     elif args.option:                       # A config option was specified
         # Form value by concatenating arguments

@@ -10,6 +10,7 @@ test:
 	@${BATS} test_repo.bats
 	@${BATS} test_add.bats
 	@${BATS} test_put.bats
+	@${BATS} test_init.bats
 
 test-pip:
 	pipenv install

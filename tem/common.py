@@ -178,3 +178,33 @@ def resolve_and_validate_repos(repo_ids):
         exit(1)
 
     return resolved_repos
+
+def get_editor(override=None, default='vim'):
+    global cfg
+    editors = [override,
+               cfg['general.editor'],
+               os.environ.get('EDITOR') if os.environ.get('EDITOR') else None,
+               os.environ.get('VISUAL') if os.environ.get('VISUAL') else None,
+               default]
+    return next(ed for ed in editors if ed)
+
+def try_open_in_editor(editor, files):
+    """
+    Open `files` in `editor`. `editor` can be a string that the shell can parse
+    into a list of arguments (e.g. 'vim -o' is a valid `editor`). If the editor
+    cannot be found, print an error and exit.
+    """
+    from . import ext
+    import subprocess, shutil
+    call_args = ext.parse_args(editor) + files
+
+    if not shutil.which(call_args[0]):
+        print("tem config: error: invalid editor: '" + call_args[0] + "'",
+              file=sys.stderr)
+        exit(1)
+    try:
+        p = subprocess.run(call_args)
+        return p
+    except Exception as e:
+        util.print_error_from_exception(e)
+        exit(1)

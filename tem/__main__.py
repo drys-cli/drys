@@ -39,12 +39,14 @@ def main():
     from tem import ls
     from tem import repo
     from tem import config
+    from tem import init
     add.setup_parser(sub)
     rm.setup_parser(sub)
     put.setup_parser(sub)
     ls.setup_parser(sub)
     repo.setup_parser(sub)
     config.setup_parser(sub)
+    init.setup_parser(sub)
 
     # TODO figure out how to handle config loading to use aliases
     # Parse arguments before reading config. This allows us to process arguments
@@ -61,7 +63,7 @@ def main():
     # ┃ NOTE ┃
     # ┗━━━━━━┛
     # Because the --config option is part of both the main parser and all the
-    # subparsers, whenever a command is specified, the contents of args.config
+    # subparsers, whenever a subcommand is parsed, the contents of args.config
     # are reset. So, args.config contains only those occurrences that are
     # specified AFTER a subcommand.
     # For example after running: tem -c file1 ls -c file2 -c file3
