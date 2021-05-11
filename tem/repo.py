@@ -1,7 +1,8 @@
+import sys, os
 import argparse
 
 from . import common, util
-import sys, os
+from .util import print_err
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('repo', help='repository operations')
@@ -40,8 +41,7 @@ def print_repo(repo, args):
               .format(util.fetch_name(repo), os.path.abspath(repo)))
     print() # New line at the end
     if not os.path.exists(repo):
-        print("tem: warning: repository '{}' does not exist".format(repo),
-              file=sys.stderr)
+        print_err("tem: warning: repository '{}' does not exist".format(repo))
 
 def list_repos(args):
         repos = common.form_repo_list(args.repo, cmd='repo')
@@ -69,8 +69,8 @@ def list_repos(args):
         if not args.add and not args.remove:
             for i, match in enumerate(matches):
                 if not match:
-                    print("tem: info: repository '{}' not found"
-                          .format(args.repositories[i]), file=sys.stderr)
+                    print_err("tem: info: repository '{}' not found"
+                          .format(args.repositories[i]))
         if not any_matching_repos:
             exit(1)
 

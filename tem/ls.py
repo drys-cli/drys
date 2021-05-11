@@ -1,7 +1,8 @@
+import sys, os
 import argparse
 
 from . import common, util
-import sys, os
+from .util import print_err
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('ls', help='list templates')
@@ -99,11 +100,11 @@ def cmd(parser, args):
         # Print what the command spit out
         if p.returncode != 0:
             if p.stdout: print(p.stdout)
-            if p.stderr: print(p.stderr, file=sys.stderr)
+            if p.stderr: print_err(p.stderr)
             return
         if not args.short:
             message = util.fetch_name(repo) + ' @ ' + repo
             print(message); print('=' * len(message))
         if p.stdout: print(p.stdout[:-1])
-        if p.stderr: print(p.stderr, file=sys.stderr)
+        if p.stderr: print_err(p.stderr)
     os.chdir(original_cwd)

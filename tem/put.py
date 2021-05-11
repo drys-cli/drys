@@ -1,8 +1,8 @@
-import argparse
 import os, sys
+import argparse
 
-from . import common, util
-from . import ext
+from . import common, util, ext
+from .util import print_err
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('put',
@@ -18,16 +18,13 @@ def setup_parser(subparsers):
     p.set_defaults(func=cmd)
 
 def _error_output_multiple_templates():
-    print('error: ' + sys.argv[0] +
+    print_err('error: ' + sys.argv[0] +
           ''': option -o/--output is allowed with multiple templates
-          only if all of them are directories''',
-          file=sys.stderr)
+          only if all of them are directories''')
     quit(1)
 
 def _error_exists_but_not_dir(path):
-    print('error: ' + sys.argv[0] +
-          ': \'' + path + '\' exists and is not a directory',
-          file=sys.stderr)
+    print_err("error: tem: '{}' exists and is not a directory".format(path))
     quit(1)
 
 def cmd(parser, args):
@@ -80,6 +77,6 @@ def cmd(parser, args):
                 common.run_hooks('put.post', src)
 
         if not exists:
-            print('tem: error: the following template was not found in the'
-                  'available repositories:', template, file=sys.stderr)
+            print_err('tem: error: the following template was not found in the'
+                  'available repositories:', template)
             exit(1)

@@ -1,6 +1,7 @@
 import sys, os, glob
 import argparse
 from . import common, util
+from .util import print_err
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('init',
@@ -39,11 +40,10 @@ def cmd(parser, args):
             else:
                 os.remove('.tem')               # Remove existing
         else:                                   # Refuse to init if .tem exists
-            err = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
-            err('tem: error: .tem already exists', end='')
+            print_err('tem: error: .tem already exists', end='')
             if not os.path.isdir('.tem'):
-                err(' and is not a directory', end='')
-            err()                               # New line
+                print_err(' and is not a directory', end='')
+            print_err()                         # New line
             exit(1)
 
     files = []                  # Keeps track of all files that have been copied

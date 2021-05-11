@@ -31,7 +31,7 @@ test-pip:
 	cd tests; ${MAKE} test-pip
 
 clean:
-	rm -rf build tem.egg-info
+	rm -rf build dist tem.egg-info
 	rm -rf */__pycache__
 	cd docs;  ${MAKE} clean
 	cd tests; ${MAKE} clean

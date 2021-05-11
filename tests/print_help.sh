@@ -14,7 +14,11 @@ print_help() {
 }
 
 print_help
-print_help ls
 print_help add
+print_help rm
 print_help put
+print_help ls
+print_help repo
 print_help config
+print_help init
+print_help env

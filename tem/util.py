@@ -27,8 +27,11 @@ class ConfigParser(configparser.ConfigParser):
         section, option = tuple(split)
         self.set(section, option, value)
 
+def print_err(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 def print_error_from_exception(e):
-    print('tem: error:', re.sub(r'^\[Errno [0-9]*\] ', '', str(e)), file=sys.stderr)
+    print_err('tem: error:', re.sub(r'^\[Errno [0-9]*\] ', '', str(e)))
 
 def realpath(path):
     return os.path.realpath(os.path.expanduser(path))
