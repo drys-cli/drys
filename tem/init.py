@@ -4,7 +4,7 @@ from . import common, util
 from .util import print_err
 
 def setup_parser(subparsers):
-    p = subparsers.add_parser('init',
+    p = subparsers.add_parser('init', add_help=False,
                               help='generate a .tem directory here')
     common.add_common_options(p)
 
@@ -14,10 +14,7 @@ def setup_parser(subparsers):
                    help='generate documented example environment scripts')
     p.add_argument('-r', '--as-repo', action='store_true',
                    help='current directory will be initialized as a repository')
-    p.add_argument('-e', '--edit', action='store_true',
-                   help='open generated files for editing')
-    p.add_argument('-E', '--editor',
-                   help='same as -e but override editor with EDITOR')
+    common.add_edit_options(p)
     p.add_argument('-f', '--force', action='store_true',
                    help='do not fail if .tem exists')
     p.add_argument('-v', '--verbose', action='store_true',
@@ -28,11 +25,12 @@ def setup_parser(subparsers):
 
     p.set_defaults(func=cmd)
 
-def cmd(parser, args):
+def cmd(args):
     import shutil as sh
     import subprocess
     from . import __prefix__
 
+    # Make sure that .tem/ is valid before doing anything else
     if os.path.exists('.tem'):
         if args.force:
             if os.path.isdir('.tem'):
@@ -81,5 +79,4 @@ def cmd(parser, args):
         except Exception:
             pass
     if args.edit or args.editor:
-        editor = common.get_editor(override=args.editor)
-        p = common.try_open_in_editor(editor, files)
+        p = common.try_open_in_editor(files, override_editor=args.editor)

@@ -5,7 +5,7 @@ from . import common, util, ext
 from .util import print_err
 
 def setup_parser(subparsers):
-    p = subparsers.add_parser('put',
+    p = subparsers.add_parser('put', add_help=False,
                               help='put template(s) into the desired directory')
     common.add_common_options(p)
 
@@ -27,7 +27,7 @@ def _error_exists_but_not_dir(path):
     print_err("error: tem: '{}' exists and is not a directory".format(path))
     quit(1)
 
-def cmd(parser, args):
+def cmd(args):
     repos = common.form_repo_list(args.repo, cmd='put')
     repos = common.resolve_and_validate_repos(repos)
 

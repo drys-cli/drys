@@ -7,9 +7,8 @@ from . import common, util
 from .common import cfg, aliases
 
 def setup_parser(subparsers):
-    p = subparsers.add_parser('add',
-        help='add files or directories to your tem repository'
-    )
+    p = subparsers.add_parser('add', add_help=False,
+                              help='add files or directories to your tem repository')
     common.add_common_options(p)
 
     p.add_argument('files', nargs='+', type=common.existing_file,
@@ -37,7 +36,7 @@ def setup_parser(subparsers):
     p.set_defaults(func=cmd)
     return p
 
-def cmd(parser, args):
+def cmd(args):
     repos = common.form_repo_list(args.repo, cmd='add')
     repos = common.resolve_and_validate_repos(repos)
 

@@ -20,7 +20,7 @@ def init_config():
 def main():
     argv = sys.argv
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(add_help=False)
 
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s version TODO')
@@ -29,7 +29,7 @@ def main():
                         help='generate initial user configuration file')
     parser.add_argument('--debug', action='store_true',
                         help='start in debugger mode')
-    parser.set_defaults(func=None)
+    parser.set_defaults(func=lambda args: parser.print_help())
 
     # Setup subcommand parsers
     sub = parser.add_subparsers(title='commands', metavar='')
@@ -84,7 +84,7 @@ def main():
     common.load_config(config)
 
     if args.func:
-        args.func(parser, args)
+        args.func(args)
 
 if __name__ == '__main__':
     main()

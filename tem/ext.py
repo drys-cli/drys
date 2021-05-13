@@ -19,6 +19,8 @@ def run(command, override=None, *args, **kwargs):
     command overrides. If `override` is specified, then that will be
     used as the command name instead of `command[0]`.
     """
+    if isinstance(command, str):
+        command = [command]
     # The command is overridden (usually by the --command argument)
     if override:
         cmd_string = override

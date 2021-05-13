@@ -7,7 +7,8 @@ from .common import cfg
 from . import __prefix__
 
 def setup_parser(subparsers):
-    p = subparsers.add_parser('config', help='Get and set repository or global options')
+    p = subparsers.add_parser('config', add_help=False,
+                              help='Get and set repository or global options')
     common.add_common_options(p)
 
     p.add_argument('-f', '--file', action='append', default=[],
@@ -18,10 +19,7 @@ def setup_parser(subparsers):
                    help='system configuration file will be used')
     p.add_argument('-l', '--local', action='store_true',
                    help='local repository configuration file will be used')
-    p.add_argument('-e', '--edit', action='store_true',
-                   help='open the files for editing')
-    p.add_argument('-E', '--editor',
-                   help='same as -e but override editor with EDITOR')
+    common.add_edit_options(p)
     p.add_argument('-i', '--instance', action='store_true',
                    help='print config options that are active in the running instance')
     p.add_argument('--user-init', action='store_true',
@@ -54,14 +52,13 @@ def user_init():
             exit(1)
     sh.copy(__prefix__ + '/share/tem/config', dest)
 
-def cmd(parser, args):
+def cmd(args):
     files = determine_config_files_from_args(args)
 
     if args.user_init:
         user_init()
     elif args.edit or args.editor:
-        editor = common.get_editor(override=args.editor)
-        p = common.try_open_in_editor(editor, files)
+        p = common.try_open_in_editor(files, override_editor=args.editor)
         exit(p.returncode)
     elif args.option:                       # A config option was specified
         # Form value by concatenating arguments

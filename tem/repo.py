@@ -5,7 +5,8 @@ from . import common, util
 from .util import print_err
 
 def setup_parser(subparsers):
-    p = subparsers.add_parser('repo', help='repository operations')
+    p = subparsers.add_parser('repo', add_help=False,
+                              help='repository operations')
     common.add_common_options(p)
 
     p.add_argument('-l', '--list', action='store_true',
@@ -74,7 +75,7 @@ def list_repos(args):
         if not any_matching_repos:
             exit(1)
 
-def cmd(parser, args):
+def cmd(args):
 
     if args.add or args.remove:
         user_cfg_path = common.get_user_config_path()

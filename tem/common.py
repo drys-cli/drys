@@ -39,17 +39,27 @@ def add_common_options(parser, main_parser=False):
     """
     # TODO remove this after a tryout period
     config_dest = 'config' if main_parser else '_config'
-    parser.add_argument('-c', '--config', dest=config_dest, metavar='FILE',
+    group = parser.add_argument_group('general options')
+    group.add_argument('-h', '--help', action='help',
+                   help='show this help message and exit')
+    group.add_argument('-c', '--config', dest=config_dest, metavar='FILE',
                         action='append', default=[],
                         help='Use the specified configuration file')
     # A special None value indicates that all previous config paths should be
     # ignored
-    parser.add_argument('--reconfigure', dest='config',
+    group.add_argument('--reconfigure', dest='config',
                         action='append_const', const=None,
                         help='Discard any configuration loaded before reading this option')
 
-    parser.add_argument('-R', '--repo', action='append', default=[],
+    group.add_argument('-R', '--repo', action='append', default=[],
                         help='use the repository REPO (can be used multiple times)')
+
+def add_edit_options(parser):
+    """Add '--edit' and '--editor' options to `parser`."""
+    parser.add_argument('-e', '--edit', action='store_true',
+                   help='open generated files for editing')
+    parser.add_argument('-E', '--editor',
+                   help='same as -e but override editor with EDITOR')
 
 def load_config(paths=[], read_defaults=True):
     """
@@ -188,15 +198,16 @@ def get_editor(override=None, default='vim'):
                default]
     return next(ed for ed in editors if ed)
 
-def try_open_in_editor(editor, files):
+def try_open_in_editor(files, override_editor=None):
     """
-    Open `files` in `editor`. `editor` can be a string that the shell can parse
-    into a list of arguments (e.g. 'vim -o' is a valid `editor`). If the editor
-    cannot be found, print an error and exit.
+    Open `files` in editor. If `override_editor` is specified then that is used.
+    Otherwise, the editor is looked up in the configuration. The editor can be
+    any string that the shell can parse into a list of arguments (e.g. 'vim -o'
+    is valid). If the editor cannot be found, print an error and exit.
     """
     from . import ext
     import subprocess, shutil
-    call_args = ext.parse_args(editor) + files
+    call_args = ext.parse_args(get_editor(override_editor)) + files
 
     if not shutil.which(call_args[0]):
         print("tem config: error: invalid editor: '" + call_args[0] + "'",

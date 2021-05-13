@@ -5,16 +5,14 @@ from . import common, util
 from .util import print_err
 
 def setup_parser(subparsers):
-    p = subparsers.add_parser('ls', help='list templates')
+    p = subparsers.add_parser('ls', add_help=False,
+                              help='list templates')
     common.add_common_options(p)
 
     p.add_argument('-s', '--short', action='store_true',
                    help="don't display headers and decorations")
 
-    command = p.add_mutually_exclusive_group()
-    command.add_argument('-d', '--default', action='store_true',
-                   help='use default ls command')
-    command.add_argument('-e', '--command', metavar='CMD',
+    p.add_argument('-e', '--command', metavar='CMD',
                    help='ls command to use')
 
     recursion = p.add_mutually_exclusive_group()
@@ -26,8 +24,10 @@ def setup_parser(subparsers):
 
     p.add_argument('templates', nargs='*',
                    help='which templates to list')
-    p.add_argument('-F', '--full', action='store_true',
-                   help='show entries with full path')
+    # TODO is there a way to show a '--' in the usage synopsis? I tried this but
+    # '--' shows up at the end of help (argparse.SUPPRESS doesn't help either)
+    # Also I would like this to show up after templates and before ls_arguments
+    #  ATTEMPT: p.add_argument('--', action='store_true', dest='__discard')
     p.add_argument('ls_arguments', nargs='*',
                    help='arguments that will be passed to ls')
     p.set_defaults(func=cmd)
@@ -42,7 +42,7 @@ def print_contents(repo):
         print()
 
 # TODO decouple the shorthand-completion part into another function
-def separate_files_options(args):
+def separare_files_and_options(args):
     """
     Take a list of arguments and separate out files and options. An option is
     any string starting with a '-'. File arguments are relative to the current
@@ -75,7 +75,7 @@ def fill_in_gaps(incomplete_paths):
         ).stdout.split('\n')[:-1]
     return paths
 
-def cmd(parser, args):
+def cmd(args):
     from . import ext
     import subprocess as sp
     # The repos that will be considered
@@ -88,13 +88,12 @@ def cmd(parser, args):
     # info can be appended or prepended on each line
     for repo in repos:
         os.chdir(repo)
-        file_args, opt_args = separate_files_options(ls_args)
+        file_args, opt_args = separare_files_and_options(ls_args)
         # Any missing file extensions are filled in here
         file_args = fill_in_gaps(file_args)
         # TODO Check for excluded files
         cmd_args = ['ls'] + opt_args + file_args
-        override = 'ls' if args.default else args.command
-        p = ext.run(cmd_args, override=override,
+        p = ext.run(cmd_args, override=args.command,
                     encoding='utf-8', stdout=sp.PIPE, stderr=sp.PIPE)
 
         # Print what the command spit out
