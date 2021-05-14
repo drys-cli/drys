@@ -1,7 +1,8 @@
 """Functions and utilites used to properly call external commands."""
+import os, shutil, subprocess as sp
+
 from .common import cfg
 from . import util
-import subprocess as sp
 
 def parse_args(args):
     """
@@ -27,8 +28,12 @@ def run(command, override=None, *args, **kwargs):
     else:
         # Get the user's preferred command from the config
         cmd_string = cfg.get(command[0], 'command', fallback=command[0])
-    parsed_args = parse_args(cmd_string)
     # Parse the command with the substitution in mind
+    parsed_args = parse_args(cmd_string)
+    # If `tem` output is to a tty, make the subprocess think that its output is
+    # also to a tty
+    if os.isatty(1) and shutil.which('unbuffer'):
+        parsed_args = ['unbuffer'] + parsed_args
     try:
         return sp.run(parsed_args + command[1:],
                    *args, **kwargs)
