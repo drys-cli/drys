@@ -34,7 +34,6 @@ def setup_parser(subparsers):
                            help='do not copy directories recursively')
 
     p.set_defaults(func=cmd)
-    return p
 
 def cmd(args):
     repos = common.form_repo_list(args.repo, cmd='add')

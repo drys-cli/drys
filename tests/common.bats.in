@@ -22,5 +22,5 @@ compare_trees() {
     repo="$(cat "${@:2}" 2>/dev/null || true)"
     run diff <(echo "$original") <(echo "$repo")
     echo Diff:; echo "$output" | awk '{print "\t",$0}'
-    [ "$status" == 0 ]
+    [ "$status" = 0 ]
 }

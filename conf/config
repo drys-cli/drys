@@ -3,4 +3,7 @@ repo_path = ~/.local/share/tem/repo
 editor = vim
 
 [ls]
-command = ls
+command = ls -1
+
+[git]
+# default_branch = tem

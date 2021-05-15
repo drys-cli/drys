@@ -71,6 +71,7 @@ def cmd(args):
     if args.new:                                                # --new option
         validate_file_arguments_as_script_names(args.files)
         any_conflicts = False
+        dest_files = []
         for file in args.files:
             dest = ENV_DIR + '/' + file
             if not os.path.exists(dest):
@@ -81,9 +82,12 @@ def cmd(args):
             else:
                 any_conflicts = True
                 print_err("tem: error: file '{}' already exists".format(dest))
+            dest_files.append(dest)
         if any_conflicts:
             print_err('\nTry running with --force.')
             exit(1)
+        elif args.edit or args.editor:
+            common.try_open_in_editor(dest_files, args.editor)
     elif args.add:                                              # --add option
         import shutil
         any_nonexisting = False
@@ -148,8 +152,8 @@ def cmd(args):
         import subprocess; from . import ext
         os.chdir(ENV_DIR)
         ls_args = ['ls', '-1']
-        # Without --new and --add options, only display files from args.files
-        # With --new or --add options, all files will be displayed
+        # Without --new and --add options, only display files from `args.files`.
+        # With --new or --add options, all files will be displayed.
         if not args.new and not args.add:
             ls_args += args.files
         p = ext.run(ls_args, encoding='utf-8')
