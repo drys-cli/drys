@@ -133,7 +133,9 @@ def cmd(args):
         elif args.edit or args.editor:
             common.try_open_in_editor(args.files, args.editor)
             return
-        elif args.exec:                             # Execute files as scripts
+        elif args.exec:                                         # --exec option
+            os.environ['PATH'] = os.path.abspath(ROOT_DIR) + '/.tem/path:' \
+                + os.environ['PATH']
             for file in os.listdir(ENV_DIR):
                 if file in args.ignore or os.path.isdir(ENV_DIR + '/' + file):
                     continue

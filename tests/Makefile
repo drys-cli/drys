@@ -11,6 +11,7 @@ test:
 	@${BATS} test_add.bats
 	@${BATS} test_put.bats
 	@${BATS} test_env.bats
+	@${BATS} test_git.bats
 
 test-pip:
 	pipenv install

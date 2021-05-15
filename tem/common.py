@@ -228,8 +228,7 @@ def run_hooks(trigger, template_dir, environment=None):
     if environment != None:
         if 'TEM_TEMPLATEDIR' not in environment:
             environment['TEM_TEMPLATEDIR'] = template_dir
-        if 'PATH' not in environment:
-            environment['PATH'] = os.environ.get('PATH', '')
+        environment['PATH'] = os.environ['PATH']
 
         environment['PATH'] = template_dir + '/.tem/path:' + environment['PATH']
         for var, value in environment.items():
