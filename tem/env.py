@@ -7,10 +7,6 @@ from .util import print_err
 def setup_parser(subparsers):
     p = subparsers.add_parser('env', add_help=False,
                               help='run or modify environment scripts')
-    common.add_common_options(p)
-
-    p.add_argument('-l', '--list', action='store_true',
-                   help='list environment scripts')
 
     action_opts = p.add_mutually_exclusive_group()
     action_opts.add_argument('-x', '--exec', action='store_true',
@@ -22,20 +18,24 @@ def setup_parser(subparsers):
     action_opts.add_argument('-D', '--delete', action='store_true',
                          help='matching files under .tem/env/ will be deleted')
 
+    p.add_argument('-l', '--list', action='store_true',
+                   help='list environment scripts')
     common.add_edit_options(p)                          # --edit and --editor
 
-    p.add_argument('-v', '--verbose', action='store_true',
-                   help='report successful and unsuccessful runs')
-    p.add_argument('-i', '--ignore', metavar='FILE', default=[],
-                   help='ignore FILE')
-    p.add_argument('-f', '--force', action='store_true',
-                   help="perform action disregarding warnings")
-    p.add_argument('-r', '--root', metavar='DIR',
-                   help='load environment with DIR as root instead of ./')
+    modif = p.add_argument_group('modifier options')
+    modif.add_argument('-v', '--verbose', action='store_true',
+                       help='report successful and unsuccessful runs')
+    modif.add_argument('-I', '--ignore', metavar='FILE', default=[],
+                       help='ignore FILE')
+    modif.add_argument('-f', '--force', action='store_true',
+                       help="perform action disregarding warnings")
+    modif.add_argument('-r', '--root', metavar='DIR',
+                       help='load environment with DIR as root instead of ./')
 
     p.add_argument('files', nargs='*', default=[],
                    help='files to operate on (default: all files in .tem/env/)')
 
+    common.add_common_options(p)
     p.set_defaults(func=cmd)
 
 def validate_file_arguments_as_script_names(files):
@@ -131,13 +131,14 @@ def cmd(args):
             print_err('tem: warning: no environment scripts found')
             exit(1)
         elif args.edit or args.editor:
-            common.try_open_in_editor(args.files, args.editor)
+            common.try_open_in_editor([ ENV_DIR + '/' + f for f in args.files ],
+                                       args.editor)
             return
         elif args.exec:                                         # --exec option
             os.environ['PATH'] = os.path.abspath(ROOT_DIR) + '/.tem/path:' \
                 + os.environ['PATH']
-            for file in os.listdir(ENV_DIR):
-                if file in args.ignore or os.path.isdir(ENV_DIR + '/' + file):
+            for file in args.files:
+                if os.path.isdir(ENV_DIR + '/' + file):
                     continue
                 if args.edit or args.editor:
                     common.try_open_in_editor(files, override_editor=args.editor)
@@ -152,8 +153,8 @@ def cmd(args):
                     exit(1)
     if args.list:                                               # --list option
         import subprocess; from . import ext
-        os.chdir(ENV_DIR)
         ls_args = ['ls', '-1']
+        os.chdir(ENV_DIR)
         # Without --new and --add options, only display files from `args.files`.
         # With --new or --add options, all files will be displayed.
         if not args.new and not args.add:

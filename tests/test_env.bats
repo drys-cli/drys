@@ -134,7 +134,7 @@ fi
     rm -f _out/.tem/env/*
     cp tem/env/print.sh _out/.tem/env
     pushd _out
-    run tem_env --exec unexecutable.sh
+    run tem_env
     expected='print.sh executed'
 
     compare_output_expected
