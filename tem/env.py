@@ -31,6 +31,8 @@ def setup_parser(subparsers):
                        help="perform action disregarding warnings")
     modif.add_argument('-r', '--root', metavar='DIR',
                        help='load environment with DIR as root instead of ./')
+    modif.add_argument('--env-dir', metavar='DIR',
+                       help='env/ will be replaced with DIR')
 
     p.add_argument('files', nargs='*', default=[],
                    help='files to operate on (default: all files in .tem/env/)')
@@ -50,7 +52,7 @@ def cmd(args):
     # TODO:
     # - --add: handle multiple files with same name
     ROOT_DIR = args.root if args.root else '.'      # Process --root option
-    ENV_DIR = ROOT_DIR + '/.tem/env'
+    ENV_DIR = ROOT_DIR + '/.tem/' + (args.env_dir if args.env_dir else 'env')
     # Exec is the default action if no other actions have been specified
     if not (args.new or args.add or args.edit or args.editor or args.list):
         args.exec = True
