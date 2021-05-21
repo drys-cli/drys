@@ -88,7 +88,7 @@ tem_repo_list_or_noargs() {
 
     # The command will output the resulting REPO_PATH
     run tem_repo -c _out/config -alp "$REPOS"/repo*/
-    expect realpath "$REPOS"/repo*/
+    expect printf '%s\n' "$REPOS"/repo*
     compare_output_expected
 }
 
@@ -97,7 +97,7 @@ tem_repo_list_or_noargs() {
 
     # The command will output the resulting REPO_PATH
     run tem_repo -c _out/config -rlp "$REPOS"/repo{1,2}
-    expect realpath "$REPOS"/repo3
+    expected="$REPOS"/repo3
     compare_output_expected
 }
 

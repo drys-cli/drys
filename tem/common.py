@@ -223,7 +223,7 @@ def try_open_in_editor(files, override_editor=None):
 def run_hooks(trigger, template_dir, environment=None):
     import glob, subprocess
 
-    template_dir = util.realpath(template_dir)
+    template_dir = util.abspath(template_dir)
 
     if environment != None:
         if 'TEM_TEMPLATEDIR' not in environment:

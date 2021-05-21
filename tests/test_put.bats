@@ -2,8 +2,8 @@
 
 . common.bats.in
 
-REPO="$(realpath "$PWD")/_out/put_repo"
-DESTDIR="$(realpath "$PWD")/_out/put_dest"
+REPO="$PWD/_out/put_repo"
+DESTDIR="$PWD/_out/put_dest"
 tem_put() { $EXE put -R "$REPO" "$@"; }
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then

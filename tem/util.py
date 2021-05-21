@@ -33,14 +33,14 @@ def print_err(*args, **kwargs):
 def print_error_from_exception(e):
     print_err('tem: error:', re.sub(r'^\[Errno [0-9]*\] ', '', str(e)))
 
-def realpath(path):
-    return os.path.realpath(os.path.expanduser(path))
+def abspath(path):
+    return os.path.abspath(os.path.expanduser(path))
 
 def basename(path):
-    return os.path.basename(realpath(path))
+    return os.path.basename(os.path.abspath(path))
 
 def dirname(path):
-    return os.path.dirname(realpath(path))
+    return os.path.dirname(os.path.abspath(path))
 
 def copy(src, dest='.', ignore_nonexistent=False):
     _dirname = dirname(dest)
@@ -85,7 +85,7 @@ def fetch_name(repo_path):
 
 def repo_ids_equal(id1, id2):
     return id1 == id2 or \
-        realpath(id1) == realpath(id2) or \
+        abspath(id1) == abspath(id2) or \
         fetch_name(id1) == fetch_name(id2)
 
 def resolve_repo(repo_id, lookup_repos=None):
@@ -106,7 +106,7 @@ def resolve_repo(repo_id, lookup_repos=None):
 
     for repo in lookup_repos:
         if os.path.exists(repo) and fetch_name(repo) == repo_id:
-            return realpath(repo)
+            return abspath(repo)
 
     # If all else fails, try to find a repo whose basename is equal to `path`
     for repo in lookup_repos:

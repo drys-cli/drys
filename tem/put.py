@@ -64,7 +64,7 @@ def cmd(args):
 
             # If template is a directory, run pre hooks
             if os.path.isdir(src):
-                environment = { 'TEM_DESTDIR': os.path.realpath(dest) }
+                environment = { 'TEM_DESTDIR': util.abspath(dest) }
                 common.run_hooks('put.pre', src, environment)
             try:
                 dest = util.copy(src, dest)

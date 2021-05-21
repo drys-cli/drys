@@ -35,11 +35,11 @@ def print_repo(repo, args):
         if args.path:
             pr(' @ ')
     if args.path:
-        pr(os.path.abspath(repo))
+        pr(util.abspath(repo))
 
     if not args.name and not args.path:
         pr('{} @ {}'
-              .format(util.fetch_name(repo), os.path.abspath(repo)))
+              .format(util.fetch_name(repo), util.abspath(repo)))
     print() # New line at the end
     if not os.path.exists(repo):
         print_err("tem: warning: repository '{}' does not exist".format(repo))
@@ -85,14 +85,14 @@ def cmd(args):
             paths = [ r for r in cfg['general.repo_path'].split('\n') if r ]
             # TODO notify if repo already exists (add) or doesn't exist (remove)
             if args.add:
-                arg_repos = [ util.realpath(r) for r in args.repositories ]
+                arg_repos = [ util.abspath(r) for r in args.repositories ]
                 paths += arg_repos
             elif args.remove:
-                arg_repos = [ os.path.realpath(util.resolve_repo(r))
+                arg_repos = [ util.abspath(util.resolve_repo(r))
                              for r in args.repositories ]
                 # Remove matching paths from REPO_PATH
                 paths = [ cfg_path for cfg_path in paths
-                         if util.realpath(cfg_path) not in arg_repos ]
+                         if util.abspath(cfg_path) not in arg_repos ]
             # Remove any duplicates
             paths = list(dict.fromkeys([ r for r in paths ]))
             cfg['general.repo_path'] = '\n'.join(paths)

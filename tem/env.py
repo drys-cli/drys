@@ -137,7 +137,7 @@ def cmd(args):
                                        args.editor)
             return
         elif args.exec:                                         # --exec option
-            os.environ['PATH'] = os.path.abspath(ROOT_DIR) + '/.tem/path:' \
+            os.environ['PATH'] = util.abspath(ROOT_DIR) + '/.tem/path:' \
                 + os.environ['PATH']
             for file in args.files:
                 if os.path.isdir(ENV_DIR + '/' + file):
