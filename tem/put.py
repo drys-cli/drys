@@ -77,6 +77,6 @@ def cmd(args):
                 common.run_hooks('put.post', src)
 
         if not exists:
-            print_err('tem: error: the following template was not found in the'
+            print_err('tem: error: the following template was not found in the '
                   'available repositories:', template)
             exit(1)

@@ -50,12 +50,12 @@ def user_init():
         answer = input()
         if answer and answer.lower() != 'y':
             exit(1)
-    sh.copy(__prefix__ + '/share/tem/config', dest)
+    util.copy(__prefix__ + '/share/tem/config', dest)
 
 def cmd(args):
     files = determine_config_files_from_args(args)
 
-    if args.user_init:
+    if args.user_init:              # --user-init
         user_init()
     elif args.edit or args.editor:
         p = common.try_open_in_editor(files, override_editor=args.editor)
@@ -88,7 +88,8 @@ def cmd(args):
                     cfg = util.ConfigParser(file)
                 else:
                     cfg = common.cfg
-                print((file if file else 'INSTANCE') + ':')
+                fname = util.shortpath(file)
+                print((fname if fname else 'INSTANCE') + ':')
                 for sec in cfg.sections():
                     for item in cfg.items(sec):
                         print('    ', sec + '.' + item[0] + ' = ' + item[1], sep='')

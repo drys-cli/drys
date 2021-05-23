@@ -42,6 +42,10 @@ def basename(path):
 def dirname(path):
     return os.path.dirname(os.path.abspath(path))
 
+def shortpath(path):
+    """Print path with $HOME shortened to '~'."""
+    return path.replace(os.path.expanduser('~'), '~')
+
 def copy(src, dest='.', ignore_nonexistent=False):
     _dirname = dirname(dest)
     if _dirname and not os.path.exists(_dirname):
