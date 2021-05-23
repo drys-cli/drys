@@ -1,7 +1,4 @@
-_out/
-_build/
-_tmp/ # Directory to test out stuff temporarily
-/docs/_intermediate/
+_*/
 .tem/
 *.bak
 
