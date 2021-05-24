@@ -25,6 +25,7 @@ def setup_parser(subparsers):
                      help='output file or directory relative to repo')
     out.add_argument('-d', '--directory', metavar='DIR',
                      help='directory relative to repo where the file(s) should be placed')
+    common.add_edit_options(p)
 
     # Recursion options
     recursion = p.add_mutually_exclusive_group()
@@ -39,6 +40,7 @@ def cmd(args):
     repos = common.form_repo_list(args.repo, cmd='add')
     repos = common.resolve_and_validate_repos(repos)
 
+    edit_files = []     # Files that will be edited if --edit[or] was provided
     try:
         # Copy or move the files
         for file in args.files:
@@ -54,10 +56,15 @@ def cmd(args):
                     print("The repo directory '" + repo +
                           "' did not exist. It was created for you.")
                 if not args.move:                                       # copy
-                    util.copy(file, repo + '/' + dest)
+                    dest_file = util.copy(file, repo + '/' + dest)
                 else:                                                   # move
-                    util.move(file, repo + '/' + dest)
+                    dest_file = util.move(file, repo + '/' + dest)
+
+                if args.edit or args.editor:
+                    edit_files.append(dest_file)
     except Exception as e:
         util.print_error_from_exception(e)
         exit(1)
+    if edit_files:
+        common.try_open_in_editor(edit_files, override_editor=args.editor)
 

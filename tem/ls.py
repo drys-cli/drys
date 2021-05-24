@@ -11,9 +11,10 @@ def setup_parser(subparsers):
 
     p.add_argument('-s', '--short', action='store_true',
                    help="don't display headers and decorations")
-
-    p.add_argument('-e', '--command', metavar='CMD',
+    p.add_argument('-p', '--path', action='store_true', help='print full path')
+    p.add_argument('-x', '--command', metavar='CMD',
                    help='ls command to use')
+    common.add_edit_options(p)
 
     recursion = p.add_mutually_exclusive_group()
     recursion.add_argument('-r', '--recursive', action='store_true',
@@ -31,15 +32,6 @@ def setup_parser(subparsers):
     p.add_argument('ls_arguments', nargs='*',
                    help='arguments that will be passed to ls')
     p.set_defaults(func=cmd)
-
-# TODO obsolete!?
-def print_contents(repo):
-    print()
-    for file in os.listdir(repo):
-        print('\t', file, sep='', end='')
-        if os.path.isdir(repo + '/' + file):
-            print('/', end='')
-        print()
 
 # TODO decouple the shorthand-completion part into another function
 def separare_files_and_options(args):
@@ -73,7 +65,7 @@ def fill_in_gaps(incomplete_paths):
             ['sh', '-c', 'printf "%s\n" ' + arg + '*'],
             stdout=sp.PIPE, encoding='utf-8'
         ).stdout.split('\n')[:-1]
-    return paths
+    return [ p for p in paths if os.path.exists(p) ]
 
 def cmd(args):
     from . import ext
@@ -83,6 +75,7 @@ def cmd(args):
     repos = common.resolve_and_validate_repos(repos)
     ls_args = args.templates + args.ls_arguments
 
+    edit_files = []     # Files that will be edited if --edit[or] was provided
     original_cwd = os.getcwd()
     # TODO Make it so that ls is always displayed per-file, so that other file
     # info can be appended or prepended on each line
@@ -90,12 +83,17 @@ def cmd(args):
         os.chdir(repo)
         file_args, opt_args = separare_files_and_options(ls_args)
         # Any missing file extensions are filled in here
-        file_args = fill_in_gaps(file_args)
         # TODO Check for excluded files
-        cmd_args = ['ls'] + opt_args + file_args
+        full_file_args = fill_in_gaps(file_args)
+        if not any(os.scandir()) or (file_args and not full_file_args):
+            continue                            # Nothing to show in this repo
+        if args.path:
+            full_file_args = [ os.path.abspath(f) for f in full_file_args ]
+        cmd_args = ['ls'] + opt_args + full_file_args
         p = ext.run(cmd_args, override=args.command,
                     encoding='utf-8', stdout=sp.PIPE, stderr=sp.PIPE)
-
+        if args.edit or args.editor:
+            edit_files += [ os.path.abspath(f) for f in full_file_args ]
         # Print what the command spit out
         if p.returncode != 0:
             if p.stdout: print(p.stdout)
@@ -107,3 +105,6 @@ def cmd(args):
         if p.stdout: print(p.stdout[:-1])
         if p.stderr: print_err(p.stderr)
     os.chdir(original_cwd)
+
+    if edit_files:
+        common.try_open_in_editor(edit_files)

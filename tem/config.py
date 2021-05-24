@@ -8,7 +8,7 @@ from . import __prefix__
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('config', add_help=False,
-                              help='Get and set repository or global options')
+                              help='get and set repository or global options')
     common.add_common_options(p)
 
     p.add_argument('-f', '--file', action='append', default=[],

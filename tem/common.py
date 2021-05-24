@@ -57,7 +57,7 @@ def add_common_options(parser, main_parser=False):
 def add_edit_options(parser):
     """Add '--edit' and '--editor' options to `parser`."""
     parser.add_argument('-e', '--edit', action='store_true',
-                   help='open generated files for editing')
+                   help='open target files for editing')
     parser.add_argument('-E', '--editor',
                    help='same as -e but override editor with EDITOR')
 

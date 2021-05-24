@@ -14,6 +14,7 @@ def setup_parser(subparsers):
                      help='output file or directory')
     out.add_argument('-d', '--directory', metavar='DIR',
                      help='directory where the file(s) should be placed')
+    common.add_edit_options(p)
     p.add_argument('templates', nargs='+', help='which templates to put')
     p.set_defaults(func=cmd)
 
@@ -45,6 +46,7 @@ def cmd(args):
         if os.path.exists(args.directory) and not os.path.isdir(args.directory):
             _error_exists_but_not_dir(args.directory)
 
+    edit_files = []     # Files that will be edited if --edit[or] was provided
     for template in args.templates:
         exists = False      # Indicates that file exists in at least one repo
         for repo in repos:
@@ -61,13 +63,15 @@ def cmd(args):
                 os.path.basename(template),                         # neither
             ]
             dest = next(x for x in dest_candidates if x)
+            if args.edit or args.editor:
+                edit_files.append(dest)
 
             # If template is a directory, run pre hooks
             if os.path.isdir(src):
                 environment = { 'TEM_DESTDIR': util.abspath(dest) }
                 common.run_hooks('put.pre', src, environment)
             try:
-                dest = util.copy(src, dest)
+                util.copy(src, dest)
             except Exception as e:
                 util.print_error_from_exception(e)
                 exit(1)
@@ -80,3 +84,5 @@ def cmd(args):
             print_err('tem: error: the following template was not found in the '
                   'available repositories:', template)
             exit(1)
+    if edit_files:
+        common.try_open_in_editor(edit_files, override_editor=args.editor)
