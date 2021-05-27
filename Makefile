@@ -10,19 +10,24 @@ install:
 	@[ -f ${__INIT__} ] && rm -f ${__INIT__} || true
 	python3 setup.py install --root="${DESTDIR}/" --prefix="${PREFIX}"
 	@cd docs; "${MAKE}" man
-	@mkdir -p ${SHARE_DIR}		\
-			 ${SHARE_DIR}/hooks	\
-			 ${SHARE_DIR}/env	\
-			 ${MAN_DIR}		   	\
-			 ${DOC_DIR}
+	@mkdir -p 	${SHARE_DIR}		\
+  				${SHARE_DIR}/hooks	\
+			 	${SHARE_DIR}/env	\
+			 	${MAN_DIR}		  	\
+			 	${DOC_DIR}         	\
+			 	${DESTDIR}/${PREFIX}/share/tuterm/scripts
 	@echo "__prefix__ = '/${PREFIX}'" >> ${__INIT__}
-	install -Dm644 conf/config  ${SHARE_DIR}/
-	install -Dm644 conf/ignore  ${SHARE_DIR}/
-	install -Dm644 conf/repo    ${SHARE_DIR}/
-	install -Dm744 conf/hooks/* ${SHARE_DIR}/hooks/
-	install -Dm744 conf/env/* ${SHARE_DIR}/env/
-	install -Dm444 docs/_build/man/*.1 ${MAN_DIR}
-	install -Dm444 LICENSE ${DOC_DIR}
+	install -Dm644 conf/config  		${SHARE_DIR}/
+	install -Dm644 conf/ignore  		${SHARE_DIR}/
+	install -Dm644 conf/repo    		${SHARE_DIR}/
+	install -Dm744 conf/hooks/* 		${SHARE_DIR}/hooks/
+	install -Dm744 conf/env/* 			${SHARE_DIR}/env/
+	install -Dm444 docs/_build/man/*.1 	${MAN_DIR}
+	install -Dm444 LICENSE 				${DOC_DIR}
+	@# tuterm tutorial files
+	install -Dm644 docs/demo/demo.sh    ${DESTDIR}/${PREFIX}/share/tuterm/scripts/tem
+	cp -r 		   docs/demo/.tem-home  ${DESTDIR}/${PREFIX}/share/tuterm/scripts/.tem-home
+	chmod 755 ${DESTDIR}/${PREFIX}/share/tuterm/scripts/.tem-home
 
 test:
 	cd tests; ${MAKE} test

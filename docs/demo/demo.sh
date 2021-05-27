@@ -8,26 +8,25 @@ prompt() {
 setup() {
     FAKE_HOME='/tmp/tuterm_tem_tutorial'
     [ -e "$FAKE_HOME" ] && rm -rf "$FAKE_HOME"
-    cp -r home "$FAKE_HOME"
+    cp -r "$(dirname "$TUTORIAL_FILE")"/.tem-home "$FAKE_HOME"
 
-    TEM_CMD="$(abspath ../../tem.py)"
-    tem() {
-        "$TEM_CMD" -c ~/.config/tem/config "$@"
-    }
+    if [ -n "$TEM_DEBUG" ]; then
+        readonly TEM_CMD="$(abspath ../../tem.py)"
+        tem() { "$TEM_CMD" -c ~/.config/tem/config "$@"; }
+    else
+        tem() { /usr/bin/env tem "$@"; }
+    fi
 
     HOME="$FAKE_HOME"
     cd "$HOME"
 }
 
 run() {
-    m 'tem tutorial'
+    m 'Welcome to tem tutorial'
     c cd proj
-    c mkdir HelloWorld
-    c cd HelloWorld
-    # c tem ls cpp/main.cpp
+    c mkdir hello
+    c cd hello
     c tem put cpp/main.cpp cpp/CMakeLists.txt
     c ls
-    prompt
-    echo
 }
 
