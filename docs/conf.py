@@ -22,7 +22,6 @@ todo_include_todos  = True
 
 smartquotes = False     # Always display '--' verbatim
 default_role = 'envvar' # Like :code: role, but the text is black
-
 # ┏━━━━━━┓
 # ┃ HTML ┃
 # ┗━━━━━━┛

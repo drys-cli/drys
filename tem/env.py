@@ -29,10 +29,12 @@ def setup_parser(subparsers):
                        help='ignore FILE')
     modif.add_argument('-f', '--force', action='store_true',
                        help="perform action disregarding warnings")
-    modif.add_argument('-r', '--root', metavar='DIR',
+    modif.add_argument('--root', metavar='DIR',
                        help='load environment with DIR as root instead of ./')
     modif.add_argument('--env-dir', metavar='DIR',
                        help='env/ will be replaced with DIR')
+    modif.add_argument('-r', '--recursive', action='store_true',
+                       help='recurse up the directory tree')
 
     p.add_argument('files', nargs='*', default=[],
                    help='files to operate on (default: all files in .tem/env/)')
@@ -48,15 +50,29 @@ def validate_file_arguments_as_script_names(files):
             any_invalid_files = True
     if any_invalid_files: exit(1)
 
-def cmd(args):
-    # TODO:
-    # - --add: handle multiple files with same name
-    ROOT_DIR = args.root if args.root else '.'      # Process --root option
-    ENV_DIR = ROOT_DIR + '/.tem/' + (args.env_dir if args.env_dir else 'env')
-    # Exec is the default action if no other actions have been specified
-    if not (args.new or args.add or args.edit or args.editor or args.list):
-        args.exec = True
-    if not os.path.isdir(ENV_DIR):                  # Check if .tem/env exists
+def get_and_validate_rootdir(args):
+    ROOT_DIR = None
+    subdir = '/.tem/' + (args.env_dir if args.env_dir else 'env')
+    if args.root:                                   # --root option
+        ROOT_DIR = args.root
+    else:
+        # We have to look upwards for a suitable ROOT_DIR
+        if args.recursive:
+            cwd = os.getcwd()
+            # Find a parent directory with a subdirectory tree as in `subdir`
+            while cwd != '/':
+                if os.path.isdir(cwd + subdir):     # Env dir exists under `cwd`
+                    ROOT_DIR = cwd
+                    break
+                cwd = os.path.dirname(cwd)          # Go up one directory
+            if cwd == '/':                          # Nothing was found
+                print_err("tem: error: environment directory was not found")
+                if args.exec or not args.force: exit(1)
+        else:
+            ROOT_DIR = '.'
+    ENV_DIR = ROOT_DIR + subdir
+    if not ROOT_DIR or not os.path.isdir(ENV_DIR):
+        # Environment directory is invalid
         if os.path.exists(ENV_DIR):
             print_err("tem: error: '{}' exists and is not a directory"
                       .format(ENV_DIR))
@@ -65,8 +81,17 @@ def cmd(args):
             print_err("tem: error: directory '{}' not found"
                       .format(ENV_DIR))
             print_err('Try running `tem init` first.')
-        if not args.force:
-            exit(1)
+        if args.exec or not args.force: exit(1)
+
+    return ROOT_DIR, ENV_DIR
+
+def cmd(args):
+    # TODO:
+    #   --add: handle multiple files with same name
+    # Exec is the default action if no other actions have been specified
+    if not (args.new or args.add or args.edit or args.editor or args.list):
+        args.exec = True
+    ROOT_DIR, ENV_DIR = get_and_validate_rootdir(args)
     args.files = [ file for file in args.files if file not in args.ignore ]
     # TODO determine what constitutes a failed run, and what is just a skip
     import subprocess

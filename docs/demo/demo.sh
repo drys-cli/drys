@@ -2,26 +2,25 @@ contract_user() {
     pwd | sed "s:$HOME:~:"
 }
 prompt() {
-    echo -n "\033[1;94mtem-demo \033[1;35m$(contract_user)\033[0;33m $\033[0m "
+    echo -ne "\033[1;94mtem-demo \033[1;35m$(contract_user)\033[0;33m $\033[0m "
 }
-configure() {
-    # delay in milliseconds
-    DELAY=0.04
-    DELAY_SEP=0.1
-    DELAY_PROMPT=0.6
 
-    # Setup _home directory
-    [ -e _home ] && rm -rf _home
-    cp -r home _home/
-    HOME="$(abspath _home)"
+setup() {
+    FAKE_HOME='/tmp/tuterm_tem_tutorial'
+    [ -e "$FAKE_HOME" ] && rm -rf "$FAKE_HOME"
+    cp -r home "$FAKE_HOME"
+
     TEM_CMD="$(abspath ../../tem.py)"
     tem() {
         "$TEM_CMD" -c ~/.config/tem/config "$@"
     }
-    cd _home
+
+    HOME="$FAKE_HOME"
+    cd "$HOME"
 }
 
-tutorial() {
+run() {
+    m 'tem tutorial'
     c cd proj
     c mkdir HelloWorld
     c cd HelloWorld

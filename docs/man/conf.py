@@ -3,8 +3,9 @@ import glob, sys, os
 man_pages = []
 project = 'tem manual'
 extensions = [ 'sphinx.ext.todo' ]
+default_role = 'token'  # We use this because it displays options as bold
 
-# Provides function get_description to load command descriptions for man pages
+# Provides the function get_description to load descriptions for man pages
 sys.path.insert(0, os.path.dirname(__file__))
 from man_descriptions import man_descriptions
 

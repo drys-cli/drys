@@ -14,6 +14,8 @@ def setup_parser(subparsers):
     p.add_argument('-p', '--path', action='store_true', help='print full path')
     p.add_argument('-x', '--command', metavar='CMD',
                    help='ls command to use')
+    p.add_argument('-n', '--number', metavar='N', type=int,
+                   help='list contents of no more than N repositories')
     common.add_edit_options(p)
 
     recursion = p.add_mutually_exclusive_group()
@@ -79,7 +81,7 @@ def cmd(args):
     original_cwd = os.getcwd()
     # TODO Make it so that ls is always displayed per-file, so that other file
     # info can be appended or prepended on each line
-    for repo in repos:
+    for i, repo in enumerate(repos):
         os.chdir(repo)
         file_args, opt_args = separare_files_and_options(ls_args)
         # Any missing file extensions are filled in here
@@ -104,6 +106,10 @@ def cmd(args):
             print(message); print('=' * len(message))
         if p.stdout: print(p.stdout[:-1])
         if p.stderr: print_err(p.stderr)
+
+        if args.number and i >= args.number - 1:            # --number option
+            break
+
     os.chdir(original_cwd)
 
     if edit_files:
