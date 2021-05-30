@@ -9,7 +9,7 @@ SYNOPSIS
 
 .. raw:: html
 
-   <center><pre><code class="nodecor">
+   <center><pre><code class="no-decor">
 
 |  tem [**--version**] [**--help**]
 |  tem [*<OPTIONS>*] *<COMMAND>*

@@ -9,7 +9,7 @@ SYNOPSIS
 
 .. raw:: html
 
-   <center><pre><code class="nodecor">
+   <center><pre><code class="no-decor">
 
 | tem add [**--help**] [**--move**] [**--output** *<OUT>*] [**--directory** *<DIR>*]
 |         [**--edit**] [**--editor** *EDITOR*] [**--recursive** | **--norecursive**]
