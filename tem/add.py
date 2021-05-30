@@ -9,14 +9,10 @@ from .common import cfg, aliases
 def setup_parser(subparsers):
     p = subparsers.add_parser('add', add_help=False,
                               help='add files or directories to your tem repository')
-    common.add_common_options(p)
-
     p.add_argument('files', nargs='+', type=common.existing_file,
                    help='files or directories to add')
     p.add_argument('-H', '--hook', nargs='?',
                    help='script that will run when the directory is imported')
-    p.add_argument('-t', '--template', metavar='T',
-                   help='add the files to an existing template')
     p.add_argument('-m', '--move', action='store_true',
                    help='move the file(s) instead of copying')
 
@@ -34,6 +30,7 @@ def setup_parser(subparsers):
     recursion.add_argument('--norecursive', dest='recursive', action='store_false',
                            help='do not copy directories recursively')
 
+    common.add_common_options(p)
     p.set_defaults(func=cmd)
 
 def cmd(args):

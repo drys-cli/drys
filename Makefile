@@ -9,6 +9,7 @@ SHARE_DIR = "${DESTDIR}/${PREFIX}/share/tem"
 install:
 	@[ -f ${__INIT__} ] && rm -f ${__INIT__} || true
 	python3 setup.py install --root="${DESTDIR}/" --prefix="${PREFIX}"
+	@echo "__prefix__ = '/${PREFIX}'" >> ${__INIT__}
 	@cd docs; "${MAKE}" man
 	@mkdir -p 	${SHARE_DIR}		\
   				${SHARE_DIR}/hooks	\
@@ -16,7 +17,6 @@ install:
 			 	${MAN_DIR}		  	\
 			 	${DOC_DIR}         	\
 			 	${DESTDIR}/${PREFIX}/share/tuterm/scripts
-	@echo "__prefix__ = '/${PREFIX}'" >> ${__INIT__}
 	install -Dm644 conf/config  		${SHARE_DIR}/
 	install -Dm644 conf/ignore  		${SHARE_DIR}/
 	install -Dm644 conf/repo    		${SHARE_DIR}/

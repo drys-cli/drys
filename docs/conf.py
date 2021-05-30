@@ -26,6 +26,10 @@ default_role = 'envvar' # Like :code: role, but the text is black
 # ┃ HTML ┃
 # ┗━━━━━━┛
 html_theme = 'sphinx_rtd_theme'
+html_static_path = ['_static']
+html_css_files = [
+    'custom.css',
+]
 # Tweak manpages for inclusion in the HTML version of the docs
 if 'html' in sys.argv:
     from subprocess import call

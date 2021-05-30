@@ -7,10 +7,16 @@ tem
 SYNOPSIS
 ========
 
-.. code-block:: none
+.. raw:: html
 
-   tem [--version] [--help]
-   tem [<options>] <command>
+   <center><pre><code class="nodecor">
+
+|  tem [**--version**] [**--help**]
+|  tem [*<OPTIONS>*] *<COMMAND>*
+
+.. raw:: html
+
+   </code></pre></center>
 
 DESCRIPTION
 ===========
@@ -19,50 +25,62 @@ tem is a lightweight yet feature-packed template/snippet/environment manager for
 the terminal. If you are using tem for the first time, we recommend you go
 through :ref:`tem-tutorial(1)<tem_tutorial>` first.
 
+You can use **tem** to:
+
+   1. Organize template files and utilize them efficiently
+   2. Create scripts to populate (specialize) those template files with dynamic data
+   3. Manage environments (scripts, environment variables, hooks) local to specific
+      directories
+   4. Share useful workflow files with collaborators, while keeping them out of the
+      main VCS branch
+
+It is useful to know the basic terminology of **tem**:
+
+   1. A *template file* is a file that can be reused in multiple similar projects
+   2. A *tem repository* is a directory where template files/directories are stored
+
 OPTIONS
 =======
 
-`-v`\ , `--version`
+.. option:: -v, --version
+
    Prints the currently installed version of tem.
 
-`-h`\ , `--help`
+.. option:: -h, --help
+
    Prints the synopsis, available subcommands and options.
 
-`--init-config`
+.. option:: --init-config
+
    Generate initial user configuration file at the path with the highest priority,
    usually `~/.config/tem/config`. (see :ref:`tem-config(1)<man_tem_config>`)
 
-`--debug`
+.. option:: --debug
+
    Runs the command inside a python debugger (requires the python package
    `pudb <https://pypi.org/project/pudb>`_
    to be installed). This is meant for developers.
 
 The following options are common to all subcommands:
 
-`-h`\ , `--help`
+.. option:: -h, --help
+
    Prints the synopsis and list of options.
 
-`-c \<FILE\>`\ , `--config \<FILE\>`
+.. option:: -c <FILE>, --config=<FILE>
+
    Load the specified configuration file on top of the default configuration
    (see :ref:`tem-config(1)<man_tem_config>`).
 
-`--reconfigure`
-   Discard any configuration loaded before encountering this option.
+.. option:: --reconfigure
 
-   Example:
+   Discard any configuration loaded before parsing this option.
 
-   #. ``tem <subcommand> --reconfigure``
+.. option:: -R <REPO>, --repo=<REPO>
 
-      tem will use the default configuration.
-
-   #. ``tem <subcommand> --config FILE1 --reconfigure --config FILE2``
-
-      tem will be configured from FILE2, but FILE1 is ignored.
-
-`-R \<REPO\>`\ , `--repo \<REPO\>`
    By default, the repositories that are used by subcommands are taken from the
-   configuration key '`general.repo_path`'. Use this option to ditch those
-   default repositories and use REPO, which is a repository pseudo-path (see
+   configuration key `general.repo_path`. Use this option to ditch those default
+   repositories and use `<REPO>`, which is a repository pseudo-path (see
    :ref:`Locating repositories<locating_repositories>`). If specified multiple
    times, then all specified repositories are used.
 
@@ -72,33 +90,53 @@ SUBCOMMANDS
 add
 ---
 
-Add a file or directory to a repository.
+Add a file or directory to a repository as a template. See :ref:`tem-add(1)<man_tem_add>`.
 
 rm
 --
 
+Remove a template from a repository.
+
 put
 ---
+
+Copy a template from a repository to a specified destination.
 
 ls
 --
 
+List the contents of repositories.
+
 repo
 ----
 
+List, add or remove repositories.
+
 config
 ------
+
+Get or set configuration options.
+
+init
+----
+
+Initialize a directory with a `.tem` subdirectory.
+
+env
+---
+
+Run or modify local environments.
 
 .. _config:
 
 REPOSITORY
 ==========
 
-A repository is a directory that contains templates. Each subcommand takes a
-`--repo` option that allows you to specify which repositories you want the
-command to operate on. If no repositories are specified using this option, then
-a default list of repositories is taken from the '`general.REPO_PATH`'
-configuration option.
+A repository is a dedicated directory that contains templates. Each subcommand
+takes a :option:`--repo` option that allows you to specify which repositories
+you want the command to operate on. If no repositories are specified with this
+option, then a default list of repositories is taken from the
+`general.repo_path` configuration option.
 
 .. _locating_repositories:
 
@@ -111,10 +149,10 @@ lookup order is as follows, from higher to lower priority:
 #. Special value `/`
 
    Abbreviation for: "all default repositories".
-   
-   This is useful with the `--repo` option. Namely, if this option is specified
+
+   This is useful with the :option:`--repo` option. Namely, if this option is specified
    to any subcommand, the default repositories are not taken into consideration.
-   By specifying `--repo /`, the default repositories will be taken into
+   By specifying :option:`--repo /<--repo>`, the default repositories will be taken into
    consideration after all.
 
 #. Special value `-`
@@ -127,7 +165,7 @@ lookup order is as follows, from higher to lower priority:
 #. Repository name
 
    By default, the repository name is the basename of the repository absolute
-   path. It can be overriden by the configuration option '`general.name`' in
+   path. It can be overriden by the configuration option `general.name` in
    `path/to/repoX/.tem/repo`. The name can contain anything but the
    :guilabel:`/` character, but we recommend that you only use alphanumeric
    characters, :guilabel:`-` and :guilabel:`_` in the name (regex:
@@ -143,3 +181,8 @@ lookup order is as follows, from higher to lower priority:
    Tip: If PWD contains a repository (e.g. directory `repoX`) and a repository
    with the name `repoX` exists in `REPO_PATH`, make it explicit that you want
    the local repository by using `./repoX`.
+
+SEE ALSO
+========
+
+:ref:`tem-add(1)<man_tem_add>`, **tem-fish(1)**, **tem.vim**

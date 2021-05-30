@@ -42,6 +42,8 @@ def add_common_options(parser, main_parser=False):
     group = parser.add_argument_group('general options')
     group.add_argument('-h', '--help', action='help',
                    help='show this help message and exit')
+    group.add_argument('-R', '--repo', action='append', default=[],
+                        help='use the repository REPO (can be used multiple times)')
     group.add_argument('-c', '--config', dest=config_dest, metavar='FILE',
                         action='append', default=[],
                         help='Use the specified configuration file')
@@ -50,9 +52,6 @@ def add_common_options(parser, main_parser=False):
     group.add_argument('--reconfigure', dest='config',
                         action='append_const', const=None,
                         help='Discard any configuration loaded before reading this option')
-
-    group.add_argument('-R', '--repo', action='append', default=[],
-                        help='use the repository REPO (can be used multiple times)')
 
 def add_edit_options(parser):
     """Add '--edit' and '--editor' options to `parser`."""
