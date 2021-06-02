@@ -33,15 +33,13 @@ OPTIONS
 
 .. option:: -o, --output=<OUT>
 
-   The file will be added as `<OUT>`, relative to the repository path. Missing
-   directories will be created.
+   The file will be added as `<OUT>`, relative to the repository path. Any
+   missing directories will be created.
 
 .. option:: -d, --directory=<DIR>
 
    The file will be added under the directory `<DIR>` relative to the repository
    path. Missing directories will be created.
-
-   TODO: does it create directory if it doesn't exist?
 
 .. option:: -m, --move
 
@@ -49,7 +47,7 @@ OPTIONS
 
 .. option:: -e, --edit
 
-   Open the newly added file(s) for editing.
+   Open the newly added files for editing.
 
 .. option:: -E <EDITOR>, --editor <EDITOR>
 
@@ -68,4 +66,4 @@ OPTIONS
 SEE ALSO
 ========
 
-:ref:`tem(1)<man_tem>`
+:ref:`tem(1)<man_tem>`, :ref:`tem-put(1)<man_tem_put>`

@@ -3,6 +3,7 @@
 man_descriptions = {
     'tem': 'Template and Environment Manager',
     'tem-add': 'Add a file as a template',
+    'tem-put': 'Copy a template to a destination',
     'tem-config': 'tem configuration file specification',
     'tem-tutorial': 'tutorial for new users of tem',
     }
