@@ -15,7 +15,8 @@ def setup_parser(subparsers):
     out.add_argument('-d', '--directory', metavar='DIR',
                      help='directory where the file(s) should be placed')
     common.add_edit_options(p)
-    p.add_argument('templates', nargs='+', help='which templates to put')
+    p.add_argument('templates', metavar='TEMPLATES', nargs='+',
+                   help='which templates to put')
     p.set_defaults(func=cmd)
 
 def _error_output_multiple_templates():
@@ -69,14 +70,15 @@ def cmd(args):
             # If template is a directory, run pre hooks
             if os.path.isdir(src):
                 environment = { 'TEM_DESTDIR': util.abspath(dest) }
-                common.run_hooks('put.pre', src, environment)
+                common.run_hooks('put.pre', src, dest, environment)
+
             try:
                 util.copy(src, dest)
             except Exception as e:
                 util.print_error_from_exception(e)
                 exit(1)
 
-            # If template is a directory, run pre hooks
+            # If template is a directory, run post hooks
             if os.path.isdir(src):
                 common.run_hooks('put.post', src)
 

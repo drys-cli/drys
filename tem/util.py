@@ -1,4 +1,5 @@
 import sys, os, shutil, re
+import contextlib
 
 import configparser
 
@@ -120,3 +121,10 @@ def resolve_repo(repo_id, lookup_repos=None):
     # The `path` must be relative/absolute then
     return os.path.expanduser(repo_id)
 
+@contextlib.contextmanager
+def chdir(new_dir):
+    """Temporarily cd to `new_dir`, do stuff, then cd back."""
+    old_dir = os.getcwd()
+    os.chdir(new_dir)
+    try: yield
+    finally: os.chdir(old_dir)

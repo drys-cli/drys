@@ -10,7 +10,7 @@ def setup_parser(subparsers):
     common.add_common_options(p)
 
     p.add_argument('-l', '--list', action='store_true',
-                   help='list repositories')
+                   help='list REPOSITORIES')
     p.add_argument('-n', '--name', action='store_true',
                    help='print the repository name')
     p.add_argument('-p', '--path', action='store_true',
@@ -18,11 +18,11 @@ def setup_parser(subparsers):
 
     add_rem = p.add_mutually_exclusive_group()
     add_rem.add_argument('-a', '--add', action='store_true',
-                   help='add repositories to REPO_PATH')
+                   help='add REPOSITORIES to REPO_PATH')
     add_rem.add_argument('-r', '--remove', action='store_true',
-                   help='remove repositories from REPO_PATH')
+                   help='remove REPOSITORIES from REPO_PATH')
 
-    p.add_argument('repositories', nargs='*',
+    p.add_argument('repositories', metavar='REPOSITORIES', nargs='*',
                    help='repository paths, partial paths or names')
 
     p.set_defaults(func=cmd)

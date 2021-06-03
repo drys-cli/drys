@@ -25,7 +25,7 @@ def setup_parser(subparsers):
                            action='store_false',
                            help='do not recurse into subdirectories [default]')
 
-    p.add_argument('templates', nargs='*',
+    p.add_argument('templates', metavar='TEMPLATES', nargs='*',
                    help='which templates to list')
     # TODO is there a way to show a '--' in the usage synopsis? I tried this but
     # '--' shows up at the end of help (argparse.SUPPRESS doesn't help either)

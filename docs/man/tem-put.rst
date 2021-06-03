@@ -26,6 +26,8 @@ Take a template file or directory and place it somewhere.
 OPTIONS
 =======
 
+.. program:: put
+
 .. option:: -h, --help
 
    Prints the synopsis and list of options.
@@ -47,7 +49,7 @@ OPTIONS
 
 .. option:: -E <EDITOR>, --editor <EDITOR>
 
-   Same as :option:`--edit` but uses `<EDITOR>` instead of the default editor.
+   Same as :option:`put --edit` but uses `<EDITOR>` instead of the default editor.
 
 **NOTE**: See also :ref:`tem(1)<man_tem>` for a list of options common to all
 subcommands.

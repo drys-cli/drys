@@ -38,13 +38,12 @@ def add_common_options(parser, main_parser=False):
     subcommand name.
     """
     # TODO remove this after a tryout period
-    config_dest = 'config' if main_parser else '_config'
     group = parser.add_argument_group('general options')
     group.add_argument('-h', '--help', action='help',
                    help='show this help message and exit')
     group.add_argument('-R', '--repo', action='append', default=[],
                         help='use the repository REPO (can be used multiple times)')
-    group.add_argument('-c', '--config', dest=config_dest, metavar='FILE',
+    group.add_argument('-c', '--config', metavar='FILE',
                         action='append', default=[],
                         help='Use the specified configuration file')
     # A special None value indicates that all previous config paths should be
@@ -219,20 +218,23 @@ def try_open_in_editor(files, override_editor=None):
         util.print_error_from_exception(e)
         exit(1)
 
-def run_hooks(trigger, template_dir, environment=None):
+def run_hooks(trigger, src_dir, dest_dir='.', environment=None):
+    """For reference look at tem-hooks(1) manpage."""
     import glob, subprocess
 
-    template_dir = util.abspath(template_dir)
+    src_dir = util.abspath(src_dir)
 
+    # Setup environment variables that the hooks can use
     if environment != None:
         if 'TEM_TEMPLATEDIR' not in environment:
-            environment['TEM_TEMPLATEDIR'] = template_dir
-        environment['PATH'] = os.environ['PATH']
-
-        environment['PATH'] = template_dir + '/.tem/path:' + environment['PATH']
+            environment['TEM_TEMPLATEDIR'] = src_dir
+        environment['PATH'] = src_dir + '/.tem/path:' + os.environ['PATH']
         for var, value in environment.items():
-            os.environ.setdefault(var, value)
+            os.environ[var] = value
 
-    for file in glob.glob(template_dir +
-                          '/.tem/hooks/*.{}'.format(trigger)):
-        subprocess.run(file, cwd=os.path.dirname(file))
+    os.makedirs(dest_dir, exist_ok=True)
+
+    with util.chdir(dest_dir):
+        # Execute matching hooks
+        for file in glob.glob(src_dir + '/.tem/hooks/*.{}'.format(trigger)):
+            subprocess.run([file] + sys.argv, cwd=os.path.dirname(file))

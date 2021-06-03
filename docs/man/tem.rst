@@ -42,6 +42,8 @@ It is useful to know the basic terminology of **tem**:
 OPTIONS
 =======
 
+.. program:: tem
+
 .. option:: -v, --version
 
    Prints the currently installed version of tem.
@@ -133,7 +135,7 @@ REPOSITORY
 ==========
 
 A repository is a dedicated directory that contains templates. Each subcommand
-takes a :option:`--repo` option that allows you to specify which repositories
+takes a :option:`tem --repo` option that allows you to specify which repositories
 you want the command to operate on. If no repositories are specified with this
 option, then a default list of repositories is taken from the
 `general.repo_path` configuration option.
@@ -150,10 +152,10 @@ lookup order is as follows, from higher to lower priority:
 
    Abbreviation for: "all default repositories".
 
-   This is useful with the :option:`--repo` option. Namely, if this option is specified
-   to any subcommand, the default repositories are not taken into consideration.
-   By specifying :option:`--repo /<--repo>`, the default repositories will be taken into
-   consideration after all.
+   This is useful with the :option:`tem --repo` option. Namely, if this option
+   is specified to any subcommand, the default repositories are not taken into
+   consideration.  By specifying :option:`--repo /<tem --repo>`, the default
+   repositories will be taken into consideration after all.
 
 #. Special value `-`
 

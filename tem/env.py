@@ -14,9 +14,9 @@ def setup_parser(subparsers):
     action_opts.add_argument('-n', '--new', action='store_true',
                          help='create a new empty script in .tem/env/')
     action_opts.add_argument('-a', '--add', action='store_true',
-                         help='files will be added to .tem/env/')
+                         help='FILES will be added to .tem/env/')
     action_opts.add_argument('-D', '--delete', action='store_true',
-                         help='matching files under .tem/env/ will be deleted')
+                         help='matching FILES under .tem/env/ will be deleted')
 
     p.add_argument('-l', '--list', action='store_true',
                    help='list environment scripts')
@@ -36,7 +36,7 @@ def setup_parser(subparsers):
     modif.add_argument('-r', '--recursive', action='store_true',
                        help='recurse up the directory tree')
 
-    p.add_argument('files', nargs='*', default=[],
+    p.add_argument('files', metavar='FILES', nargs='*', default=[],
                    help='files to operate on (default: all files in .tem/env/)')
 
     common.add_common_options(p)
@@ -51,10 +51,10 @@ def validate_file_arguments_as_script_names(files):
     if any_invalid_files: exit(1)
 
 def get_and_validate_rootdir(args):
-    ROOT_DIR = None
+    root_dir = None
     subdir = '/.tem/' + (args.env_dir if args.env_dir else 'env')
     if args.root:                                   # --root option
-        ROOT_DIR = args.root
+        root_dir = args.root
     else:
         # We have to look upwards for a suitable ROOT_DIR
         if args.recursive:
@@ -62,28 +62,28 @@ def get_and_validate_rootdir(args):
             # Find a parent directory with a subdirectory tree as in `subdir`
             while cwd != '/':
                 if os.path.isdir(cwd + subdir):     # Env dir exists under `cwd`
-                    ROOT_DIR = cwd
+                    root_dir = cwd
                     break
                 cwd = os.path.dirname(cwd)          # Go up one directory
             if cwd == '/':                          # Nothing was found
                 print_err("tem: error: environment directory was not found")
                 if args.exec or not args.force: exit(1)
         else:
-            ROOT_DIR = '.'
-    ENV_DIR = ROOT_DIR + subdir
-    if not ROOT_DIR or not os.path.isdir(ENV_DIR):
+            root_dir = '.'
+    env_dir = root_dir + subdir
+    if not root_dir or not os.path.isdir(env_dir):
         # Environment directory is invalid
-        if os.path.exists(ENV_DIR):
+        if os.path.exists(env_dir):
             print_err("tem: error: '{}' exists and is not a directory"
-                      .format(ENV_DIR))
+                      .format(env_dir))
             print_err('Try running `tem init --force` first.')
         else:
             print_err("tem: error: directory '{}' not found"
-                      .format(ENV_DIR))
+                      .format(env_dir))
             print_err('Try running `tem init` first.')
         if args.exec or not args.force: exit(1)
 
-    return ROOT_DIR, ENV_DIR
+    return root_dir, env_dir
 
 def cmd(args):
     # TODO:
@@ -91,7 +91,7 @@ def cmd(args):
     # Exec is the default action if no other actions have been specified
     if not (args.new or args.add or args.edit or args.editor or args.list):
         args.exec = True
-    ROOT_DIR, ENV_DIR = get_and_validate_rootdir(args)
+    ROOT_DIR, env_dir = get_and_validate_rootdir(args)
     args.files = [ file for file in args.files if file not in args.ignore ]
     # TODO determine what constitutes a failed run, and what is just a skip
     import subprocess
@@ -100,7 +100,7 @@ def cmd(args):
         any_conflicts = False
         dest_files = []
         for file in args.files:
-            dest = ENV_DIR + '/' + file
+            dest = env_dir + '/' + file
             if not os.path.exists(dest):
                 open(dest, 'x').close()                     # Create empty file
                 os.chmod(dest, os.stat(dest).st_mode | 0o100)       # chmod u+x
@@ -121,7 +121,7 @@ def cmd(args):
         any_conflicts = False
         dest_files = []
         for src in args.files:
-            dest = ENV_DIR + '/' + util.basename(src)
+            dest = env_dir + '/' + util.basename(src)
             if os.path.exists(src):
                 if not os.path.exists(dest) or args.force:
                     shutil.copy(src, dest)
@@ -139,7 +139,7 @@ def cmd(args):
     elif args.delete:                                       # --delete option
         any_problems = False
         for file in args.files:
-            target_file = ENV_DIR + '/' + file
+            target_file = env_dir + '/' + file
             if os.path.isfile(target_file):
                 os.remove(target_file)
             elif os.path.isdir(target_file):
@@ -152,25 +152,25 @@ def cmd(args):
     else:
         # If no files are passed as arguments, use all files from .tem/env/
         if not args.files:
-            args.files = [ file for file in os.listdir(ENV_DIR)
+            args.files = [ file for file in os.listdir(env_dir)
                           if file not in args.ignore ]
         if not args.files and args.verbose:
             print_err('tem: warning: no environment scripts found')
             exit(1)
         elif args.edit or args.editor:
-            common.try_open_in_editor([ ENV_DIR + '/' + f for f in args.files ],
+            common.try_open_in_editor([ env_dir + '/' + f for f in args.files ],
                                        args.editor)
             return
         elif args.exec:                                         # --exec option
             os.environ['PATH'] = util.abspath(ROOT_DIR) + '/.tem/path:' \
                 + os.environ['PATH']
             for file in args.files:
-                if os.path.isdir(ENV_DIR + '/' + file):
+                if os.path.isdir(env_dir + '/' + file):
                     continue
                 if args.edit or args.editor:
                     common.try_open_in_editor(files, override_editor=args.editor)
                 try:
-                    subprocess.run(ENV_DIR + '/' + file)
+                    subprocess.run(env_dir + '/' + file)
                     if args.verbose:
                         print_err("tem: info: script `{}` was run successfully"
                                   .format(file))
@@ -181,7 +181,7 @@ def cmd(args):
     if args.list:                                               # --list option
         import subprocess; from . import ext
         ls_args = ['ls', '-1']
-        os.chdir(ENV_DIR)
+        os.chdir(env_dir)
         # Without --new and --add options, only display files from `args.files`.
         # With --new or --add options, all files will be displayed.
         if not args.new and not args.add:

@@ -10,6 +10,7 @@ Manual pages
       _intermediate/man/tem.rst
       _intermediate/man/tem-add.rst
       _intermediate/man/tem-put.rst
+      _intermediate/man/tem-hook.rst
       _intermediate/man/tem-tutorial.rst
       _intermediate/man/tem-config.rst
 
@@ -21,5 +22,6 @@ Manual pages
       man/tem.rst
       man/tem-add.rst
       man/tem-put.rst
+      man/tem-hook.rst
       man/tem-tutorial.rst
       man/tem-config.rst

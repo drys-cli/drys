@@ -7,7 +7,8 @@ def setup_parser(subparsers):
                               help='remove files from a repository')
     common.add_common_options(p)
 
-    p.add_argument('files', nargs='+', help='which files/directories to remove')
+    p.add_argument('files', metavar='FILES', nargs='+',
+                   help='which files/directories to remove')
 
     p.set_defaults(func=cmd)
 

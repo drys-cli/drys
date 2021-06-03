@@ -21,12 +21,14 @@ def setup_parser(subparsers):
                    help='local repository configuration file will be used')
     common.add_edit_options(p)
     p.add_argument('-i', '--instance', action='store_true',
-                   help='print config options that are active in the running instance')
+                   help='print OPTIONs that are active in the running instance')
     p.add_argument('--user-init', action='store_true',
                    help='initialize config at ~/.config/tem')
 
-    p.add_argument('option', nargs='?', help='configuration option to get or set')
-    p.add_argument('value', nargs='*', help='value for the specified configuration option')
+    p.add_argument('option', metavar='OPTION', nargs='?',
+                   help='configuration option to get or set')
+    p.add_argument('value', metavar='VALUE', nargs='*',
+                   help='value for the specified configuration OPTION')
 
     p.set_defaults(func=cmd)
 

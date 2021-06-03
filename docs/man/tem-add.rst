@@ -12,8 +12,8 @@ SYNOPSIS
    <center><pre><code class="no-decor">
 
 | tem add [**--help**] [**--move**] [**--output** *<OUT>*] [**--directory** *<DIR>*]
-|         [**--edit**] [**--editor** *EDITOR*] [**--recursive** | **--norecursive**]
-|         [**--reconfigure**]
+|         [**--edit**] [**--editor** *<EDITOR>*] [**--recursive** | **--norecursive**]
+|         [**--reconfigure**] *<FILES>*
 
 .. raw:: html
 
@@ -26,6 +26,8 @@ Add a file or directory as a template to a repository.
 
 OPTIONS
 =======
+
+.. program:: add
 
 .. option:: -h, --help
 
@@ -51,7 +53,7 @@ OPTIONS
 
 .. option:: -E <EDITOR>, --editor <EDITOR>
 
-   Same as :option:`--edit` but uses `<EDITOR>` instead of the default editor.
+   Same as :option:`add --edit` but uses `<EDITOR>` instead of the default editor.
 
 .. option:: -r, --recursive
 

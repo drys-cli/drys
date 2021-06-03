@@ -9,7 +9,7 @@ from .common import cfg, aliases
 def setup_parser(subparsers):
     p = subparsers.add_parser('add', add_help=False,
                               help='add files or directories to your tem repository')
-    p.add_argument('files', nargs='+', type=common.existing_file,
+    p.add_argument('files', metavar='FILES', nargs='+', type=common.existing_file,
                    help='files or directories to add')
     p.add_argument('-H', '--hook', nargs='?',
                    help='script that will run when the directory is imported')

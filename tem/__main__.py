@@ -33,7 +33,7 @@ def main():
 
     # Setup subcommand parsers
     sub = parser.add_subparsers(title='commands', metavar='')
-    from tem import add, rm, put, ls, repo, config, init, env, git
+    from tem import add, rm, put, ls, repo, config, init, env, git, hook
     add.setup_parser(sub)
     rm.setup_parser(sub)
     put.setup_parser(sub)
@@ -43,6 +43,7 @@ def main():
     init.setup_parser(sub)
     env.setup_parser(sub)
     git.setup_parser(sub)
+    hook.setup_parser(sub)
 
     # TODO figure out how to handle config loading to use aliases
     # Parse arguments before reading config. This allows us to process arguments
