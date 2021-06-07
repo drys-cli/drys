@@ -13,7 +13,8 @@ SYNOPSIS
 
 | tem add [**--help**] [**--move**] [**--output** *<OUT>*] [**--directory** *<DIR>*]
 |         [**--edit**] [**--editor** *<EDITOR>*] [**--recursive** | **--norecursive**]
-|         [**--reconfigure**] *<FILES>*
+|         [**--repo** *<REPO>*] [**--config** *<FILE>*] [**--reconfigure**]
+|         *<FILES>*
 
 .. raw:: html
 
@@ -51,9 +52,9 @@ OPTIONS
 
    Open the newly added files for editing.
 
-.. option:: -E <EDITOR>, --editor <EDITOR>
+.. option:: -E <EDITOR>, --editor=<EDITOR>
 
-   Same as :option:`add --edit` but uses `<EDITOR>` instead of the default editor.
+   Same as :option:`--edit<add --edit>` but uses `<EDITOR>` instead of the default editor.
 
 .. option:: -r, --recursive
 

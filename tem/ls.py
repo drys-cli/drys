@@ -31,7 +31,7 @@ def setup_parser(subparsers):
     # '--' shows up at the end of help (argparse.SUPPRESS doesn't help either)
     # Also I would like this to show up after templates and before ls_arguments
     #  ATTEMPT: p.add_argument('--', action='store_true', dest='__discard')
-    p.add_argument('ls_arguments', nargs='*',
+    p.add_argument('ls_arguments', metavar='LS_ARGUMENTS', nargs='*',
                    help='arguments that will be passed to ls')
     p.set_defaults(func=cmd)
 

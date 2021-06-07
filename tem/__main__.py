@@ -18,8 +18,6 @@ def init_config():
         exit(0)
 
 def main():
-    argv = sys.argv
-
     parser = argparse.ArgumentParser(add_help=False)
 
     parser.add_argument('-v', '--version', action='version',
@@ -33,7 +31,7 @@ def main():
 
     # Setup subcommand parsers
     sub = parser.add_subparsers(title='commands', metavar='')
-    from tem import add, rm, put, ls, repo, config, init, env, git, hook
+    from tem import add, rm, put, ls, repo, config, init, env, hook, git
     add.setup_parser(sub)
     rm.setup_parser(sub)
     put.setup_parser(sub)
@@ -42,10 +40,11 @@ def main():
     config.setup_parser(sub)
     init.setup_parser(sub)
     env.setup_parser(sub)
-    git.setup_parser(sub)
     hook.setup_parser(sub)
+    git.setup_parser(sub)
 
     # TODO figure out how to handle config loading to use aliases
+
     # Parse arguments before reading config. This allows us to process arguments
     # that can potentially terminate the program immediately (like '--help')
     args = parser.parse_args();
@@ -75,7 +74,7 @@ def main():
         elif sys.argv[i] == '--reconfigure':
             config.append(None)
 
-    # Load configuration, both default and from arguments
+    # Load configuration, from default files and from '--config' arguments
     common.load_config(config)
 
     if args.func:

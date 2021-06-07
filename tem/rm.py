@@ -4,7 +4,7 @@ from . import common, util
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('rm', add_help=False,
-                              help='remove files from a repository')
+                              help='remove templates from a repository')
     common.add_common_options(p)
 
     p.add_argument('files', metavar='FILES', nargs='+',

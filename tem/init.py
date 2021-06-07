@@ -5,7 +5,7 @@ from .util import print_err
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('init', add_help=False,
-                              help='generate a .tem directory here')
+                              help='generate a .tem directory')
     common.add_common_options(p)
 
     p.add_argument('-H', '--example-hooks', action='store_true',

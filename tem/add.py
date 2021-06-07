@@ -8,7 +8,7 @@ from .common import cfg, aliases
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('add', add_help=False,
-                              help='add files or directories to your tem repository')
+                              help='add templates to your tem repository')
     p.add_argument('files', metavar='FILES', nargs='+', type=common.existing_file,
                    help='files or directories to add')
     p.add_argument('-H', '--hook', nargs='?',

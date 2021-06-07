@@ -12,7 +12,8 @@ SYNOPSIS
    <center><pre><code class="no-decor">
 
 |  tem [**--help**] [**--exec**] [**--new**] [**--add**] [**--edit**] [**--editor** *<EDITOR>*]
-|      [**--force**] [**--reconfigure**] [*<HOOKS>*]
+|      [**--force**] [**--repo** *<REPO>*] [**--config** *<FILE>*] [**--reconfigure**]
+|      [*<HOOKS>*]
 
 .. raw:: html
 
@@ -63,9 +64,9 @@ OPTIONS
 
    Open files for editing.
 
-.. option:: -E <EDITOR>, --editor <EDITOR>
+.. option:: -E <EDITOR>, --editor=<EDITOR>
 
-   Same as :option:`hook --edit` but uses `<EDITOR>` instead of the default editor.
+   Same as :option:`--edit<hook --edit>` but uses `<EDITOR>` instead of the default editor.
 
 .. _hooks:
 
@@ -107,7 +108,7 @@ The following environment variables get set by each subcommand:
 Common environment
 ------------------
 
-| :envvar:`TEM_ROOTDIR` - directory containing the `.tem/hooks` subdirectory
+:envvar:`TEM_ROOTDIR` - directory containing the `.tem/hooks` subdirectory
 where the hook resides.
 
 tem put
@@ -121,4 +122,4 @@ tem put
 SEE ALSO
 ========
 
-:ref:`tem<man_tem>`
+:ref:`tem(1)<man_tem>`

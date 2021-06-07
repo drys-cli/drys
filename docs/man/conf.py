@@ -7,7 +7,11 @@ default_role = 'dfn'  # We use this because it renders as italic (underlined)
 
 # Provides the function get_description to load descriptions for man pages
 sys.path.insert(0, os.path.dirname(__file__))
-from man_descriptions import man_descriptions
+from man_descriptions import *
+
+try: rst_prolog
+except NameError: rst_prolog = ''
+rst_prolog = generate_description_substitutions(rst_prolog)
 
 for f in glob.glob('tem*.rst'):
     man_pages.append((

@@ -6,7 +6,7 @@ from .util import print_err
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('repo', add_help=False,
-                              help='repository operations')
+                              help='perform operations on tem repositories')
     common.add_common_options(p)
 
     p.add_argument('-l', '--list', action='store_true',

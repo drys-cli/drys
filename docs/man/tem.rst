@@ -63,7 +63,7 @@ OPTIONS
    `pudb <https://pypi.org/project/pudb>`_
    to be installed). This is meant for developers.
 
-The following options are common to all subcommands:
+**The following options are common to all subcommands:**
 
 .. option:: -h, --help
 
@@ -92,50 +92,58 @@ SUBCOMMANDS
 add
 ---
 
-Add a file or directory to a repository as a template. See :ref:`tem-add(1)<man_tem_add>`.
+|man_desc_tem_add|. See :ref:`tem-add(1)<man_tem_add>`.
 
 rm
 --
 
-Remove a template from a repository.
+|man_desc_tem_rm|. See :ref:`tem-rm(1)<man_tem_rm>`.
 
 put
 ---
 
-Copy a template from a repository to a specified destination.
+|man_desc_tem_put|. See :ref:`tem-put(1)<man_tem_put>`.
 
 ls
 --
 
-List the contents of repositories.
+|man_desc_tem_ls|. See :ref:`tem-ls(1)<man_tem_ls>`.
 
 repo
 ----
 
-List, add or remove repositories.
+|man_desc_tem_repo|. See :ref:`tem-repo(1)<man_tem_repo>`.
 
 config
 ------
 
-Get or set configuration options.
+|man_desc_tem_config|. See :ref:`tem-config(1)<man_tem_config>`.
 
 init
 ----
 
-Initialize a directory with a `.tem` subdirectory.
+|man_desc_tem_init|. See :ref:`tem-init(1)<man_tem_init>`.
 
 env
 ---
 
-Run or modify local environments.
+|man_desc_tem_env|. See :ref:`tem-env(1)<man_tem_env>`.
 
-.. _config:
+git
+---
+
+|man_desc_tem_git|. See :ref:`tem-git(1)<man_tem_git>`.
+
+hook
+----
+
+|man_desc_tem_hook|. See :ref:`tem-hook(1)<man_tem_hook>`.
 
 REPOSITORY
 ==========
 
 A repository is a dedicated directory that contains templates. Each subcommand
-takes a :option:`tem --repo` option that allows you to specify which repositories
+takes a :option:`--repo<tem --repo>` option that allows you to specify which repositories
 you want the command to operate on. If no repositories are specified with this
 option, then a default list of repositories is taken from the
 `general.repo_path` configuration option.
@@ -152,7 +160,7 @@ lookup order is as follows, from higher to lower priority:
 
    Abbreviation for: "all default repositories".
 
-   This is useful with the :option:`tem --repo` option. Namely, if this option
+   This is useful with the :option:`--repo<tem --repo>` option. Namely, if this option
    is specified to any subcommand, the default repositories are not taken into
    consideration.  By specifying :option:`--repo /<tem --repo>`, the default
    repositories will be taken into consideration after all.

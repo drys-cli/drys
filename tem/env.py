@@ -6,7 +6,7 @@ from .util import print_err
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('env', add_help=False,
-                              help='run or modify environment scripts')
+                              help='run or modify local environments')
 
     action_opts = p.add_mutually_exclusive_group()
     action_opts.add_argument('-x', '--exec', action='store_true',

@@ -35,6 +35,13 @@ if 'html' in sys.argv:
     from subprocess import call
     call(['make', 'prepare-man'])
 
+# Generate substitutions for manual page descriptions
+sys.path.insert(1, 'man')
+from man_descriptions import *
+try:                rst_prolog      # Variable exists?
+except NameError:   rst_prolog = '' # No: create it as an empty string
+rst_prolog = generate_description_substitutions(rst_prolog)
+
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ Specific steps for ReadTheDocs ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛

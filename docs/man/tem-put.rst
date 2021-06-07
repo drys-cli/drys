@@ -11,8 +11,9 @@ SYNOPSIS
 
    <center><pre><code class="no-decor">
 
-| tem put [**--help**]  [**--output** *<OUT>*] [**--directory** *<DIR>*]
-|         [**--edit**] [**--editor** *EDITOR*] [**--reconfigure**]
+|  tem put [**--help**] [**--output** *<OUT>* | **--directory** *<DIR>*] [**--edit**]
+|          [**--editor** *<EDITOR>*] [**--repo** *<REPO>*] [**--config** *<FILE>*] [**--reconfigure**]
+|          [*<TEMPLATES>*]
 
 .. raw:: html
 
@@ -21,7 +22,11 @@ SYNOPSIS
 DESCRIPTION
 ===========
 
-Take a template file or directory and place it somewhere.
+If repositories are specified using :option:`--repo<tem --repo>`, then only those
+repositories will be looked up, otherwise repositories from `repo_path` will be
+looked up.
+
+.. todo:: Unified way of referencing `repo_path`
 
 OPTIONS
 =======
@@ -30,29 +35,26 @@ OPTIONS
 
 .. option:: -h, --help
 
-   Prints the synopsis and list of options.
+   Prints the synopsis, available subcommands and options.
 
 .. option:: -o, --output=<OUT>
 
-   The files will be added as `<OUT>`. Any missing directories will be created.
+   The file will be added as `<OUT>`. Any missing directories will be created.
 
-.. option:: -d, --directory=<OUT>
+.. option:: -d, --directory=<DIR>
 
-   The fille will be added under the directory `<DIR>`. Any missing directories
-   will be created.
-
-   .. todo:: Multiple files?
+   The file will be added under the directory `<DIR>`. Missing directories will
+   be created.
 
 .. option:: -e, --edit
 
    Open the newly added files for editing.
 
-.. option:: -E <EDITOR>, --editor <EDITOR>
+.. option:: -E <EDITOR>, --editor=<EDITOR>
 
-   Same as :option:`put --edit` but uses `<EDITOR>` instead of the default editor.
+   Same as :option:`--edit<put --edit>` but uses `<EDITOR>` instead of the default editor.
 
-**NOTE**: See also :ref:`tem(1)<man_tem>` for a list of options common to all
-subcommands.
+**NOTE**: See also :ref:`tem(1)<man_tem>` for a list of options common to all subcommands.
 
 SEE ALSO
 ========
