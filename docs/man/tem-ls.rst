@@ -11,7 +11,7 @@ SYNOPSIS
 
    <center><pre><code class="no-decor">
 
-|  tem ls [**--help**] [**--short**] [**--path**] [**--exec** *<CMD>*] [**--number** *<N>*]
+|  tem ls [**--help**] [**--short**] [**--path**] [**--command** *<CMD>*] [**--number** *<N>*]
 |         [**--edit**] [**--editor** *<EDITOR>*] [**--recursive** | **--norecursive**]
 |         [**--repo** *<REPO>*] [**--config** *<FILE>*] [**--reconfigure**]
           [*<TEMPLATES>*] [**--**] [*<LS_ARGUMENTS>*]
@@ -27,7 +27,7 @@ List *<TEMPLATES>* from the default tem repositories (or those specified using
 :option:`--repo<tem --repo>`), using the :command:`ls` command.
 
 The user can specify another command instead of :command:`ls` using the
-:option:`--exec<ls --exec>` option or by changing the `ls.command` configuration
+:option:`--command<ls --command>` option or by changing the `ls.command` configuration
 option (see :ref:`tem-config(1)<man_tem_config>`).
 
 Any additional positional arguments will be passed as arguments to :command:`ls` or

@@ -36,8 +36,10 @@ You can use **tem** to:
 
 It is useful to know the basic terminology of **tem**:
 
-   1. A *template file* is a file that can be reused in multiple similar projects
-   2. A *tem repository* is a directory where template files/directories are stored
+   1. A *template* is a file or directory that is meant to be reused
+   2. A *tem repository* is a directory where templates are stored
+   3. A *local environment* is an environment that is active only when you enter
+      a directory
 
 OPTIONS
 =======
@@ -139,6 +141,35 @@ hook
 
 |man_desc_tem_hook|. See :ref:`tem-hook(1)<man_tem_hook>`.
 
+FILES
+=====
+
+Each directory can have a `.tem` subdirectory that contains files that are of
+interest to **tem**. The standard contents of that directory are:
+
+.. table::
+
+   +----------+--------------------------------------------------------------+
+   | File     | Description                                                  |
+   +----------+--------------------------------------------------------------+
+   | `path/`  | Prepended to :envvar:`PATH` when local environment is active |
+   +----------+--------------------------------------------------------------+
+   | `env/`   | Executables that get run by :command:`tem env`               |
+   +----------+--------------------------------------------------------------+
+   | `hooks/` | Executables that get triggered by tem subcommands            |
+   +----------+--------------------------------------------------------------+
+   | `config` | Local **tem** configuration                                  |
+   +----------+--------------------------------------------------------------+
+   | `repo`   | Repository configuration                                     |
+   +----------+--------------------------------------------------------------+
+   | `ignore` | Files that **tem** shall ignore                              |
+   +----------+--------------------------------------------------------------+
+
+.. todo:: How to make this table display wider in manpage output
+
+Extensions to **tem** may use additional subdirectories. Please consult the
+appropriate manuals.
+
 REPOSITORY
 ==========
 
@@ -191,6 +222,24 @@ lookup order is as follows, from higher to lower priority:
    Tip: If PWD contains a repository (e.g. directory `repoX`) and a repository
    with the name `repoX` exists in `REPO_PATH`, make it explicit that you want
    the local repository by using `./repoX`.
+
+CONVENTIONS
+===========
+
+The commands are designed in order to be maximally consistent. This section
+documents some of the common behaviors. Knowing those can significantly flatten
+the learning curve for tem.
+
+1. tem provides shortcuts at every corner
+
+   Every tem command that takes file or directory arguments accepts relative or
+   absolute paths. However, if the specified file does not contain any
+   :guilabel:`/` characters, it will be looked up in some of the directories
+   recognized by tem. TODO
+
+Each command can take a `--repo` option. This specifies a repository to look up
+in order to perform the command. If a `--template` option is given, then the
+TODO
 
 SEE ALSO
 ========
