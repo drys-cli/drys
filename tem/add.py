@@ -4,7 +4,7 @@ import re
 
 # Local imports
 from . import common, util
-from .common import cfg, aliases
+from .common import cfg
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('add', add_help=False,
@@ -33,6 +33,7 @@ def setup_parser(subparsers):
     common.add_common_options(p)
     p.set_defaults(func=cmd)
 
+@common.subcommand_routine('add')
 def cmd(args):
     repos = common.form_repo_list(args.repo, cmd='add')
     repos = common.resolve_and_validate_repos(repos)

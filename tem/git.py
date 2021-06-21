@@ -3,7 +3,7 @@ import argparse
 import subprocess as sp
 
 from . import common, util
-from .util import print_err
+from .util import print_cli_err
 from .common import cfg
 
 def setup_parser(subparsers):
@@ -46,7 +46,7 @@ def obtain_tem_branch():
     if p.returncode != 0:
         exit(p.returncode)
     elif not branches:                              # No available branches
-        print_err('tem: error: current branch is the only branch')
+        print_cli_err('current branch is the only branch')
         exit(1)
     elif len(branches) == 1:                        # Single available branch
         return branches[0]
@@ -58,7 +58,7 @@ def obtain_tem_branch():
     choice = input('Enter a choice (default: 1): ')
 
     # Helper function
-    lambda err_bad_choice: print_err('tem:error: invalid choice'), exit(1)
+    lambda err_bad_choice: print_cli_err('invalid choice'), exit(1)
 
     if not choice:                                  # Default choice
         return branches[0]
@@ -78,6 +78,7 @@ def ls_branch(branch):
     ls = p.stdout[:-1]                                  # Remove newline at end
     return ls.split('\n')
 
+@common.subcommand_routine('git')
 def cmd(args):
     if not args.list:
         args.checkout = True

@@ -1,7 +1,7 @@
 import sys, os, glob
 import argparse
 from . import common, util
-from .util import print_err
+from .util import print_cli_err
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('init', add_help=False,
@@ -25,6 +25,7 @@ def setup_parser(subparsers):
 
     p.set_defaults(func=cmd)
 
+@common.subcommand_routine('init')
 def cmd(args):
     import shutil as sh
     import subprocess
@@ -38,7 +39,7 @@ def cmd(args):
             else:
                 os.remove('.tem')               # Remove existing
         else:                                   # Refuse to init if .tem exists
-            print_err('tem: error: .tem already exists', end='')
+            print_err('.tem already exists', end='')
             if not os.path.isdir('.tem'):
                 print_err(' and is not a directory', end='')
             print_err()                         # New line

@@ -12,6 +12,7 @@ def setup_parser(subparsers):
 
     p.set_defaults(func=cmd)
 
+@common.subcommand_routine('rm')
 def cmd(args):
     repos = common.form_repo_list(args.repo, cmd='rm')
     repos = common.resolve_and_validate_repos(repos)

@@ -54,6 +54,7 @@ def user_init():
             exit(1)
     util.copy(__prefix__ + '/share/tem/config', dest)
 
+@common.subcommand_routine('config')
 def cmd(args):
     files = determine_config_files_from_args(args)
 

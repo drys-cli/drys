@@ -25,6 +25,7 @@ def setup_parser(subparsers):
 
     p.set_defaults(func=cmd)
 
+@common.subcommand_routine('hook')
 def cmd(args):
     # TODO this part is unusable
     # Create a common interface for env and hooks, and potentially other files

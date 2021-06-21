@@ -2,7 +2,7 @@ import os, sys
 import argparse
 
 from . import common, util, ext
-from .util import print_err
+from .util import print_cli_err
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('put', add_help=False,
@@ -19,16 +19,16 @@ def setup_parser(subparsers):
                    help='which templates to put')
     p.set_defaults(func=cmd)
 
-def _error_output_multiple_templates():
-    print_err('error: ' + sys.argv[0] +
-          ''': option -o/--output is allowed with multiple templates
+def error_output_multiple_templates():
+    print_cli_err('''option -o/--output is allowed with multiple templates
           only if all of them are directories''')
     quit(1)
 
 def _error_exists_but_not_dir(path):
-    print_err("error: tem: '{}' exists and is not a directory".format(path))
+    print_cli_err("'{}' exists and is not a directory".format(path))
     quit(1)
 
+@common.subcommand_routine('put')
 def cmd(args):
     repos = common.form_repo_list(args.repo, cmd='put')
     repos = common.resolve_and_validate_repos(repos)
@@ -38,8 +38,9 @@ def cmd(args):
         # (multiple directories are OK)
         if len(args.templates) != 1:
             for file in args.templates:
+                # TODO doesn't work. Where is the repo path in here?
                 if os.path.isfile(file):
-                    _error_output_multiple_templates()
+                    error_output_multiple_templates()
                     return
 
     if args.directory:
@@ -83,7 +84,7 @@ def cmd(args):
                 common.run_hooks('put.post', src)
 
         if not exists:
-            print_err('tem: error: the following template was not found in the '
+            print__cli_err('the following template was not found in the '
                   'available repositories:', template)
             exit(1)
     if edit_files:

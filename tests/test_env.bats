@@ -102,7 +102,7 @@ fi
     cd _out
     rm -f .tem/env/*
     run tem_env --add /nonexistentfile_blabla
-    expected="tem: warning: file '/nonexistentfile_blabla' doesn't exist"
+    expected="tem env: warning: file '/nonexistentfile_blabla' doesn't exist"
 
     compare_output_expected
     [ -z "$(ls .tem/env)" ]

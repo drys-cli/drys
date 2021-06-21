@@ -3,8 +3,11 @@ import re
 import argparse
 
 from . import util
+from .util import print_cli_err
 
 repo_path = []
+
+cfg = util.ConfigParser()
 
 ENV_XDG_CONFIG_HOME = os.environ.get('XDG_CONFIG_HOME')
 ENV_TEM_CONFIG     = os.environ.get('TEM_CONFIG')
@@ -17,16 +20,60 @@ user_config_paths = [
     ENV_TEM_CONFIG if ENV_TEM_CONFIG else ''
 ]
 
+from . import __prefix__
+default_config_paths = [__prefix__ + '/share/tem/config'] + user_config_paths
+
 def get_user_config_path():
     lst = [ user_config_paths[i] for i in [3,2,0,1] ]
     return next(path for path in lst if path)
 
-from . import __prefix__
-default_config_paths = [__prefix__ + '/share/tem/config'] + user_config_paths
+def load_config(paths=[], read_defaults=True):
+    """
+    Load configuration from `default_config_paths` (if `read_defaults==True`)
+    and from `paths` in that order, together we shall call them `all_paths`. If
+    there are files from `paths` that can't be read, the program exits with an
+    error. Otherwise if `paths` is empty and none of the `default_config_paths`
+    can be read, a warning is shown. In all other cases the function finishes
+    succesfully, even if some of the files from `default_config_paths` can't be
+    read.
 
-aliases = {}
+    Note: A None item inside `paths` indicates that the '--reconfigure' option
+    was specified. This will cause all paths up to that index to be ignored.
+    """
+    global cfg
 
-cfg = util.ConfigParser()
+    paths = paths.copy()
+    reconfigured_at_least_once = False
+    # Each ocurrence of None is an ocurrence of the '--reconfigure' option
+    # Delete everything up to (and including) the last ocurrence of None
+    for i in reversed(range(len(paths))):
+        if paths[i] == None:
+            del paths[0:i+1]
+            reconfigured_at_least_once = True
+            break
+
+    all_paths = []
+    if read_defaults and not reconfigured_at_least_once:
+        all_paths =  default_config_paths
+    all_paths += paths
+
+    # No paths are left to read config from
+    if not all_paths:
+        return
+    successful = cfg.read(all_paths)
+
+    failed_from_options = set(paths) - set(successful)
+    if failed_from_options:               # Some of the `paths` could not be read
+        print_cli_err('the following of the specified configuration files could not be read:',
+              *failed_from_options, sep='\n\t')
+        quit(1)
+    elif not successful:                # No config file could be read
+        print('Warning: No configuration file on the system could be read.',
+              'Please check if they exist or if their permissions are wrong.',
+              file=sys.stderr, sep='\n')
+    else:                               # No problems
+        global repo_path
+        repo_path = repo_path_from_config(cfg)
 
 # TODO remove this method (why did I want to remove it??)
 def add_common_options(parser, main_parser=False):
@@ -58,55 +105,6 @@ def add_edit_options(parser):
                    help='open target files for editing')
     parser.add_argument('-E', '--editor',
                    help='same as -e but override editor with EDITOR')
-
-def load_config(paths=[], read_defaults=True):
-    """
-    Load configuration from `default_config_paths` (if `read_defaults==True`)
-    and from `paths` in that order, together we shall call them `all_paths`. If
-    there are files from `paths` that can't be read, the program exits with an
-    error. Otherwise if `paths` is empty and none of the `default_config_paths`
-    can be read, a warning is shown. In all other cases the function finishes
-    succesfully, even if some of the files from `default_config_paths` can't be
-    read.
-
-    Note: A None item inside `paths` indicates that the '--reconfigure' option
-    was specified. This will cause all paths up to that index to be ignored.
-    """
-    global cfg, aliases
-
-    paths = paths.copy()
-    reconfigured_at_least_once = False
-    # Each ocurrence of None is an ocurrence of the '--reconfigure' option
-    # Delete everything up to (and including) the last ocurrence of None
-    for i in reversed(range(len(paths))):
-        if paths[i] == None:
-            del paths[0:i+1]
-            reconfigured_at_least_once = True
-            break
-
-    all_paths = []
-    if read_defaults and not reconfigured_at_least_once:
-        all_paths =  default_config_paths
-    all_paths += paths
-
-    # No paths are left to read config from
-    if not all_paths:
-        return
-    successful = cfg.read(all_paths)
-
-    failed_from_paths = set(paths) - set(successful)
-    if failed_from_paths:               # Some of the `paths` could not be read
-        print("ERROR: The following configuration files could not be read:",
-              end='\n\t', file=sys.stderr)
-        print(*failed_from_paths, sep='\n\t', file=sys.stderr)
-        quit(1)
-    elif not successful:                # No config file could be read
-        print('Warning: No configuration file on the system could be read.',
-              'Please check if they exist or if their permissions are wrong.',
-              file=sys.stderr, sep='\n')
-    else:                               # No problems
-        global repo_path
-        repo_path = repo_path_from_config(cfg)
 
 def existing_file(path):
     """ Type check for ArgumentParser """
@@ -238,3 +236,14 @@ def run_hooks(trigger, src_dir, dest_dir='.', environment=None):
         # Execute matching hooks
         for file in glob.glob(src_dir + '/.tem/hooks/*.{}'.format(trigger)):
             subprocess.run([file] + sys.argv, cwd=os.path.dirname(file))
+
+def subcommand_routine(subcommand_name):
+    """Decorator for functions that implement subcommand functionality."""
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            if subcommand_name:
+                util._active_subcommand = 'tem ' + subcommand_name
+                util._active_subcommand = 'tem ' + subcommand_name
+            function(*args, **kwargs)
+        return wrapper
+    return decorator

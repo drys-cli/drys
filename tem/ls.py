@@ -2,7 +2,7 @@ import sys, os
 import argparse
 
 from . import common, util
-from .util import print_err
+from .util import print_cli_err
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('ls', add_help=False,
@@ -69,6 +69,8 @@ def fill_in_gaps(incomplete_paths):
         ).stdout.split('\n')[:-1]
     return [ p for p in paths if os.path.exists(p) ]
 
+@common.subcommand_routine('ls')
+@common.subcommand_routine('ls')
 def cmd(args):
     from . import ext
     import subprocess as sp
@@ -99,13 +101,13 @@ def cmd(args):
         # Print what the command spit out
         if p.returncode != 0:
             if p.stdout: print(p.stdout)
-            if p.stderr: print_err(p.stderr)
+            if p.stderr: print_cli_err(p.stderr)
             return
         if not args.short:
             message = util.fetch_name(repo) + ' @ ' + repo
             print(message); print('=' * len(message))
         if p.stdout: print(p.stdout[:-1])
-        if p.stderr: print_err(p.stderr)
+        if p.stderr: print_cli_err(p.stderr)
 
         if args.number and i >= args.number - 1:            # --number option
             break

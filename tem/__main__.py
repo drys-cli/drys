@@ -5,12 +5,14 @@ import tem
 import argparse, sys, os
 from tem import common, util
 
+from tem.util import print_cli_err
+
 def init_config():
     existent_cfg = next(path for path in common.user_config_paths
                 if os.path.exists(path))
     if existent_cfg:
-        print('tem: error: configuration already exists at '
-              + existent_cfg[0], file=sys.stderr)
+        print_cli_err('configuration already exists at '
+              + existent_cfg[0])
         exit(1)
     else:
         util.copy(tem.__prefix__ + '/share/tem/config',
@@ -43,18 +45,6 @@ def main():
     hook.setup_parser(sub)
     git.setup_parser(sub)
 
-    # TODO figure out how to handle config loading to use aliases
-
-    # Parse arguments before reading config. This allows us to process arguments
-    # that can potentially terminate the program immediately (like '--help')
-    args = parser.parse_args();
-
-    if args.debug:
-        import pudb; pu.db
-
-    if args.init_config:
-        init_config()
-
     # ┏━━━━━━┓
     # ┃ NOTE ┃
     # ┗━━━━━━┛
@@ -74,8 +64,18 @@ def main():
         elif sys.argv[i] == '--reconfigure':
             config.append(None)
 
+    # Parse arguments before reading config. This allows us to process arguments
+    # that can potentially terminate the program immediately (like '--help')
+    args = parser.parse_args();
+
+    if args.debug:
+        import pudb; pu.db
+
     # Load configuration, from default files and from '--config' arguments
     common.load_config(config)
+
+    if args.init_config:
+        init_config()
 
     if args.func:
         args.func(args)

@@ -2,7 +2,7 @@ import sys, os
 import argparse
 
 from . import common, util
-from .util import print_err
+from .util import print_cli_err, print_cli_warn
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('env', add_help=False,
@@ -46,7 +46,7 @@ def validate_file_arguments_as_script_names(files):
     any_invalid_files = False
     for file in files:
         if '/' in file:
-            print_err("tem: error: file '{}' is invalid".format(file))
+            print_cli_err("file '{}' is invalid".format(file))
             any_invalid_files = True
     if any_invalid_files: exit(1)
 
@@ -66,7 +66,7 @@ def get_and_validate_rootdir(args):
                     break
                 cwd = os.path.dirname(cwd)          # Go up one directory
             if cwd == '/':                          # Nothing was found
-                print_err("tem: error: environment directory was not found")
+                print_cli_err("environment directory was not found")
                 if args.exec or not args.force: exit(1)
         else:
             root_dir = '.'
@@ -74,17 +74,18 @@ def get_and_validate_rootdir(args):
     if not root_dir or not os.path.isdir(env_dir):
         # Environment directory is invalid
         if os.path.exists(env_dir):
-            print_err("tem: error: '{}' exists and is not a directory"
+            print_cli_err("'{}' exists and is not a directory"
                       .format(env_dir))
             print_err('Try running `tem init --force` first.')
         else:
-            print_err("tem: error: directory '{}' not found"
+            print_cli_err("directory '{}' not found"
                       .format(env_dir))
             print_err('Try running `tem init` first.')
         if args.exec or not args.force: exit(1)
 
     return root_dir, env_dir
 
+@common.subcommand_routine('env')
 def cmd(args):
     # TODO:
     #   --add: handle multiple files with same name
@@ -108,7 +109,7 @@ def cmd(args):
                 os.chmod(dest, os.stat(dest).st_mode | 0o100)       # chmod u+x
             else:
                 any_conflicts = True
-                print_err("tem: error: file '{}' already exists".format(dest))
+                print_cli_err("file '{}' already exists".format(dest))
             dest_files.append(dest)
         if any_conflicts:
             print_err('\nTry running with --force.')
@@ -126,10 +127,10 @@ def cmd(args):
                 if not os.path.exists(dest) or args.force:
                     shutil.copy(src, dest)
                 else:
-                    print_err("tem: warning: file '{}' already exists".format(dest))
+                    print_cli_warn("file '{}' already exists".format(dest))
                     any_conflicts = True
             else:
-                print_err("tem: warning: file '{}' doesn't exist".format(src))
+                print_cli_warn("file '{}' doesn't exist".format(src))
                 any_nonexisting = True
             dest_files.append(dest)         # Files that may be opened by editor
         if any_nonexisting or any_conflicts:
@@ -143,10 +144,10 @@ def cmd(args):
             if os.path.isfile(target_file):
                 os.remove(target_file)
             elif os.path.isdir(target_file):
-                print_err("tem: warning: '{}' is a directory"
+                print_cli_warn("'{}' is a directory"
                           .format(target_file))
             else:
-                print_err("tem: warning: file '{}' doesn't exist")
+                print_cli_warn("file '{}' doesn't exist")
         if any_problems:
             exit(1)
     else:
@@ -155,7 +156,7 @@ def cmd(args):
             args.files = [ file for file in os.listdir(env_dir)
                           if file not in args.ignore ]
         if not args.files and args.verbose:
-            print_err('tem: warning: no environment scripts found')
+            print_cli_warn('no environment scripts found')
             exit(1)
         elif args.edit or args.editor:
             common.try_open_in_editor([ env_dir + '/' + f for f in args.files ],
@@ -175,7 +176,7 @@ def cmd(args):
                         print_err("tem: info: script `{}` was run successfully"
                                   .format(file))
                 except:
-                    print_err("tem: error: script `{}` could not be run"
+                    print_cli_err("script `{}` could not be run"
                               .format(file))
                     exit(1)
     if args.list:                                               # --list option

@@ -2,7 +2,7 @@ import sys, os
 import argparse
 
 from . import common, util
-from .util import print_err
+from .util import print_cli_err, print_cli_warn
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('repo', add_help=False,
@@ -42,7 +42,7 @@ def print_repo(repo, args):
               .format(util.fetch_name(repo), util.abspath(repo)))
     print() # New line at the end
     if not os.path.exists(repo):
-        print_err("tem: warning: repository '{}' does not exist".format(repo))
+        print_cli_warn("repository '{}' does not exist".format(repo))
 
 def list_repos(args):
         repos = common.form_repo_list(args.repo, cmd='repo')
@@ -70,11 +70,12 @@ def list_repos(args):
         if not args.add and not args.remove:
             for i, match in enumerate(matches):
                 if not match:
-                    print_err("tem: info: repository '{}' not found"
+                    print_cli_err("repository '{}' not found"
                           .format(args.repositories[i]))
         if not any_matching_repos:
             exit(1)
 
+@common.subcommand_routine('repo')
 def cmd(args):
 
     if args.add or args.remove:

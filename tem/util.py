@@ -31,8 +31,25 @@ class ConfigParser(configparser.ConfigParser):
 def print_err(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
+_active_subcommand = 'tem'
+def print_cli_err(*args, sep=' ', **kwargs):
+    """
+    Print an error with conventional formatting. The first line starts with
+    '<subcommand>: error:'.
+    """
+    print_err(_active_subcommand + ': error: ', end='', **kwargs)
+    print_err(*args, sep=sep, **kwargs)
+
+def print_cli_warn(*args, sep=' ', **kwargs):
+    """
+    Print a warning with conventional formatting. The first line starts with
+    '<subcommand>: warning:'.
+    """
+    print_err(_active_subcommand + ': warning: ', end='', **kwargs)
+    print_err(*args, sep=sep, **kwargs)
+
 def print_error_from_exception(e):
-    print_err('tem: error:', re.sub(r'^\[Errno [0-9]*\] ', '', str(e)))
+    print_cli_err(re.sub(r'^\[Errno [0-9]*\] ', '', str(e)))
 
 def abspath(path):
     return os.path.abspath(os.path.expanduser(path))
