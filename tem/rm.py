@@ -14,8 +14,7 @@ def setup_parser(subparsers):
 
 @common.subcommand_routine('rm')
 def cmd(args):
-    repos = common.form_repo_list(args.repo, cmd='rm')
-    repos = common.resolve_and_validate_repos(repos)
+    repos = common.resolve_and_validate_repos(args.repo, cmd='rm')
 
     for repo in repos:
         for file in args.files:

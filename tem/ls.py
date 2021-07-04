@@ -75,8 +75,7 @@ def cmd(args):
     from . import ext
     import subprocess as sp
     # The repos that will be considered
-    repos = common.form_repo_list(args.repo, cmd='ls')
-    repos = common.resolve_and_validate_repos(repos)
+    repos = common.resolve_and_validate_repos(args.repo, cmd='ls')
     ls_args = args.templates + args.ls_arguments
 
     edit_files = []     # Files that will be edited if --edit[or] was provided

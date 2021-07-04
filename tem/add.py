@@ -35,8 +35,7 @@ def setup_parser(subparsers):
 
 @common.subcommand_routine('add')
 def cmd(args):
-    repos = common.form_repo_list(args.repo, cmd='add')
-    repos = common.resolve_and_validate_repos(repos)
+    repos = common.resolve_and_validate_repos(args.repo, cmd='add')
 
     edit_files = []     # Files that will be edited if --edit[or] was provided
     try:

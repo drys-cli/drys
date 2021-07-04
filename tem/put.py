@@ -30,8 +30,7 @@ def _error_exists_but_not_dir(path):
 
 @common.subcommand_routine('put')
 def cmd(args):
-    repos = common.form_repo_list(args.repo, cmd='put')
-    repos = common.resolve_and_validate_repos(repos)
+    repos = common.resolve_and_validate_repos(args.repo, cmd='put')
 
     if args.output:
         # --output option doesn't make sense for multiple files

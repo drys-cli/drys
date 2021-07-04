@@ -45,8 +45,7 @@ def print_repo(repo, args):
         print_cli_warn("repository '{}' does not exist".format(repo))
 
 def list_repos(args):
-        repos = common.form_repo_list(args.repo, cmd='repo')
-        repos = common.resolve_and_validate_repos(repos)
+        repos = common.resolve_and_validate_repos(args.repo, cmd='repo')
 
         # True marks a repository from args.repositories as found
         matches = [False] * len(args.repositories)

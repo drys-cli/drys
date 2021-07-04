@@ -136,42 +136,47 @@ def repo_path_from_config(config):
             cfg['general.repo_path'].split('\n')
             if repo ]
 
-def form_repo_list(repo_ids, cmd=None):
-    # TODO command-specific default repos
+def resolve_and_validate_repos(repo_args, cmd=None):
+    """
+    Form a list of repo IDs that shall be used in the currently running
+    subcommand. Repos from `repo_args` are arguments to the `--repo` options
+    passed to the subcommand. Every applicable repository is considered,
+    including those from any applicable configuration files. A repo id can be a
+    repo name, a path or a special character (see manpages).
+    """
     global repo_path
-    repos = []
+    repo_ids = []
 
-    if repo_ids:                        # repos specified with -R/--repo option
+    # Parse arguments into a suitable list of entries
+    if repo_args:                        # repos specified with -R/--repo option
         include_def_repos = False
         read_from_stdin = False
-        for repo in repo_ids:
+        for repo in repo_args:
             if repo == '/':             # '/' is a special indicator
                 include_def_repos = True
-            elif '\n' in repo:         # multiline text, each line is a repo
-                repos += [ line for line in repo.split('\n') if line != '']
+            elif '\n' in repo:          # multiline text, each line is a repo id
+                repo_ids += [ line for line in repo.split('\n') if line != '']
             elif repo == '-':           # Repos will be taken from stdin as well
                 read_from_stdin = True
             else:                       # Regular repo id, just add it
-                repos.append(repo)
+                repo_ids.append(repo)
         if include_def_repos:           # Include default repos
-            repos += repo_path
+            repo_ids += repo_path
         if read_from_stdin:
             try:
                 while True:             # Read repos until empty line or EOF
                     line = input()
                     if line == '':
                         break
-                    repos.append(line)
+                    repo_ids.append(line)
             except EOFError:
                 pass
     else:                               # No repos were specified by -R/--repo
-        repos = repo_path
+        repo_ids = repo_path
 
-    return repos
-
-def resolve_and_validate_repos(repo_ids):
-    resolved_repos = []         # this will be returned
-    any_repo_valid = False      # indicates if any repo_ids are valid
+    # Resolve the entries to valid file-like objects
+    resolved_repos = []                 # this will be returned
+    any_repo_valid = False              # indicates if any repo_ids are valid
     for repo in repo_ids:
         if os.path.exists(r := util.resolve_repo(repo)):
             any_repo_valid = True
@@ -242,7 +247,6 @@ def subcommand_routine(subcommand_name):
     def decorator(function):
         def wrapper(*args, **kwargs):
             if subcommand_name:
-                util._active_subcommand = 'tem ' + subcommand_name
                 util._active_subcommand = 'tem ' + subcommand_name
             function(*args, **kwargs)
         return wrapper
