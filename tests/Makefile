@@ -1,7 +1,7 @@
 BATS = bats --formatter pretty --timing
-EXE ?= $(realpath ../tem.py)
 
-export EXE
+# ../tem.py uses this variable
+export TEM_EXECUTABLE = $(shell realpath ../tem.py)
 
 test:
 	@${BATS} test_help.bats

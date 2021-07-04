@@ -3,7 +3,7 @@
 . common.bats.in
 
 tem_git() {
-    $EXE git --reconfigure "$@"
+    tem git --reconfigure "$@"
 }
 pushd() {
     command pushd "$@" 1>/dev/null 2>/dev/null

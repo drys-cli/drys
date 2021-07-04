@@ -4,7 +4,7 @@
 
 REPO="$PWD/_out/put_repo"
 DESTDIR="$PWD/_out/put_dest"
-tem_put() { $EXE put -R "$REPO" "$@"; }
+tem_put() { tem put -R "$REPO" "$@"; }
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then
     begin_test 'put'

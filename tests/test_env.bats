@@ -3,7 +3,7 @@
 . common.bats.in
 
 tem_env() {
-    $EXE env --reconfigure "$@"
+    tem env --reconfigure "$@"
 }
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then
@@ -124,18 +124,6 @@ fi
     cd _out
     run tem_env
     expected='print.sh executed'
-
-    compare_output_expected
-}
-
-@test "tem env --env-dir [DIR]" {
-    cd _out
-    mkdir -p .tem/fish-env
-    rm -f .tem/fish-env/*
-    tem_env --env-dir fish-env --new script
-
-    expected='script'
-    output="$(ls .tem/fish-env)"
 
     compare_output_expected
 }

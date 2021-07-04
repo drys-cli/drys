@@ -10,7 +10,7 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
 fi
 
 tem_ls() {
-    $EXE ls --reconfigure "$@"
+    tem ls --reconfigure "$@"
 }
 
 @test "tem ls -R _out/repo" {

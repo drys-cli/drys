@@ -7,7 +7,7 @@ prepare() {
     REPO="$1"
     mkdir -p "$REPO"
     rm -rf "$REPO"/*
-    tem_add="$EXE add -R $REPO"
+    tem_add="tem add -R $REPO"
 }
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then
@@ -65,8 +65,8 @@ fi
 # @test "Move a file and a directory to a repository" {
     # rm -rf _out/repo2/*
     # mkdir -p _out/repo2
-    # $EXE add -R _out/repo2 --move _out/files/file1.txt
-    # $EXE add -R _out/repo2 --move _out/files/dir1
+    # tem add -R _out/repo2 --move _out/files/file1.txt
+    # tem add -R _out/repo2 --move _out/files/dir1
     # # Contents of the moved directory 'dir1'
     # ls_dir1="$(ls _out/repo2/dir1)"
     # # List the moved file

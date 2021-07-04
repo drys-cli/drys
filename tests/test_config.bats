@@ -9,10 +9,10 @@ fi
 
 @test "tem config section.option value -f _out/empty.cfg [MULTIPLE CONFIG OPTIONS]" {
     rm -f _out/empty.cfg
-    $EXE config option1 value1 -f _out/empty.cfg
-    $EXE config section2.option2 value2 -f _out/empty.cfg
-    $EXE config section3.option3 value3 -f _out/empty.cfg
-    $EXE config section3.option4 value4 -f _out/empty.cfg
+    tem config option1 value1 -f _out/empty.cfg
+    tem config section2.option2 value2 -f _out/empty.cfg
+    tem config section3.option3 value3 -f _out/empty.cfg
+    tem config section3.option4 value4 -f _out/empty.cfg
 
     output="$(cat _out/empty.cfg)"
     expected="$(
@@ -27,7 +27,7 @@ fi
 
 @test "tem config section.option 'multi word' value -f _out/empty.cfg" {
     rm -f _out/empty.cfg
-    $EXE config section.option 'multi word' value -f _out/empty.cfg
+    tem config section.option 'multi word' value -f _out/empty.cfg
 
     output="$(cat _out/empty.cfg)"
     expect echo -e "[section]\noption = multi word value"
@@ -36,7 +36,7 @@ fi
 }
 
 @test "tem config -f ../conf/config" {
-    run $EXE config -f ../conf/config
+    run tem config -f ../conf/config
 
     expected="$(
         echo ../conf/config:

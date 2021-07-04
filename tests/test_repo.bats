@@ -3,7 +3,7 @@
 . common.bats.in
 
 tem_repo() {
-    $EXE repo --reconfigure "$@"
+    tem repo --reconfigure "$@"
 }
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then
@@ -73,7 +73,7 @@ tem_repo_list_or_noargs() {
         echo "$REPOS/repo2"
     )"
     tem_repo_through_pipe() {
-        echo "$expected" | $EXE repo --reconfigure -R - --list --path
+        echo "$expected" | tem repo --reconfigure -R - --list --path
         return $?
     }
     run tem_repo_through_pipe
