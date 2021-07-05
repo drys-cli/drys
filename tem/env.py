@@ -2,7 +2,7 @@ import sys, os
 import argparse
 
 from . import common, util, dot
-from .util import print_cli_err, print_cli_warn
+from .util import print_cli_err, print_cli_warn, print_err
 
 def setup_parser(subparsers):
     p, _ =  dot.setup_parser_intermediate (
