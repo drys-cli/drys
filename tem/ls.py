@@ -32,7 +32,7 @@ def setup_parser(subparsers):
     # Also I would like this to show up after templates and before ls_arguments
     #  ATTEMPT: p.add_argument('--', action='store_true', dest='__discard')
     p.add_argument('ls_arguments', metavar='LS_ARGUMENTS', nargs='*',
-                   help='arguments that will be passed to ls')
+                   help='additional arguments that will be passed to ls')
     p.set_defaults(func=cmd)
 
 # TODO decouple the shorthand-completion part into another function
