@@ -8,11 +8,13 @@ from tem import common, util
 from tem.util import print_cli_err
 
 def init_config():
-    existent_cfg = next(path for path in common.user_config_paths
-                if os.path.exists(path))
+    try:
+        existent_cfg = next(path for path in common.user_config_paths
+                    if os.path.exists(path))
+    except StopIteration:
+        existent_cfg = None
     if existent_cfg:
-        print_cli_err('configuration already exists at '
-              + existent_cfg[0])
+        print_cli_err('configuration already exists at ' + existent_cfg)
         exit(1)
     else:
         util.copy(tem.__prefix__ + '/share/tem/config',
