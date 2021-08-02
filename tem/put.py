@@ -83,8 +83,8 @@ def cmd(args):
                 common.run_hooks('put.post', src)
 
         if not exists:
-            print__cli_err('the following template was not found in the '
-                  'available repositories:', template)
+            print_cli_err("template '{}' could not be found in the available "
+                          "repositories".format(template))
             exit(1)
     if edit_files:
         common.try_open_in_editor(edit_files, override_editor=args.editor)

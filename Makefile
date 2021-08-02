@@ -25,7 +25,7 @@ install:
 	install -Dm444 docs/_build/man/*.1 	${MAN_DIR}
 	install -Dm444 LICENSE 				${DOC_DIR}
 	@# tuterm tutorial files
-	install -Dm644 docs/demo/demo.sh    ${DESTDIR}/${PREFIX}/share/tuterm/scripts/tem
+	install -Dm644 docs/demo/tem    	${DESTDIR}/${PREFIX}/share/tuterm/scripts/tem
 	cp -r 		   docs/demo/.tem-home  ${DESTDIR}/${PREFIX}/share/tuterm/scripts/.tem-home
 	chmod 755 ${DESTDIR}/${PREFIX}/share/tuterm/scripts/.tem-home
 

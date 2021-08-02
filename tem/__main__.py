@@ -28,7 +28,7 @@ def main():
     parser = argparse.ArgumentParser(add_help=False)
 
     parser.add_argument('-v', '--version', action='version',
-                        version='%(prog)s version TODO')
+                        version='%(prog)s version {}'.format(tem.__version__))
     common.add_common_options(parser, main_parser=True)
     parser.add_argument('--init-user', action='store_true',
                         help='generate initial user configuration file')
