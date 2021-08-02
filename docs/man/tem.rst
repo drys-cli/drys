@@ -77,10 +77,6 @@ OPTIONS
    Load the specified configuration file on top of the default configuration
    (see :ref:`tem-config(1)<man_tem_config>`).
 
-.. option:: --reconfigure
-
-   Discard any configuration loaded before parsing this option.
-
 .. option:: -R <REPO>, --repo=<REPO>
 
    By default, the repositories that are used by subcommands are taken from the

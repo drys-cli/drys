@@ -3,7 +3,7 @@
 . common.bats.in
 
 tem_git() {
-    tem git --reconfigure "$@"
+    tem git "$@"
 }
 pushd() {
     command pushd "$@" 1>/dev/null 2>/dev/null
@@ -19,6 +19,9 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
     cp -r git _out/git
     # NOTE: Don't forget about this
     cd _out/git
+    git config --global init.defaultBranch master
+    git config --global user.email "bats@tem"
+    git config --global user.name "bats"
     git init                            1>/dev/null
     git add **/*.c **/*.h
     git commit -m "Initial commit"      1>/dev/null
@@ -50,7 +53,7 @@ fi
 
     output="$(find * -type f -not -path '*/\.*')"
     expect git ls-tree -r --name-only tem-nvim
-    
+
     compare_output_expected
 }
 

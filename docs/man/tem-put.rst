@@ -12,7 +12,7 @@ SYNOPSIS
    <center><pre><code class="no-decor">
 
 |  tem put [**--help**] [**--output** *<OUT>* | **--directory** *<DIR>*] [**--edit**]
-|          [**--editor** *<EDITOR>*] [**--repo** *<REPO>*] [**--config** *<FILE>*] [**--reconfigure**]
+|          [**--editor** *<EDITOR>*] [**--repo** *<REPO>*] [**--config** *<FILE>*]
 |          [*<TEMPLATES>*]
 
 .. raw:: html

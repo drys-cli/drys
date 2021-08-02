@@ -13,7 +13,7 @@ SYNOPSIS
 
 |  tem ls [**--help**] [**--short**] [**--path**] [**--command** *<CMD>*] [**--number** *<N>*]
 |         [**--edit**] [**--editor** *<EDITOR>*] [**--recursive** | **--norecursive**]
-|         [**--repo** *<REPO>*] [**--config** *<FILE>*] [**--reconfigure**]
+|         [**--repo** *<REPO>*] [**--config** *<FILE>*]
           [*<TEMPLATES>*] [**--**] [*<LS_ARGUMENTS>*]
 
 .. raw:: html

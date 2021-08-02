@@ -3,7 +3,7 @@
 . common.bats.in
 
 tem_env() {
-    tem env --reconfigure "$@"
+    tem env "$@"
 }
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then

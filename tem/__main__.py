@@ -25,7 +25,9 @@ def init_user():
         exit(0)
 
 def main():
-    parser = argparse.ArgumentParser(add_help=False)
+    parser = argparse.ArgumentParser(
+        add_help=False,
+        formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s version {}'.format(tem.__version__))
@@ -66,8 +68,6 @@ def main():
     for i in range(1, len(sys.argv)):
         if sys.argv[i] in ['--config', '-c'] and i < len(sys.argv) - 1:
             config.append(sys.argv[i+1])
-        elif sys.argv[i] == '--reconfigure':
-            config.append(None)
 
     # Parse arguments before reading config. This allows us to process arguments
     # that can potentially terminate the program immediately (like '--help')

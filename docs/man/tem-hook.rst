@@ -12,7 +12,7 @@ SYNOPSIS
    <center><pre><code class="no-decor">
 
 |  tem [**--help**] [**--exec**] [**--new**] [**--add**] [**--edit**] [**--editor** *<EDITOR>*]
-|      [**--force**] [**--repo** *<REPO>*] [**--config** *<FILE>*] [**--reconfigure**]
+|      [**--force**] [**--repo** *<REPO>*] [**--config** *<FILE>*]
 |      [*<HOOKS>*]
 
 .. raw:: html

@@ -11,8 +11,7 @@ SYNOPSIS
 
    <center><pre><code class="no-decor">
 
-|  tem rm [**--help**] [**--repo** *<REPO>*] [**--config** *<FILE>*] [**--reconfigure**]
-|         *<FILES>*
+|  tem rm [**--help**] [**--repo** *<REPO>*] [**--config** *<FILE>*] *<FILES>*
 
 .. raw:: html
 

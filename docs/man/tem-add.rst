@@ -13,7 +13,7 @@ SYNOPSIS
 
 | tem add [**--help**] [**--move**] [**--output** *<OUT>*] [**--directory** *<DIR>*]
 |         [**--edit**] [**--editor** *<EDITOR>*] [**--recursive** | **--norecursive**]
-|         [**--repo** *<REPO>*] [**--config** *<FILE>*] [**--reconfigure**]
+|         [**--repo** *<REPO>*] [**--config** *<FILE>*]
 |         *<FILES>*
 
 .. raw:: html

@@ -2,6 +2,7 @@ BATS = bats --formatter pretty --timing
 
 # ../tem.py uses this variable
 export TEM_EXECUTABLE = $(shell realpath ../tem.py)
+export HOME = $(shell pwd)
 
 test:
 	@${BATS} test_help.bats

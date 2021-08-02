@@ -36,24 +36,13 @@ def load_config(paths=[], read_defaults=True):
     can be read, a warning is shown. In all other cases the function finishes
     succesfully, even if some of the files from `default_config_paths` can't be
     read.
-
-    Note: A None item inside `paths` indicates that the '--reconfigure' option
-    was specified. This will cause all paths up to that index to be ignored.
     """
     global cfg
 
     paths = paths.copy()
-    reconfigured_at_least_once = False
-    # Each ocurrence of None is an ocurrence of the '--reconfigure' option
-    # Delete everything up to (and including) the last ocurrence of None
-    for i in reversed(range(len(paths))):
-        if paths[i] == None:
-            del paths[0:i+1]
-            reconfigured_at_least_once = True
-            break
 
     all_paths = []
-    if read_defaults and not reconfigured_at_least_once:
+    if read_defaults:
         all_paths =  default_config_paths
     all_paths += paths
 
@@ -93,11 +82,6 @@ def add_common_options(parser, main_parser=False):
     group.add_argument('-c', '--config', metavar='FILE',
                         action='append', default=[],
                         help='Use the specified configuration file')
-    # A special None value indicates that all previous config paths should be
-    # ignored
-    group.add_argument('--reconfigure', dest='config',
-                        action='append_const', const=None,
-                        help='Discard any configuration loaded before reading this option')
 
 def add_edit_options(parser):
     """Add '--edit' and '--editor' options to `parser`."""

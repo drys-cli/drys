@@ -14,5 +14,4 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 from tem import __main__ as main
 sys.argv.insert(1, os.path.dirname(os.environ['TEM_EXECUTABLE']) + '/conf/config')
 sys.argv.insert(1, '--config')
-sys.argv.insert(1, '--reconfigure')
 main.main()
