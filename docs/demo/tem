@@ -1,8 +1,7 @@
 #!/usr/bin/env tuterm
 
 # Setup
-fake_home
-tem --init-config
+tem --init-user
 mkdir proj
 
 run() {

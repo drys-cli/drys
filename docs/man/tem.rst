@@ -54,10 +54,11 @@ OPTIONS
 
    Prints the synopsis, available subcommands and options.
 
-.. option:: --init-config
+.. option:: --init-user
 
    Generate initial user configuration file at the path with the highest priority,
    usually `~/.config/tem/config`. (see :ref:`tem-config(1)<man_tem_config>`)
+   Also create an empty default repository at `~/.local/share/tem/repo`.
 
 .. option:: --debug
 
