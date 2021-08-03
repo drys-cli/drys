@@ -8,7 +8,7 @@ def setup_parser(subparsers):
     common.add_common_options(p)
 
     p.add_argument('files', metavar='FILES', nargs='+',
-                   help='which files/directories to remove')
+                   help='files/directories to remove')
 
     p.set_defaults(func=cmd)
 

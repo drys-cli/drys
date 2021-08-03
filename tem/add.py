@@ -8,20 +8,19 @@ from .common import cfg
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('add', add_help=False,
+                              formatter_class=argparse.RawTextHelpFormatter,
                               help='add templates to your tem repository')
     p.add_argument('files', metavar='FILES', nargs='+', type=common.existing_file,
                    help='files or directories to add')
-    p.add_argument('-H', '--hook', nargs='?',
-                   help='script that will run when the directory is imported')
-    p.add_argument('-m', '--move', action='store_true',
-                   help='move the file(s) instead of copying')
 
     out = p.add_mutually_exclusive_group()
     out.add_argument('-o', '--output', metavar='OUT',
                      help='output file or directory relative to repo')
     out.add_argument('-d', '--directory', metavar='DIR',
-                     help='directory relative to repo where the file(s) should be placed')
+                     help='directory inside repo where FILES should be placed')
     common.add_edit_options(p)
+    p.add_argument('-m', '--move', action='store_true',
+                   help='move FILES instead of copying')
 
     # Recursion options
     recursion = p.add_mutually_exclusive_group()

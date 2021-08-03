@@ -35,7 +35,7 @@ def main():
     parser.add_argument('--init-user', action='store_true',
                         help='generate initial user configuration file')
     parser.add_argument('--debug', action='store_true',
-                        help='start in debugger mode')
+                        help=argparse.SUPPRESS)
     parser.set_defaults(func=lambda args: parser.print_help())
 
     # Setup subcommand parsers

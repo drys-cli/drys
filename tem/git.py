@@ -15,10 +15,11 @@ def setup_parser(subparsers):
     grp.add_argument('-C', '--checkout', action='store_true',
                      help='load work environment from git (default)')
     grp.add_argument('-l', '--list', action='store_true',
-                     help='list the files that would be added by --checkout')
+                     help='list files that would be added by --checkout')
 
     p.add_argument('-b', '--branch',
                    help='git branch that contains tem files')
+
     p.set_defaults(func=cmd)
 
 def run_that_must_succeed(*args, **kwargs):

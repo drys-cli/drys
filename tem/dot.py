@@ -8,15 +8,15 @@ def setup_parser_intermediate(subparsers, command, help):
     _action_opts = p.add_argument_group('action options')
     action_opts = _action_opts.add_mutually_exclusive_group()
     action_opts.add_argument('-x', '--exec', action='store_true',
-                             help='execute files (default)')
+                             help='execute FILES (default)')
     action_opts.add_argument('-n', '--new', action='store_true',
-                             help='create a new empty file in the appropriate subdirectory')
+                             help='create new empty FILES in the appropriate subdirectory')
     action_opts.add_argument('-a', '--add', action='store_true',
-                             help='files will be copied to the appropriate .tem subdirectory')
+                             help='copy FILES to the appropriate .tem subdirectory')
     action_opts.add_argument('-D', '--delete', action='store_true',
-                             help='matching files will be deleted')
+                             help='delete FILES in the appropriate .tem subdirectory')
     _action_opts.add_argument('-l', '--list', action='store_true',
-                             help='list matching FILES')
+                             help='list matching FILES in the appropriate .tem subdirectory')
     common.add_edit_options(action_opts)
 
     # Modifier options

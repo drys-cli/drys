@@ -13,7 +13,7 @@ def setup_parser(subparsers):
     p.add_argument('-n', '--example-env', action='store_true',
                    help='generate documented example environment scripts')
     p.add_argument('-r', '--as-repo', action='store_true',
-                   help='current directory will be initialized as a repository')
+                   help='initialize current directory as a repository')
     common.add_edit_options(p)
     p.add_argument('-f', '--force', action='store_true',
                    help='do not fail if .tem exists')

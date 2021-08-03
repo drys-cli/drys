@@ -22,8 +22,6 @@ def setup_parser(subparsers):
     common.add_edit_options(p)
     p.add_argument('-i', '--instance', action='store_true',
                    help='print OPTIONs that are active in the running instance')
-    p.add_argument('--user-init', action='store_true',
-                   help='initialize config at ~/.config/tem')
 
     p.add_argument('option', metavar='OPTION', nargs='?',
                    help='configuration option to get or set')
@@ -45,22 +43,11 @@ def determine_config_files_from_args(args):
         files.append(__prefix__ + '/share/tem/config') # TODO
     return files
 
-def user_init():
-    dest = os.path.expanduser('~/.config/tem/config')
-    if os.path.exists(dest):
-        print("Warning: file '" + dest + "' already exists. Overwrite? [Y/n]")
-        answer = input()
-        if answer and answer.lower() != 'y':
-            exit(1)
-    util.copy(__prefix__ + '/share/tem/config', dest)
-
 @common.subcommand_routine('config')
 def cmd(args):
     files = determine_config_files_from_args(args)
 
-    if args.user_init:              # --user-init
-        user_init()
-    elif args.edit or args.editor:
+    if args.edit or args.editor:
         p = common.try_open_in_editor(files, override_editor=args.editor)
         exit(p.returncode)
     elif args.option:                       # A config option was specified
