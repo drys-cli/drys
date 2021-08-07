@@ -3,13 +3,13 @@
 import tem
 
 import argparse, sys, os
-from tem import common, util
+from tem import cli, util
 
 from tem.util import print_cli_err
 
 def init_user():
     try:
-        existing_cfg = next(path for path in common.user_config_paths
+        existing_cfg = next(path for path in cli.user_config_paths
                     if os.path.exists(path))
     except StopIteration:
         existing_cfg = None
@@ -17,9 +17,9 @@ def init_user():
         print_cli_err('configuration already exists at ' + existing_cfg)
         exit(1)
     else:
-        cfg_dest = common.get_user_config_path()
+        cfg_dest = cli.get_user_config_path()
         util.copy(tem.__prefix__ + '/share/tem/config',
-                    common.get_user_config_path())
+                    cli.get_user_config_path())
         os.makedirs(os.path.expanduser('~/.local/share/tem/repo'),
                     exist_ok=True)
         exit(0)
@@ -31,7 +31,7 @@ def main():
 
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s version {}'.format(tem.__version__))
-    common.add_common_options(parser, main_parser=True)
+    cli.add_cli_options(parser, main_parser=True)
     parser.add_argument('--init-user', action='store_true',
                         help='generate initial user configuration file')
     parser.add_argument('--debug', action='store_true',
@@ -77,7 +77,7 @@ def main():
         import pudb; pu.db
 
     # Load configuration, from default files and from '--config' arguments
-    common.load_config(config)
+    cli.load_config(config)
 
     if args.init_user:
         init_user()

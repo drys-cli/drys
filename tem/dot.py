@@ -1,4 +1,4 @@
-from . import common, util
+from . import cli, util
 from .util import print_cli_err, print_cli_warn
 
 def setup_parser_intermediate(subparsers, command, help):
@@ -17,7 +17,7 @@ def setup_parser_intermediate(subparsers, command, help):
                              help='delete FILES in the appropriate .tem subdirectory')
     _action_opts.add_argument('-l', '--list', action='store_true',
                              help='list matching FILES in the appropriate .tem subdirectory')
-    common.add_edit_options(action_opts)
+    cli.add_edit_options(action_opts)
 
     # Modifier options
     modifier_opts = p.add_argument_group('modifier options')
@@ -41,7 +41,7 @@ def setup_parser_intermediate(subparsers, command, help):
     p.add_argument('files', metavar='FILES', nargs='*', default=[],
                    help='files to operate on (default: all files in .tem/env/)')
 
-    common.add_common_options(p)
+    cli.add_cli_options(p)
 
     return p, modifier_opts
 
@@ -53,11 +53,11 @@ def setup_parser(subparsers):
     # TODO place here [*]
     p.set_defaults(func=cmd)
 
-@common.subcommand_routine('env')
+@cli.subcommand_routine('env')
 def cmd(args):
     # TODO implement with reference to env.py
     if not (args.new or args.add or args.edit or args.editor or args.list):
         args.exec = True
 
     if args.template:
-        repos = common.resolve_and_validate_repos(args.repo, cmd='')
+        repos = cli.resolve_and_validate_repos(args.repo, cmd='')

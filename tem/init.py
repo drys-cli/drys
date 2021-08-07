@@ -1,12 +1,12 @@
 import sys, os, glob
 import argparse
-from . import common, util
+from . import cli, util
 from .util import print_cli_err
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('init', add_help=False,
                               help='generate a .tem directory')
-    common.add_common_options(p)
+    cli.add_cli_options(p)
 
     p.add_argument('-H', '--example-hooks', action='store_true',
                    help='generate documented example hooks')
@@ -14,7 +14,7 @@ def setup_parser(subparsers):
                    help='generate documented example environment scripts')
     p.add_argument('-r', '--as-repo', action='store_true',
                    help='initialize current directory as a repository')
-    common.add_edit_options(p)
+    cli.add_edit_options(p)
     p.add_argument('-f', '--force', action='store_true',
                    help='do not fail if .tem exists')
     p.add_argument('-v', '--verbose', action='store_true',
@@ -25,7 +25,7 @@ def setup_parser(subparsers):
 
     p.set_defaults(func=cmd)
 
-@common.subcommand_routine('init')
+@cli.subcommand_routine('init')
 def cmd(args):
     import shutil as sh
     import subprocess
@@ -80,4 +80,4 @@ def cmd(args):
         except Exception:
             pass
     if args.edit or args.editor:
-        p = common.try_open_in_editor(files, override_editor=args.editor)
+        p = cli.try_open_in_editor(files, override_editor=args.editor)

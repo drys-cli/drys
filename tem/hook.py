@@ -1,12 +1,12 @@
 import sys, os
 import argparse
 
-from . import common
+from . import cli
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('hook', add_help=False,
                               help='operations on command hooks')
-    common.add_common_options(p)
+    cli.add_cli_options(p)
 
     action_opts = p.add_mutually_exclusive_group()
     action_opts.add_argument('-x', '--exec', action='store_true',
@@ -17,7 +17,7 @@ def setup_parser(subparsers):
                    help='add specified files as hooks')
     action_opts.add_argument('-l', '--list', action='store_true',
                    help='list hooks')
-    common.add_edit_options(p)
+    cli.add_edit_options(p)
     p.add_argument('-f', '--force',
                    help="create .tem/ if it doesn't exist (only when adding hooks)")
     p.add_argument('hooks', metavar='HOOKS', nargs='?',
@@ -25,10 +25,10 @@ def setup_parser(subparsers):
 
     p.set_defaults(func=cmd)
 
-@common.subcommand_routine('hook')
+@cli.subcommand_routine('hook')
 def cmd(args):
     # TODO this part is unusable
-    # Create a common interface for env and hooks, and potentially other files
+    # Create a cli interface for env and hooks, and potentially other files
     # in the .tem/* subdirectories
     if not (args.new or args.add or args.edit or args.editor or args.list):
         args.exec = True

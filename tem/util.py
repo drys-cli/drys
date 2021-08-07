@@ -123,8 +123,8 @@ def resolve_repo(repo_id, lookup_repos=None):
 
     # Otherwise try to find a repo whose name is `repo_id`
     if not lookup_repos:
-        from . import common
-        lookup_repos = common.repo_path
+        from . import cli
+        lookup_repos = cli.repo_path
 
     for repo in lookup_repos:
         if os.path.exists(repo) and fetch_name(repo) == repo_id:

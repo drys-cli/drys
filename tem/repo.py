@@ -1,13 +1,13 @@
 import sys, os
 import argparse
 
-from . import common, util
+from . import cli, util
 from .util import print_cli_err, print_cli_warn
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('repo', add_help=False,
                               help='perform operations on tem repositories')
-    common.add_common_options(p)
+    cli.add_cli_options(p)
 
     p.add_argument('-l', '--list', action='store_true',
                    help='list REPOSITORIES')
@@ -45,7 +45,7 @@ def print_repo(repo, args):
         print_cli_warn("repository '{}' does not exist".format(repo))
 
 def list_repos(args):
-        repos = common.resolve_and_validate_repos(args.repo, cmd='repo')
+        repos = cli.resolve_and_validate_repos(args.repo, cmd='repo')
 
         # True marks a repository from args.repositories as found
         matches = [False] * len(args.repositories)
@@ -74,11 +74,11 @@ def list_repos(args):
         if not any_matching_repos:
             exit(1)
 
-@common.subcommand_routine('repo')
+@cli.subcommand_routine('repo')
 def cmd(args):
 
     if args.add or args.remove:
-        user_cfg_path = common.get_user_config_path()
+        user_cfg_path = cli.get_user_config_path()
         if user_cfg_path:
             cfg = util.ConfigParser(user_cfg_path)
             # Read contents of REPO_PATH from the user config file
@@ -100,7 +100,7 @@ def cmd(args):
             with open(user_cfg_path, 'w') as file_object:
                 try:
                     cfg.write(file_object)
-                    common.repo_path = paths
+                    cli.repo_path = paths
                     if args.list: list_repos(args)
                 except Exception as e:
                     if args.list: list_repos(args)

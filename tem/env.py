@@ -1,7 +1,7 @@
 import sys, os
 import argparse
 
-from . import common, util, dot
+from . import cli, util, dot
 from .util import print_cli_err, print_cli_warn, print_err
 
 def setup_parser(subparsers):
@@ -51,7 +51,7 @@ def get_and_validate_rootdir(args):
 
     return rootdir, subdir
 
-@common.subcommand_routine('env')
+@cli.subcommand_routine('env')
 def cmd(args):
     # TODO:
     #   --add: handle multiple files with same name
@@ -81,7 +81,7 @@ def cmd(args):
             print_err('\nTry running with --force.')
             exit(1)
         elif args.edit or args.editor:
-            common.try_open_in_editor(dest_files, args.editor)
+            cli.try_open_in_editor(dest_files, args.editor)
     elif args.add:                                              # --add option
         import shutil
         any_nonexisting = False
@@ -102,7 +102,7 @@ def cmd(args):
         if any_nonexisting or any_conflicts:
             exit(1)
         elif args.edit or args.editor:
-            common.try_open_in_editor(dest_files, args.editor)
+            cli.try_open_in_editor(dest_files, args.editor)
     elif args.delete:                                       # --delete option
         any_problems = False
         for file in args.files:
@@ -125,7 +125,7 @@ def cmd(args):
             print_cli_warn('no environment scripts found')
             exit(1)
         elif args.edit or args.editor:
-            common.try_open_in_editor([ subdir + '/' + f for f in args.files ],
+            cli.try_open_in_editor([ subdir + '/' + f for f in args.files ],
                                        args.editor)
             return
         elif args.exec:                                         # --exec option
@@ -135,7 +135,7 @@ def cmd(args):
                 if os.path.isdir(subdir + '/' + file):
                     continue
                 if args.edit or args.editor:
-                    common.try_open_in_editor(files, override_editor=args.editor)
+                    cli.try_open_in_editor(files, override_editor=args.editor)
                 try:
                     subprocess.run(subdir + '/' + file)
                     if args.verbose:

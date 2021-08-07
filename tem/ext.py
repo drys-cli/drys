@@ -1,7 +1,7 @@
 """Functions and utilites used to properly call external commands."""
 import os, shutil, subprocess as sp
 
-from .common import cfg
+from .cli import cfg
 from . import util
 
 def parse_args(args):

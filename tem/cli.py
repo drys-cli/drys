@@ -65,9 +65,9 @@ def load_config(paths=[], read_defaults=True):
         repo_path = repo_path_from_config(cfg)
 
 # TODO remove this method (why did I want to remove it??)
-def add_common_options(parser, main_parser=False):
+def add_cli_options(parser, main_parser=False):
     """
-    Add options that are common among various commands. By default, when a
+    Add options that are cli among various commands. By default, when a
     subcommand is called, all options that are defined for the main command are
     valid but they must be specified before the subcommand name. By using this
     function with each subcommand, the option can be specified after the

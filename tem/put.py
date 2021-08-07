@@ -1,20 +1,20 @@
 import os, sys
 import argparse
 
-from . import common, util, ext
+from . import cli, util, ext
 from .util import print_cli_err
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('put', add_help=False,
                               help='put template(s) into the desired directory')
-    common.add_common_options(p)
+    cli.add_cli_options(p)
 
     out = p.add_mutually_exclusive_group()
     out.add_argument('-o', '--output', metavar='OUT',
                      help='output file or directory')
     out.add_argument('-d', '--directory', metavar='DIR',
                      help='directory where the file(s) should be placed')
-    common.add_edit_options(p)
+    cli.add_edit_options(p)
     p.add_argument('templates', metavar='TEMPLATES', nargs='+',
                    help='which templates to put')
     p.set_defaults(func=cmd)
@@ -28,9 +28,9 @@ def _error_exists_but_not_dir(path):
     print_cli_err("'{}' exists and is not a directory".format(path))
     quit(1)
 
-@common.subcommand_routine('put')
+@cli.subcommand_routine('put')
 def cmd(args):
-    repos = common.resolve_and_validate_repos(args.repo, cmd='put')
+    repos = cli.resolve_and_validate_repos(args.repo, cmd='put')
 
     if args.output:
         # --output option doesn't make sense for multiple files
@@ -70,7 +70,7 @@ def cmd(args):
             # If template is a directory, run pre hooks
             if os.path.isdir(src):
                 environment = { 'TEM_DESTDIR': util.abspath(dest) }
-                common.run_hooks('put.pre', src, dest, environment)
+                cli.run_hooks('put.pre', src, dest, environment)
 
             try:
                 util.copy(src, dest)
@@ -80,11 +80,11 @@ def cmd(args):
 
             # If template is a directory, run post hooks
             if os.path.isdir(src):
-                common.run_hooks('put.post', src)
+                cli.run_hooks('put.post', src)
 
         if not exists:
             print_cli_err("template '{}' could not be found in the available "
                           "repositories".format(template))
             exit(1)
     if edit_files:
-        common.try_open_in_editor(edit_files, override_editor=args.editor)
+        cli.try_open_in_editor(edit_files, override_editor=args.editor)

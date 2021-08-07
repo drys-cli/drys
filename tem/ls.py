@@ -1,13 +1,13 @@
 import sys, os
 import argparse
 
-from . import common, util
+from . import cli, util
 from .util import print_cli_err
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('ls', add_help=False,
                               help='list templates')
-    common.add_common_options(p)
+    cli.add_cli_options(p)
 
     p.add_argument('-s', '--short', action='store_true',
                    help="don't display headers and decorations")
@@ -16,7 +16,7 @@ def setup_parser(subparsers):
                    help='ls command to use')
     p.add_argument('-n', '--number', metavar='N', type=int,
                    help='list contents of no more than N repositories')
-    common.add_edit_options(p)
+    cli.add_edit_options(p)
 
     recursion = p.add_mutually_exclusive_group()
     recursion.add_argument('-r', '--recursive', action='store_true',
@@ -69,13 +69,13 @@ def fill_in_gaps(incomplete_paths):
         ).stdout.split('\n')[:-1]
     return [ p for p in paths if os.path.exists(p) ]
 
-@common.subcommand_routine('ls')
-@common.subcommand_routine('ls')
+@cli.subcommand_routine('ls')
+@cli.subcommand_routine('ls')
 def cmd(args):
     from . import ext
     import subprocess as sp
     # The repos that will be considered
-    repos = common.resolve_and_validate_repos(args.repo, cmd='ls')
+    repos = cli.resolve_and_validate_repos(args.repo, cmd='ls')
     ls_args = args.templates + args.ls_arguments
 
     edit_files = []     # Files that will be edited if --edit[or] was provided
@@ -114,4 +114,4 @@ def cmd(args):
     os.chdir(original_cwd)
 
     if edit_files:
-        common.try_open_in_editor(edit_files)
+        cli.try_open_in_editor(edit_files)

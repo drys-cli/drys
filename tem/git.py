@@ -2,14 +2,14 @@ import sys, os
 import argparse
 import subprocess as sp
 
-from . import common, util
+from . import cli, util
 from .util import print_cli_err
-from .common import cfg
+from .cli import cfg
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('git', add_help=False,
                               help='use environments versioned under git')
-    common.add_common_options(p)
+    cli.add_cli_options(p)
 
     grp = p.add_mutually_exclusive_group()
     grp.add_argument('-C', '--checkout', action='store_true',
@@ -79,7 +79,7 @@ def ls_branch(branch):
     ls = p.stdout[:-1]                                  # Remove newline at end
     return ls.split('\n')
 
-@common.subcommand_routine('git')
+@cli.subcommand_routine('git')
 def cmd(args):
     if not args.list:
         args.checkout = True

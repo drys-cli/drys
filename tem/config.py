@@ -2,14 +2,14 @@ import argparse
 import os, sys
 import shutil as sh
 
-from . import common, util
-from .common import cfg
+from . import cli, util
+from .cli import cfg
 from . import __prefix__
 
 def setup_parser(subparsers):
     p = subparsers.add_parser('config', add_help=False,
                               help='get and set repository or global options')
-    common.add_common_options(p)
+    cli.add_cli_options(p)
 
     p.add_argument('-f', '--file', action='append', default=[],
                    help='configuration file that will be used (can be specified multiple times')
@@ -19,7 +19,7 @@ def setup_parser(subparsers):
                    help='system configuration file will be used')
     p.add_argument('-l', '--local', action='store_true',
                    help='local repository configuration file will be used')
-    common.add_edit_options(p)
+    cli.add_edit_options(p)
     p.add_argument('-i', '--instance', action='store_true',
                    help='print OPTIONs that are active in the running instance')
 
@@ -43,12 +43,12 @@ def determine_config_files_from_args(args):
         files.append(__prefix__ + '/share/tem/config') # TODO
     return files
 
-@common.subcommand_routine('config')
+@cli.subcommand_routine('config')
 def cmd(args):
     files = determine_config_files_from_args(args)
 
     if args.edit or args.editor:
-        p = common.try_open_in_editor(files, override_editor=args.editor)
+        p = cli.try_open_in_editor(files, override_editor=args.editor)
         exit(p.returncode)
     elif args.option:                       # A config option was specified
         # Form value by concatenating arguments
@@ -77,7 +77,7 @@ def cmd(args):
                 if file:
                     cfg = util.ConfigParser(file)
                 else:
-                    cfg = common.cfg
+                    cfg = cli.cfg
                 fname = util.shortpath(file)
                 print((fname if fname else 'INSTANCE') + ':')
                 for sec in cfg.sections():
