@@ -67,7 +67,7 @@ def load_config(paths=[], read_defaults=True):
 # TODO remove this method (why did I want to remove it??)
 def add_cli_options(parser, main_parser=False):
     """
-    Add options that are cli among various commands. By default, when a
+    Add options that are common among various commands. By default, when a
     subcommand is called, all options that are defined for the main command are
     valid but they must be specified before the subcommand name. By using this
     function with each subcommand, the option can be specified after the
@@ -84,7 +84,7 @@ def add_cli_options(parser, main_parser=False):
                         help='use configuration from FILE')
 
 def add_edit_options(parser):
-    """Add '--edit' and '--editor' options to `parser`."""
+    """Add `--edit` and `--editor` options to ``parser``."""
     parser.add_argument('-e', '--edit', action='store_true',
                    help='open target files for editing')
     parser.add_argument('-E', '--editor',

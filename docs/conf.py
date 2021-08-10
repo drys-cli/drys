@@ -15,13 +15,15 @@ release = tem.__version__
 # ┃ General configuration ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━┛
 extensions = [
-    'sphinx.ext.todo'
+    'sphinx.ext.todo', 'sphinx.ext.autodoc'
 ]
 exclude_patterns    = ['_build', 'Thumbs.db', '.DS_Store', 'man']
 todo_include_todos  = True
 
 smartquotes = False     # Always display '--' verbatim
 default_role = 'envvar' # Like :code: role, but the text is black
+
+sys.path.insert(0, os.path.abspath('..'))
 # ┏━━━━━━┓
 # ┃ HTML ┃
 # ┗━━━━━━┛

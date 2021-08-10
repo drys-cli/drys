@@ -31,7 +31,9 @@ class ConfigParser(configparser.ConfigParser):
 def print_err(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
+# Used only in print_cli_err and print_cli_warn
 _active_subcommand = 'tem'
+
 def print_cli_err(*args, sep=' ', **kwargs):
     """
     Print an error with conventional formatting. The first line starts with
@@ -49,6 +51,10 @@ def print_cli_warn(*args, sep=' ', **kwargs):
     print_err(*args, sep=sep, **kwargs)
 
 def print_error_from_exception(e):
+    """
+    Take the python exception ``e``, strip it of unnecessary text and print it
+    as a CLI error.
+    """
     print_cli_err(re.sub(r'^\[Errno [0-9]*\] ', '', str(e)))
 
 def abspath(path):
@@ -61,10 +67,16 @@ def dirname(path):
     return os.path.dirname(os.path.abspath(path))
 
 def shortpath(path):
-    """Print path with $HOME shortened to '~'."""
+    """Print path with `$HOME` shortened to `~`."""
     return path.replace(os.path.expanduser('~'), '~')
 
 def copy(src, dest='.', ignore_nonexistent=False):
+    """
+    Copy ``src`` file to ``dest``. If ``dest`` is a directory then ``src`` is
+    placed under ``dest``. If any error occurs, a CLI error message will be
+    printed and the program will exit, unless ``ignore_nonexistent`` is set to
+    ``True``
+    """
     _dirname = dirname(dest)
     if _dirname and not os.path.exists(_dirname):
         os.makedirs(_dirname, exist_ok=True)
@@ -98,6 +110,10 @@ def remove(path):
         exit(1)
 
 def fetch_name(repo_path):
+    """
+    Fetch the name of the repo at ``repo_path`` from its configuration. If the
+    repo has not configured a name, the name of its directory is used.
+    """
     cfg = ConfigParser(repo_path + '/.tem/repo')
     name = cfg['general.name']
     if name:
@@ -106,13 +122,14 @@ def fetch_name(repo_path):
         return basename(repo_path)
 
 def repo_ids_equal(id1, id2):
+    """Test if two repo IDs are equivalent. TODO not used"""
     return id1 == id2 or \
         abspath(id1) == abspath(id2) or \
         fetch_name(id1) == fetch_name(id2)
 
 def resolve_repo(repo_id, lookup_repos=None):
     """
-    Resolve a repo id (path, partial path or name) to the absolute path of a
+    Resolve a repo ID (path, partial path or name) to the absolute path of a
     repo.
     """
     if not repo_id:
@@ -140,7 +157,7 @@ def resolve_repo(repo_id, lookup_repos=None):
 
 @contextlib.contextmanager
 def chdir(new_dir):
-    """Temporarily cd to `new_dir`, do stuff, then cd back."""
+    """This context manager allows you cd to `new_dir`, do stuff, then cd back."""
     old_dir = os.getcwd()
     os.chdir(new_dir)
     try: yield
