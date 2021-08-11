@@ -9,7 +9,7 @@ from . import __prefix__
 def setup_parser(subparsers):
     p = subparsers.add_parser('config', add_help=False,
                               help='get and set repository or global options')
-    cli.add_cli_options(p)
+    cli.add_general_options(p)
 
     p.add_argument('-f', '--file', action='append', default=[],
                    help='configuration file that will be used (can be specified multiple times')

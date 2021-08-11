@@ -109,6 +109,7 @@ def remove(path):
         print_error_from_exception(e)
         exit(1)
 
+# TODO move to repo.py
 def fetch_name(repo_path):
     """
     Fetch the name of the repo at ``repo_path`` from its configuration. If the
@@ -120,12 +121,6 @@ def fetch_name(repo_path):
         return name
     else:
         return basename(repo_path)
-
-def repo_ids_equal(id1, id2):
-    """Test if two repo IDs are equivalent. TODO not used"""
-    return id1 == id2 or \
-        abspath(id1) == abspath(id2) or \
-        fetch_name(id1) == fetch_name(id2)
 
 def resolve_repo(repo_id, lookup_repos=None):
     """

@@ -29,7 +29,7 @@ def setup_parser(subparsers):
     recursion.add_argument('--norecursive', dest='recursive', action='store_false',
                            help='do not copy directories recursively')
 
-    cli.add_cli_options(p)
+    cli.add_general_options(p)
     p.set_defaults(func=cmd)
 
 @cli.subcommand_routine('add')

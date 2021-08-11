@@ -6,7 +6,7 @@ from . import cli
 def setup_parser(subparsers):
     p = subparsers.add_parser('hook', add_help=False,
                               help='operations on command hooks')
-    cli.add_cli_options(p)
+    cli.add_general_options(p)
 
     action_opts = p.add_mutually_exclusive_group()
     action_opts.add_argument('-x', '--exec', action='store_true',

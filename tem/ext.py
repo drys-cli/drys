@@ -1,8 +1,11 @@
-"""Functions and utilites used to properly call external commands."""
+"""Functions and utilites for interfacing with external commands."""
 import os, shutil, subprocess as sp
 
 from .cli import cfg
 from . import util
+
+shell = cfg['general.shell']
+if not shell: shell = os.environ.get('SHELL')
 
 def parse_args(args):
     """

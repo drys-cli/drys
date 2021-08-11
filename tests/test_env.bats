@@ -70,27 +70,28 @@ fi
     [ "$(ls .tem/env)" = "$(echo -e 'new_script1\nnew_script2\nnew_script3\nprint.sh\nunexecutable.sh')" ]
 }
 
-@test "tem env --new --root [DIR] [MULTIPLE FILES]" {
-    rm -f _out/.tem/env/*
-    run tem_env --new --root _out new_script1 new_script2
-    expected=''
+# @test "tem env --new --root [DIR] [MULTIPLE FILES]" {
+#     rm -f _out/.tem/env/*
+#     run tem_env --new --root _out new_script1 new_script2
+#     expected=''
 
-    compare_output_expected
-    [ "$(ls _out/.tem/env)" = "$(echo -e 'new_script1\nnew_script2')" ]
-}
+#     compare_output_expected
+#     [ "$(ls _out/.tem/env)" = "$(echo -e 'new_script1\nnew_script2')" ]
+# }
 
-@test "tem env --add --root [DIR] [MULTIPLE FILES]" {
-    rm -f _out/.tem/env/*
-    run tem_env --add --root _out tem/env/*
-    expected=''
+# @test "tem env --add --root [DIR] [MULTIPLE FILES]" {
+#     rm -f _out/.tem/env/*
+#     run tem_env --add --root _out tem/env/*
+#     expected=''
 
-    compare_output_expected
-    [ "$(ls _out/.tem/env)" = "$(ls tem/env)" ]
-}
+#     compare_output_expected
+#     [ "$(ls _out/.tem/env)" = "$(ls tem/env)" ]
+# }
 
 @test "tem env --add --force [MULTIPLE FILES]" {
     cd _out
-    rm -f _out/.tem/env/print.sh
+    rm -f .tem/env/*
+    cp ../tem/env/unexecutable.sh .tem/env/
     run tem_env --add --force ../tem/env/*
     expected=''
 
@@ -102,7 +103,7 @@ fi
     cd _out
     rm -f .tem/env/*
     run tem_env --add /nonexistentfile_blabla
-    expected="tem env: warning: file '/nonexistentfile_blabla' doesn't exist"
+    expected="tem env: warning: file '/nonexistentfile_blabla' does not exist"
 
     compare_output_expected
     [ -z "$(ls .tem/env)" ]

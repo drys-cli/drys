@@ -31,7 +31,7 @@ def main():
 
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s version {}'.format(tem.__version__))
-    cli.add_cli_options(parser, main_parser=True)
+    cli.add_general_options(parser, main_parser=True)
     parser.add_argument('--init-user', action='store_true',
                         help='generate initial user configuration file')
     parser.add_argument('--debug', action='store_true',
@@ -40,7 +40,7 @@ def main():
 
     # Setup subcommand parsers
     sub = parser.add_subparsers(title='commands', metavar='')
-    from tem import add, rm, put, ls, repo, config, init, env, hook, git
+    from tem import add, rm, put, ls, repo, config, init, dot, env, path, hook, git
     add.setup_parser(sub)
     rm.setup_parser(sub)
     put.setup_parser(sub)
@@ -48,7 +48,9 @@ def main():
     repo.setup_parser(sub)
     config.setup_parser(sub)
     init.setup_parser(sub)
+    dot.setup_parser(sub)
     env.setup_parser(sub)
+    path.setup_parser(sub)
     hook.setup_parser(sub)
     git.setup_parser(sub)
 

@@ -7,7 +7,7 @@ from .util import print_cli_err
 def setup_parser(subparsers):
     p = subparsers.add_parser('ls', add_help=False,
                               help='list templates')
-    cli.add_cli_options(p)
+    cli.add_general_options(p)
 
     p.add_argument('-s', '--short', action='store_true',
                    help="don't display headers and decorations")
@@ -69,7 +69,6 @@ def fill_in_gaps(incomplete_paths):
         ).stdout.split('\n')[:-1]
     return [ p for p in paths if os.path.exists(p) ]
 
-@cli.subcommand_routine('ls')
 @cli.subcommand_routine('ls')
 def cmd(args):
     from . import ext

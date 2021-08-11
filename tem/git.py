@@ -9,7 +9,7 @@ from .cli import cfg
 def setup_parser(subparsers):
     p = subparsers.add_parser('git', add_help=False,
                               help='use environments versioned under git')
-    cli.add_cli_options(p)
+    cli.add_general_options(p)
 
     grp = p.add_mutually_exclusive_group()
     grp.add_argument('-C', '--checkout', action='store_true',

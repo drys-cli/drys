@@ -5,7 +5,7 @@ from . import cli, util
 def setup_parser(subparsers):
     p = subparsers.add_parser('rm', add_help=False,
                               help='remove templates from a repository')
-    cli.add_cli_options(p)
+    cli.add_general_options(p)
 
     p.add_argument('files', metavar='FILES', nargs='+',
                    help='files/directories to remove')

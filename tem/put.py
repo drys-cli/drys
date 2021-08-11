@@ -7,7 +7,7 @@ from .util import print_cli_err
 def setup_parser(subparsers):
     p = subparsers.add_parser('put', add_help=False,
                               help='put template(s) into the desired directory')
-    cli.add_cli_options(p)
+    cli.add_general_options(p)
 
     out = p.add_mutually_exclusive_group()
     out.add_argument('-o', '--output', metavar='OUT',

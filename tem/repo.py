@@ -1,3 +1,4 @@
+"""Functions and routines for working with tem repositoriess."""
 import sys, os
 import argparse
 
@@ -7,7 +8,7 @@ from .util import print_cli_err, print_cli_warn
 def setup_parser(subparsers):
     p = subparsers.add_parser('repo', add_help=False,
                               help='perform operations on tem repositories')
-    cli.add_cli_options(p)
+    cli.add_general_options(p)
 
     p.add_argument('-l', '--list', action='store_true',
                    help='list REPOSITORIES')
@@ -73,6 +74,27 @@ def list_repos(args):
                           .format(args.repositories[i]))
         if not any_matching_repos:
             exit(1)
+
+def find_template(template, repos, all=False):
+    """
+    Return the absolute path of a template, looked up in ``repos``. If
+    ``all`` is ``True`` then a list of matching templates in each repository is
+    returned. Otherwise, only the match in the first repository is returned (a
+    list with one element). If there are not matches an empty list is returned.
+    .. note:: A template can be a directory tree.
+    """
+    result_paths = []
+
+    for repo in repos:
+        template_abspath = util.abspath(repo + '/' + template)
+        if not os.path.exists(template_abspath):
+            continue
+        if not all:
+            return [ template_abspath ]
+        else:
+            result_paths.append(template_abspath)
+
+    return result_paths
 
 @cli.subcommand_routine('repo')
 def cmd(args):
