@@ -52,13 +52,13 @@ def setup_common_parser(parser):
 
     return action_opts, modifier_opts
 
-def setup_parser(subparsers):
-    action_opts, modifier_opts = setup_common_parser(p)
+def setup_parser(parser):
+    action_opts, modifier_opts = setup_common_parser(parser)
 
     modifier_opts.add_argument('--subdir', metavar='SUB',
                                help='subdirectory under .tem/ to use')
 
-    p.set_defaults(func=cmd)
+    parser.set_defaults(func=cmd)
 
 def validate_file_arguments_as_script_names(files):
     any_invalid_files = False
