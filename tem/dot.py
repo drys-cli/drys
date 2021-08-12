@@ -50,7 +50,6 @@ def setup_common_parser(parser):
     return action_opts, modifier_opts
 
 def setup_parser(subparsers):
-    p = subparsers.add_parser('dot', add_help=False)
     action_opts, modifier_opts = setup_common_parser(p)
 
     modifier_opts.add_argument('--subdir', metavar='SUB',

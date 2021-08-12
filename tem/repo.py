@@ -5,28 +5,26 @@ import argparse
 from . import cli, util
 from .util import print_cli_err, print_cli_warn
 
-def setup_parser(subparsers):
-    p = subparsers.add_parser('repo', add_help=False,
-                              help='perform operations on tem repositories')
-    cli.add_general_options(p)
+def setup_parser(parser):
+    cli.add_general_options(parser)
 
-    p.add_argument('-l', '--list', action='store_true',
-                   help='list REPOSITORIES')
-    p.add_argument('-n', '--name', action='store_true',
-                   help='print the repository name')
-    p.add_argument('-p', '--path', action='store_true',
-                   help='print the repository path')
+    parser.add_argument('-l', '--list', action='store_true',
+                        help='list REPOSITORIES')
+    parser.add_argument('-n', '--name', action='store_true',
+                        help='print the repository name')
+    parser.add_argument('-p', '--path', action='store_true',
+                        help='print the repository path')
 
-    add_rem = p.add_mutually_exclusive_group()
+    add_rem = parser.add_mutually_exclusive_group()
     add_rem.add_argument('-a', '--add', action='store_true',
-                   help='add REPOSITORIES to REPO_PATH')
+                         help='add REPOSITORIES to REPO_PATH')
     add_rem.add_argument('-r', '--remove', action='store_true',
-                   help='remove REPOSITORIES from REPO_PATH')
+                         help='remove REPOSITORIES from REPO_PATH')
 
-    p.add_argument('repositories', metavar='REPOSITORIES', nargs='*',
-                   help='repository paths, partial paths or names')
+    parser.add_argument('repositories', metavar='REPOSITORIES', nargs='*',
+                        help='repository paths, partial paths or names')
 
-    p.set_defaults(func=cmd)
+    parser.set_defaults(func=cmd)
 
 def print_repo(repo, args):
     # TODO align output, too lazy at the moment

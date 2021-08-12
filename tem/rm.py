@@ -2,15 +2,13 @@ import argparse, os
 
 from . import cli, util
 
-def setup_parser(subparsers):
-    p = subparsers.add_parser('rm', add_help=False,
-                              help='remove templates from a repository')
-    cli.add_general_options(p)
+def setup_parser(parser):
+    cli.add_general_options(parser)
 
-    p.add_argument('files', metavar='FILES', nargs='+',
-                   help='files/directories to remove')
+    parser.add_argument('files', metavar='FILES', nargs='+',
+                        help='files/directories to remove')
 
-    p.set_defaults(func=cmd)
+    parser.set_defaults(func=cmd)
 
 @cli.subcommand_routine('rm')
 def cmd(args):

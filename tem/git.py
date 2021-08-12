@@ -6,21 +6,19 @@ from . import cli, util
 from .util import print_cli_err
 from .cli import cfg
 
-def setup_parser(subparsers):
-    p = subparsers.add_parser('git', add_help=False,
-                              help='use environments versioned under git')
-    cli.add_general_options(p)
+def setup_parser(parser):
+    cli.add_general_options(parser)
 
-    grp = p.add_mutually_exclusive_group()
+    grp = parser.add_mutually_exclusive_group()
     grp.add_argument('-C', '--checkout', action='store_true',
                      help='load work environment from git (default)')
     grp.add_argument('-l', '--list', action='store_true',
                      help='list files that would be added by --checkout')
 
-    p.add_argument('-b', '--branch',
-                   help='git branch that contains tem files')
+    parser.add_argument('-b', '--branch',
+                        help='git branch that contains tem files')
 
-    p.set_defaults(func=cmd)
+    parser.set_defaults(func=cmd)
 
 def run_that_must_succeed(*args, **kwargs):
     """A small helper function that does the same as `subprocess.run`, but exits

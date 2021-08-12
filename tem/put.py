@@ -4,20 +4,18 @@ import argparse
 from . import cli, util, ext
 from .util import print_cli_err
 
-def setup_parser(subparsers):
-    p = subparsers.add_parser('put', add_help=False,
-                              help='put template(s) into the desired directory')
-    cli.add_general_options(p)
+def setup_parser(parser):
+    cli.add_general_options(parser)
 
-    out = p.add_mutually_exclusive_group()
+    out = parser.add_mutually_exclusive_group()
     out.add_argument('-o', '--output', metavar='OUT',
                      help='output file or directory')
     out.add_argument('-d', '--directory', metavar='DIR',
                      help='directory where the file(s) should be placed')
-    cli.add_edit_options(p)
-    p.add_argument('templates', metavar='TEMPLATES', nargs='+',
-                   help='which templates to put')
-    p.set_defaults(func=cmd)
+    cli.add_edit_options(parser)
+    parser.add_argument('templates', metavar='TEMPLATES', nargs='+',
+                        help='which templates to put')
+    parser.set_defaults(func=cmd)
 
 def error_output_multiple_templates():
     print_cli_err('''option -o/--output is allowed with multiple templates

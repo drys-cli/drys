@@ -3,69 +3,88 @@ import re
 import argparse
 
 from . import util
-from .util import print_cli_err
+from .util import print_cli_err, print_cli_warn
 
 repo_path = []
 
 cfg = util.ConfigParser()
 
-ENV_XDG_CONFIG_HOME = os.environ.get('XDG_CONFIG_HOME')
-ENV_TEM_CONFIG     = os.environ.get('TEM_CONFIG')
+XDG_CONFIG_HOME = os.environ.get('XDG_CONFIG_HOME')
+TEM_CONFIG      = os.environ.get('TEM_CONFIG')
 
-# All possible user configuration files in the order in which they are loaded
+from . import __prefix__
+system_config_paths = [__prefix__ + '/share/tem/config']
+
+"""
+All possible user configuration files sorted in the order they should be read.
+"""
 user_config_paths = [
     os.path.expanduser('~/.config/tem/config'),
     os.path.expanduser('~/.temconfig'),
-    ENV_XDG_CONFIG_HOME + '/tem/config' if ENV_XDG_CONFIG_HOME else '',
-    ENV_TEM_CONFIG if ENV_TEM_CONFIG else ''
+    XDG_CONFIG_HOME + '/tem/config' if XDG_CONFIG_HOME else '',
+    TEM_CONFIG if TEM_CONFIG else ''
 ]
 
-from . import __prefix__
-default_config_paths = [__prefix__ + '/share/tem/config'] + user_config_paths
-
 def get_user_config_path():
+    """
+    Of all the possible paths for the user configuration, return the one with
+    the highest priority.
+
+    .. seealso:: user_config_paths
+    """
     lst = [ user_config_paths[i] for i in [3,2,0,1] ]
     return next(path for path in lst if path)
 
-def load_config(paths=[], read_defaults=True):
+def load_config(paths):
     """
-    Load configuration from `default_config_paths` (if `read_defaults==True`)
-    and from `paths` in that order, together we shall call them `all_paths`. If
-    there are files from `paths` that can't be read, the program exits with an
-    error. Otherwise if `paths` is empty and none of the `default_config_paths`
-    can be read, a warning is shown. In all other cases the function finishes
-    succesfully, even if some of the files from `default_config_paths` can't be
-    read.
+    Load configuration from `paths`, in the specified order. If some of the
+    files can't be read, print an error and exit.
+    :returns: list of files that could not be read
     """
-    global cfg
+    if not paths: return
 
-    paths = paths.copy()
+    global cfg, repo_path
+    successful = cfg.read(paths)
+    repo_path += repo_path_from_config(cfg)
+    repo_path = list(dict.fromkeys(repo_path))              # Remove duplicates
 
-    all_paths = []
-    if read_defaults:
-        all_paths =  default_config_paths
-    all_paths += paths
+    return set(paths) - set(successful)
 
-    # No paths are left to read config from
-    if not all_paths:
-        return
-    successful = cfg.read(all_paths)
+def load_system_config():
+    """
+    Load configuration from ``system_config_paths``. If any of the files
+    cannot be read, print an error and exit.
+    """
+    failed = load_config(system_config_paths)
+    if failed:
+        print_cli_err(
+            "the following system configuration files could not be read:",
+            *failed, sep='\n\t')
+        exit(1)
 
-    failed_from_options = set(paths) - set(successful)
-    if failed_from_options:               # Some of the `paths` could not be read
-        print_cli_err('the following of the specified configuration files could not be read:',
-              *failed_from_options, sep='\n\t')
-        quit(1)
-    elif not successful:                # No config file could be read
-        print('Warning: No configuration file on the system could be read.',
-              'Please check if they exist or if their permissions are wrong.',
-              file=sys.stderr, sep='\n')
-    else:                               # No problems
-        global repo_path
-        repo_path = repo_path_from_config(cfg)
+def load_user_config():
+    """
+    Load configuration from ``user_config_paths``. If some of the files can't be
+    read, print a warning.
+    """
+    failed = load_config(user_config_paths)
+    if len(failed) == len(user_config_paths):
+        print_cli_warn("no user configuration files could not be read:")
+        print_cli_warn("The following files were tried:", *failed, sep='\n\t')
 
-# TODO remove this method (why did I want to remove it??)
-def add_general_options(parser, main_parser=False):
+def load_config_from_args(args):
+    """
+    Load configuration files specified as command arguments in ``args``.
+    If any of the files can't be read, print an error and exit."""
+    failed = load_config(args.config)
+    if failed:
+        print_cli_err(
+            "the following configuration files could not be read:",
+            *failed, sep='\n\t')
+        exit(1)
+
+
+def add_general_options(parser, dummy=False):
     """
     Add options that are common among various commands. By default, when a
     subcommand is called, all options that are defined for the main command are
@@ -75,8 +94,9 @@ def add_general_options(parser, main_parser=False):
     """
     # TODO remove this after a tryout period
     group = parser.add_argument_group('general options')
-    group.add_argument('-h', '--help', action='help',
-                   help='show this help message and exit')
+    group.add_argument('-h', '--help',
+                       action=('store_true' if dummy else 'help'),
+                       help='show this help message and exit')
     group.add_argument('-R', '--repo', action='append', default=[],
                         help='use the repository REPO')
     group.add_argument('-c', '--config', metavar='FILE',
@@ -235,3 +255,26 @@ def subcommand_routine(subcommand_name):
             function(*args, **kwargs)
         return wrapper
     return decorator
+
+def expand_alias(index, args):
+    """
+    Expand alias in ``args`` and return the modified argument list.
+    :param index: the index of the argument that is to be expanded as an alias
+        If the argument isn't aliased to anything, the list is returned
+        unmodified.
+    :param args: list of command arguments
+    """
+    alias = args[index]
+    aliased = cfg['alias.%s' % alias]
+
+    if not aliased:                                 # No alias found in config
+        return args
+
+    from . import ext
+    expanded_alias = ext.shell_arglist(aliased)     # Expand alias into arg list
+    if index == -1:
+        args[-1:] = expanded_alias
+    else:
+        args[index:index+1] = expanded_alias
+
+    return args

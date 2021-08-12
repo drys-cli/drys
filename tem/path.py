@@ -1,11 +1,8 @@
 from . import dot, cli
 
-def setup_parser(subparsers):
-    p = subparsers.add_parser('path', add_help=False,
-                              help='run or modify the local path');
-
-    dot.setup_common_parser(p)
-    p.set_defaults(func=cmd)
+def setup_parser(parser):
+    dot.setup_common_parser(parser)
+    parser.set_defaults(func=cmd)
 
 @cli.subcommand_routine('path')
 def cmd(args):

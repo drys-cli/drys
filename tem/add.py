@@ -6,31 +6,29 @@ import re
 from . import cli, util
 from .cli import cfg
 
-def setup_parser(subparsers):
-    p = subparsers.add_parser('add', add_help=False,
-                              formatter_class=argparse.RawTextHelpFormatter,
-                              help='add templates to your tem repository')
-    p.add_argument('files', metavar='FILES', nargs='+', type=cli.existing_file,
-                   help='files or directories to add')
+def setup_parser(parser):
+    parser.add_argument('files', metavar='FILES', nargs='+',
+                        type=cli.existing_file,
+                        help='files or directories to add')
 
-    out = p.add_mutually_exclusive_group()
+    out = parser.add_mutually_exclusive_group()
     out.add_argument('-o', '--output', metavar='OUT',
                      help='output file or directory relative to repo')
     out.add_argument('-d', '--directory', metavar='DIR',
                      help='directory inside repo where FILES should be placed')
-    cli.add_edit_options(p)
-    p.add_argument('-m', '--move', action='store_true',
+    cli.add_edit_options(parser)
+    parser.add_argument('-m', '--move', action='store_true',
                    help='move FILES instead of copying')
 
     # Recursion options
-    recursion = p.add_mutually_exclusive_group()
+    recursion = parser.add_mutually_exclusive_group()
     recursion.add_argument('-r', '--recursive', action='store_true',
                            help='copy directories recursively [default]')
     recursion.add_argument('--norecursive', dest='recursive', action='store_false',
                            help='do not copy directories recursively')
 
-    cli.add_general_options(p)
-    p.set_defaults(func=cmd)
+    cli.add_general_options(parser)
+    parser.set_defaults(func=cmd)
 
 @cli.subcommand_routine('add')
 def cmd(args):

@@ -6,29 +6,27 @@ from . import cli, util
 from .cli import cfg
 from . import __prefix__
 
-def setup_parser(subparsers):
-    p = subparsers.add_parser('config', add_help=False,
-                              help='get and set repository or global options')
-    cli.add_general_options(p)
+def setup_parser(parser):
 
-    p.add_argument('-f', '--file', action='append', default=[],
-                   help='configuration file that will be used (can be specified multiple times')
-    p.add_argument('-g', '--global', dest='glob', action='store_true',
+    parser.add_argument(
+        '-f', '--file', action='append', default=[],
+        help='used config file (can be specified multiple times')
+    parser.add_argument('-g', '--global', dest='glob', action='store_true',
                    help='global configuration file will be used')
-    p.add_argument('-s', '--system', action='store_true',
+    parser.add_argument('-s', '--system', action='store_true',
                    help='system configuration file will be used')
-    p.add_argument('-l', '--local', action='store_true',
+    parser.add_argument('-l', '--local', action='store_true',
                    help='local repository configuration file will be used')
-    cli.add_edit_options(p)
-    p.add_argument('-i', '--instance', action='store_true',
+    cli.add_edit_options(parser)
+    parser.add_argument('-i', '--instance', action='store_true',
                    help='print OPTIONs that are active in the running instance')
 
-    p.add_argument('option', metavar='OPTION', nargs='?',
+    parser.add_argument('option', metavar='OPTION', nargs='?',
                    help='configuration option to get or set')
-    p.add_argument('value', metavar='VALUE', nargs='*',
+    parser.add_argument('value', metavar='VALUE', nargs='*',
                    help='value for the specified configuration OPTION')
 
-    p.set_defaults(func=cmd)
+    parser.set_defaults(func=cmd)
 
 def determine_config_files_from_args(args):
     files = []
@@ -76,10 +74,13 @@ def cmd(args):
             else:
                 if file:
                     cfg = util.ConfigParser(file)
+                    fname = util.shortpath(file)
                 else:
                     cfg = cli.cfg
-                fname = util.shortpath(file)
-                print((fname if fname else 'INSTANCE') + ':')
-                for sec in cfg.sections():
-                    for item in cfg.items(sec):
-                        print('    ', sec + '.' + item[0] + ' = ' + item[1], sep='')
+                    fname = 'ACTIVE INSTANCE'
+                print('\033[1;4m' + fname + ':' + '\033[0m', file=sys.stderr)
+                from io import StringIO
+                stream = StringIO()
+                cfg.write(stream)
+                print('    ', *stream.getvalue().split('\n')[:-1],
+                      sep='\n    ')

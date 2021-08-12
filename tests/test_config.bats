@@ -39,15 +39,10 @@ fi
     run tem config -f ../conf/config
 
     expected="$(
-        echo ../conf/config:
-        section=
-        while read -r line; do
-            if echo "$line" | grep -q '^\[.*\]$'; then
-                section="$(sed 's_^\[\(.*\)\]_\1_' <<< "$line")"
-            elif [ -n "$(sed -e '/^#/d' -e '/^$/d' <<< "$line")" ]; then
-                echo "    $section.$line"
-            fi
-        done < ../conf/config
+        echo -e "\033[1;4m../conf/config:\033[0m"
+        echo "    "
+        cat ../conf/config | sed -e '/^#/d' -e 's/^/    /'
+        echo "    "
     )"
 
     [ $status = 0 ]

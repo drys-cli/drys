@@ -3,27 +3,25 @@ import argparse
 
 from . import cli
 
-def setup_parser(subparsers):
-    p = subparsers.add_parser('hook', add_help=False,
-                              help='operations on command hooks')
-    cli.add_general_options(p)
+def setup_parser(parser):
+    cli.add_general_options(parser)
 
-    action_opts = p.add_mutually_exclusive_group()
+    action_opts = parser.add_mutually_exclusive_group()
     action_opts.add_argument('-x', '--exec', action='store_true',
-                         help='execute HOOKS (default)')
+                             help='execute HOOKS (default)')
     action_opts.add_argument('-n', '--new', action='store_true',
-                         help='create new HOOKS')
+                             help='create new HOOKS')
     action_opts.add_argument('-a', '--add', action='store_true',
-                   help='add specified files as hooks')
+                             help='add specified files as hooks')
     action_opts.add_argument('-l', '--list', action='store_true',
-                   help='list hooks')
-    cli.add_edit_options(p)
-    p.add_argument('-f', '--force',
-                   help="create .tem/ if it doesn't exist (only when adding hooks)")
-    p.add_argument('hooks', metavar='HOOKS', nargs='?',
-                   help='the hooks on which to operate')
+                             help='list hooks')
+    cli.add_edit_options(parser)
+    parser.add_argument('-f', '--force',
+                        help="create .tem/ if it doesn't exist (only when adding hooks)")
+    parser.add_argument('hooks', metavar='HOOKS', nargs='?',
+                        help='the hooks on which to operate')
 
-    p.set_defaults(func=cmd)
+    parser.set_defaults(func=cmd)
 
 @cli.subcommand_routine('hook')
 def cmd(args):

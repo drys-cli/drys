@@ -4,36 +4,34 @@ import argparse
 from . import cli, util
 from .util import print_cli_err
 
-def setup_parser(subparsers):
-    p = subparsers.add_parser('ls', add_help=False,
-                              help='list templates')
-    cli.add_general_options(p)
+def setup_parser(parser):
+    cli.add_general_options(parser)
 
-    p.add_argument('-s', '--short', action='store_true',
-                   help="don't display headers and decorations")
-    p.add_argument('-p', '--path', action='store_true', help='print full path')
-    p.add_argument('-x', '--command', metavar='CMD',
-                   help='ls command to use')
-    p.add_argument('-n', '--number', metavar='N', type=int,
-                   help='list contents of no more than N repositories')
-    cli.add_edit_options(p)
+    parser.add_argument('-s', '--short', action='store_true',
+                        help="don't display headers and decorations")
+    parser.add_argument('-p', '--path', action='store_true', help='print full path')
+    parser.add_argument('-x', '--command', metavar='CMD',
+                        help='ls command to use')
+    parser.add_argument('-n', '--number', metavar='N', type=int,
+                        help='list contents of no more than N repositories')
+    cli.add_edit_options(parser)
 
-    recursion = p.add_mutually_exclusive_group()
+    recursion = parser.add_mutually_exclusive_group()
     recursion.add_argument('-r', '--recursive', action='store_true',
                            help='recurse into subdirectories')
     recursion.add_argument('--norecursive', dest='recursive',
                            action='store_false',
                            help='do not recurse into subdirectories [default]')
 
-    p.add_argument('templates', metavar='TEMPLATES', nargs='*',
-                   help='which templates to list')
+    parser.add_argument('templates', metavar='TEMPLATES', nargs='*',
+                        help='which templates to list')
     # TODO is there a way to show a '--' in the usage synopsis? I tried this but
     # '--' shows up at the end of help (argparse.SUPPRESS doesn't help either)
     # Also I would like this to show up after templates and before ls_arguments
     #  ATTEMPT: p.add_argument('--', action='store_true', dest='__discard')
-    p.add_argument('ls_arguments', metavar='LS_ARGUMENTS', nargs='*',
-                   help='additional arguments that will be passed to ls')
-    p.set_defaults(func=cmd)
+    parser.add_argument('ls_arguments', metavar='LS_ARGUMENTS', nargs='*',
+                        help='additional arguments that will be passed to ls')
+    parser.set_defaults(func=cmd)
 
 # TODO decouple the shorthand-completion part into another function
 def separare_files_and_options(args):

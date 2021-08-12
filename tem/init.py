@@ -3,27 +3,25 @@ import argparse
 from . import cli, util
 from .util import print_cli_err
 
-def setup_parser(subparsers):
-    p = subparsers.add_parser('init', add_help=False,
-                              help='generate a .tem directory')
-    cli.add_general_options(p)
+def setup_parser(parser):
+    cli.add_general_options(parser)
 
-    p.add_argument('-H', '--example-hooks', action='store_true',
-                   help='generate documented example hooks')
-    p.add_argument('-n', '--example-env', action='store_true',
-                   help='generate documented example environment scripts')
-    p.add_argument('-r', '--as-repo', action='store_true',
-                   help='initialize current directory as a repository')
-    cli.add_edit_options(p)
-    p.add_argument('-f', '--force', action='store_true',
-                   help='do not fail if .tem exists')
-    p.add_argument('-v', '--verbose', action='store_true',
-                   help='show the generated file tree')
+    parser.add_argument('-H', '--example-hooks', action='store_true',
+                        help='generate documented example hooks')
+    parser.add_argument('-n', '--example-env', action='store_true',
+                        help='generate documented example environment scripts')
+    parser.add_argument('-r', '--as-repo', action='store_true',
+                        help='initialize current directory as a repository')
+    cli.add_edit_options(parser)
+    parser.add_argument('-f', '--force', action='store_true',
+                        help='do not fail if .tem exists')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='show the generated file tree')
     # TODO a couple more options
     #  p.add_argument('-m', '--merge', action='store_true',
-                   #  help='merge with existing')
+    #  help='merge with existing')
 
-    p.set_defaults(func=cmd)
+    parser.set_defaults(func=cmd)
 
 @cli.subcommand_routine('init')
 def cmd(args):

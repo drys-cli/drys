@@ -4,9 +4,6 @@ import os, shutil, subprocess as sp
 from .cli import cfg
 from . import util
 
-shell = cfg['general.shell']
-if not shell: shell = os.environ.get('SHELL')
-
 def parse_args(args):
     """
     Take the string `arg_str` and parse its components to a list of string
@@ -43,3 +40,16 @@ def run(command, override=None, *args, **kwargs):
     except Exception as e:
         util.print_error_from_exception(e)
         exit(1)
+
+shell = cfg['general.shell']
+if not shell: shell = os.environ.get('SHELL')
+
+def shell_arglist(commandline):
+    """
+    Return the list of arguments that /bin/sh would parse from
+    ``commandline``.
+    .. note:: The shell is run as a subcommand for this.
+    """
+    p = sp.run("printf '%%s\n' %s" % commandline, shell=True, stdout=sp.PIPE,
+               encoding='utf-8')
+    return p.stdout.split('\n')[:-1]

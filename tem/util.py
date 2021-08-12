@@ -15,6 +15,12 @@ class ConfigParser(configparser.ConfigParser):
             self.add_section(section)
         super().set(section, option, value, *args, **kwargs)
 
+    def items(self, section, *args, **kwargs):
+        if self.has_section(section):
+            return super().items(section, *args, **kwargs)
+        else:
+            return []
+
     def __getitem__(self, option):
         split = option.split('.', 1)
         if len(split) == 1:

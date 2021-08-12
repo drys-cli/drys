@@ -4,11 +4,9 @@ import argparse
 from . import cli, util, dot
 from .util import print_cli_err, print_cli_warn, print_err
 
-def setup_parser(subparsers):
-    p = subparsers.add_parser('env', add_help=False,
-                          help='run or modify local environments')
-    dot.setup_common_parser(p)
-    p.set_defaults(func=cmd)
+def setup_parser(parser):
+    dot.setup_common_parser(parser)
+    parser.set_defaults(func=cmd)
 
 def validate_file_arguments_as_script_names(files):
     any_invalid_files = False
