@@ -3,7 +3,7 @@ import re
 import argparse
 
 from . import util
-from .util import print_cli_err, print_cli_warn
+from .util import print_err
 
 repo_path = []
 
@@ -82,7 +82,6 @@ def load_config_from_args(args):
             "the following configuration files could not be read:",
             *failed, sep='\n\t')
         exit(1)
-
 
 def add_general_options(parser, dummy=False):
     """
@@ -195,6 +194,10 @@ def resolve_and_validate_repos(repo_args, cmd=None):
     return resolved_repos
 
 def get_editor(override=None, default='vim'):
+    """
+    Get the editor that should be used to open files when `--edit` or `--editor`
+    are used. Uses the fallback mechanism that is documented in tem(1).
+    """
     global cfg
     editors = [override,
                cfg['general.editor'],
@@ -246,15 +249,6 @@ def run_hooks(trigger, src_dir, dest_dir='.', environment=None):
         for file in glob.glob(src_dir + '/.tem/hooks/*.{}'.format(trigger)):
             subprocess.run([file] + sys.argv, cwd=os.path.dirname(file))
 
-def subcommand(function):
-    """Decorator for functions that implement subcommand functionality."""
-    def wrapper(*args, **kwargs):
-        #  util._active_subcommand = eval("__name__").replace('.', ' ')
-        util._active_subcommand = \
-            sys.modules[function.__module__].__name__.replace('.', ' ')
-        function(*args, **kwargs)
-    return wrapper
-
 def expand_alias(index, args):
     """
     Expand alias in ``args`` and return the modified argument list.
@@ -277,3 +271,36 @@ def expand_alias(index, args):
         args[index:index+1] = expanded_alias
 
     return args
+
+# Used only in print_cli_err and print_cli_warn
+_active_subcommand = ''
+def set_active_subcommand(subcommand):
+    """
+    Set the name of the active subcommand. This is used when reporting errors
+    and warnings.
+    """
+    global _active_subcommand
+    _active_subcommand = subcommand
+
+def print_cli_err(*args, sep=' ', **kwargs):
+    """
+    Print an error with conventional formatting. The first line starts with
+    '<subcommand>: error:'.
+    """
+    print_err('tem ' + _active_subcommand + ': error: ', end='', **kwargs)
+    print_err(*args, sep=sep, **kwargs)
+
+def print_cli_warn(*args, sep=' ', **kwargs):
+    """
+    Print a warning with conventional formatting. The first line starts with
+    '<subcommand>: warning:'.
+    """
+    print_err('tem ' + _active_subcommand + ': warning: ', end='', **kwargs)
+    print_err(*args, sep=sep, **kwargs)
+
+def print_error_from_exception(e):
+    """
+    Take the python exception ``e``, strip it of unnecessary text and print it
+    as a CLI error.
+    """
+    print_cli_err(re.sub(r'^\[Errno [0-9]*\] ', '', str(e)))

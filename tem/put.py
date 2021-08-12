@@ -2,7 +2,7 @@ import os, sys
 import argparse
 
 from . import cli, util, ext
-from .util import print_cli_err
+from .cli import print_cli_err
 
 def setup_parser(parser):
     cli.add_general_options(parser)
@@ -26,7 +26,6 @@ def _error_exists_but_not_dir(path):
     print_cli_err("'{}' exists and is not a directory".format(path))
     quit(1)
 
-@cli.subcommand
 def cmd(args):
     repos = cli.resolve_and_validate_repos(args.repo, cmd='put')
 

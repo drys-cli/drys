@@ -1,7 +1,7 @@
 import sys, os, glob
 import argparse
 from . import cli, util
-from .util import print_cli_err
+from .cli import print_err, print_cli_err
 
 def setup_parser(parser):
     cli.add_general_options(parser)
@@ -23,7 +23,6 @@ def setup_parser(parser):
 
     parser.set_defaults(func=cmd)
 
-@cli.subcommand
 def cmd(args):
     import shutil as sh
     import subprocess

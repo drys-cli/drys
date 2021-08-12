@@ -10,7 +10,6 @@ def setup_parser(parser):
 
     parser.set_defaults(func=cmd)
 
-@cli.subcommand
 def cmd(args):
     repos = cli.resolve_and_validate_repos(args.repo, cmd='rm')
 

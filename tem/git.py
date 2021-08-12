@@ -3,8 +3,7 @@ import argparse
 import subprocess as sp
 
 from . import cli, util
-from .util import print_cli_err
-from .cli import cfg
+from .cli import cfg, print_cli_err
 
 def setup_parser(parser):
     cli.add_general_options(parser)
@@ -77,7 +76,6 @@ def ls_branch(branch):
     ls = p.stdout[:-1]                                  # Remove newline at end
     return ls.split('\n')
 
-@cli.subcommand
 def cmd(args):
     if not args.list:
         args.checkout = True

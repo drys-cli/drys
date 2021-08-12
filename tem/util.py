@@ -35,33 +35,8 @@ class ConfigParser(configparser.ConfigParser):
         self.set(section, option, value)
 
 def print_err(*args, **kwargs):
+    """Like regular print, but print to stderr."""
     print(*args, file=sys.stderr, **kwargs)
-
-# Used only in print_cli_err and print_cli_warn
-_active_subcommand = 'tem'
-
-def print_cli_err(*args, sep=' ', **kwargs):
-    """
-    Print an error with conventional formatting. The first line starts with
-    '<subcommand>: error:'.
-    """
-    print_err(_active_subcommand + ': error: ', end='', **kwargs)
-    print_err(*args, sep=sep, **kwargs)
-
-def print_cli_warn(*args, sep=' ', **kwargs):
-    """
-    Print a warning with conventional formatting. The first line starts with
-    '<subcommand>: warning:'.
-    """
-    print_err(_active_subcommand + ': warning: ', end='', **kwargs)
-    print_err(*args, sep=sep, **kwargs)
-
-def print_error_from_exception(e):
-    """
-    Take the python exception ``e``, strip it of unnecessary text and print it
-    as a CLI error.
-    """
-    print_cli_err(re.sub(r'^\[Errno [0-9]*\] ', '', str(e)))
 
 def abspath(path):
     return os.path.abspath(os.path.expanduser(path))

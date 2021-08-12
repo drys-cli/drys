@@ -3,7 +3,7 @@ import sys, os
 import argparse
 
 from . import cli, util
-from .util import print_cli_err, print_cli_warn
+from .cli import print_cli_err, print_cli_warn
 
 def setup_parser(parser):
     cli.add_general_options(parser)
@@ -94,7 +94,6 @@ def find_template(template, repos, all=False):
 
     return result_paths
 
-@cli.subcommand
 def cmd(args):
 
     if args.add or args.remove:

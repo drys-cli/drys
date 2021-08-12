@@ -1,6 +1,7 @@
 import sys, os, argparse
 from . import cli, util
-from .util import print_cli_err, print_cli_warn, print_err
+from .util import print_err
+from .cli import print_cli_err, print_cli_warn
 
 def setup_common_parser(parser):
     """
@@ -128,8 +129,12 @@ def cmd_common(args, subdir=None):
     If this is called from a `dot` derivative subcommand, subdir and root
     must be specified as function arguments.
     """
-    if subdir is None:
+    if subdir == None:
         subdir = args.subdir
+
+    # TODO perhaps not very elegant, but will do for now
+    if subdir != None:
+        cli.set_active_subcommand(subdir)
 
     files = args.files
 
@@ -246,7 +251,6 @@ def cmd_common(args, subdir=None):
     # TODO:
     # --add: handle multiple files with same name
 
-@cli.subcommand
 def cmd(*args, **kwargs):
     return cmd_common(*args, **kwargs)
 

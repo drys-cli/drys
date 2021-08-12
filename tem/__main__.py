@@ -5,7 +5,7 @@ import tem
 import argparse, sys, os
 from tem import cli, util
 
-from tem.util import print_cli_err
+from tem.cli import print_cli_err
 
 def init_user():
     """Initialize a user config file in a location with the highest priority"""
@@ -114,7 +114,9 @@ def main():
     if not args.subcommand:
         args.func()
     else:
+        index = -len(args.subcommand)
         sys.argv[1:] = cli.expand_alias(-len(args.subcommand), sys.argv[1:])
+        cli.set_active_subcommand(sys.argv[index])
 
     # Parse known arguments without delving into the details of subcommands
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

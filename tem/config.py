@@ -42,7 +42,6 @@ def determine_config_files_from_args(args):
         files.append(__prefix__ + '/share/tem/config') # TODO
     return files
 
-@cli.subcommand
 def cmd(args):
     files = determine_config_files_from_args(args)
 

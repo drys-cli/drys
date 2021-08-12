@@ -2,7 +2,7 @@ import sys, os
 import argparse
 
 from . import cli, util
-from .util import print_cli_err
+from .cli import print_cli_err
 
 def setup_parser(parser):
     cli.add_general_options(parser)
@@ -67,7 +67,6 @@ def fill_in_gaps(incomplete_paths):
         ).stdout.split('\n')[:-1]
     return [ p for p in paths if os.path.exists(p) ]
 
-@cli.subcommand
 def cmd(args):
     from . import ext
     import subprocess as sp
