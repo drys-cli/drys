@@ -115,6 +115,10 @@ def remove(path):
         print_error_from_exception(e)
         exit(1)
 
+def make_file_executable(path):
+    """Equivalent to performing `chmod u+x` on ``path``."""
+    os.chmod(path, os.stat(path).st_mode | 0o100)
+
 # TODO move to repo.py
 def fetch_name(repo_path):
     """

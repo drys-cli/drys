@@ -88,6 +88,7 @@ def main():
     minimum_parser_setup('ls',     help='list templates')
     minimum_parser_setup('repo',   help='perform actions on tem repositories')
     minimum_parser_setup('config', help='get and set configuration options')
+    minimum_parser_setup('init',   help='generate a .tem/ directory')
     minimum_parser_setup('env',    help='run or modify local environments')
     minimum_parser_setup('path',   help='run or modify the local path')
     minimum_parser_setup('git',    help='use environments versioned under git')

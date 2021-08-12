@@ -23,6 +23,9 @@ def setup_common_parser(parser):
         '-a', '--add', action='store_true',
         help='copy FILES')
     action_opts_ex.add_argument(
+        '-s', '--symlink', action='store_true',
+        help='like --add but create a symbolic link')
+    action_opts_ex.add_argument(
         '-D', '--delete', action='store_true',
         help='delete FILES')
     action_opts.add_argument(
@@ -136,12 +139,13 @@ def cmd_common(args, subdir=None):
     dotdir = rootdir + '/.tem/' + subdir
 
     # Exec is the default action if no other actions have been specified
-    if not (args.new or args.add or args.edit or args.editor or args.list):
+    if not (args.new or args.add or args.symlink or args.edit or args.editor or args.list):
         args.exec = True
 
     dest_files = []
 
     if args.new:                                                        # --new
+        # TODO This is only valid in some dot derivatives (path, env, maybe more)
         validate_file_arguments_as_script_names(files)
         any_conflicts = False
         for file in files:
@@ -149,7 +153,7 @@ def cmd_common(args, subdir=None):
             if not os.path.exists(dest):
                 _create_executable_file(dest)
             elif args.force:
-                _make_file_executable(dest)
+                util.make_file_executable(dest)
             else:
                 any_conflicts = True
                 print_cli_err("file '{}' already exists".format(dest))
@@ -157,16 +161,20 @@ def cmd_common(args, subdir=None):
         if any_conflicts:
             print_err('\nTry running with --force.')
             exit(1)
-    elif args.add:                                                      # --add
+    elif args.add or args.symlink:                          # --add or --symlink
         import shutil
         any_nonexisting = False
         any_conflicts = False
-        dest_files = []
         for src in files:
             dest = dotdir + '/' + util.basename(src)
             if os.path.exists(src):
                 if not os.path.exists(dest) or args.force:
-                    shutil.copy(src, dest)
+                    if args.add:                                        # --add
+                        shutil.copy(src, dest)
+                    else:                                           # --symlink
+                        if os.path.exists(dest):
+                            os.remove(dest)
+                        os.symlink(src, dest)
                 else:
                     print_cli_warn("file '{}' already exists".format(dest))
                     any_conflicts = True
@@ -238,20 +246,14 @@ def cmd_common(args, subdir=None):
     # TODO:
     # --add: handle multiple files with same name
 
-# Local helper functions
-
 @cli.subcommand
 def cmd(*args, **kwargs):
     return cmd_common(*args, **kwargs)
 
-def _make_file_executable(path):
-    """Equivalent to performing `chmod u+x` on ``path``."""
-    os.chmod(path, os.stat(path).st_mode | 0o100)
-
 def _create_executable_file(path):
     """Create a file with the executable permission set."""
     open(path, 'x').close()                                 # Create empty file
-    _make_file_executable(path)                             # chmod u+x
+    util.make_file_executable(path)                         # chmod u+x
 
 # TODO will probably be removed in favor of a more universal approach
 def _paths_from_templates(args):
