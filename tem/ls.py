@@ -67,7 +67,7 @@ def fill_in_gaps(incomplete_paths):
         ).stdout.split('\n')[:-1]
     return [ p for p in paths if os.path.exists(p) ]
 
-@cli.subcommand_routine('ls')
+@cli.subcommand
 def cmd(args):
     from . import ext
     import subprocess as sp

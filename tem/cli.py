@@ -246,15 +246,14 @@ def run_hooks(trigger, src_dir, dest_dir='.', environment=None):
         for file in glob.glob(src_dir + '/.tem/hooks/*.{}'.format(trigger)):
             subprocess.run([file] + sys.argv, cwd=os.path.dirname(file))
 
-def subcommand_routine(subcommand_name):
+def subcommand(function):
     """Decorator for functions that implement subcommand functionality."""
-    def decorator(function):
-        def wrapper(*args, **kwargs):
-            if subcommand_name:
-                util._active_subcommand = 'tem ' + subcommand_name
-            function(*args, **kwargs)
-        return wrapper
-    return decorator
+    def wrapper(*args, **kwargs):
+        #  util._active_subcommand = eval("__name__").replace('.', ' ')
+        util._active_subcommand = \
+            sys.modules[function.__module__].__name__.replace('.', ' ')
+        function(*args, **kwargs)
+    return wrapper
 
 def expand_alias(index, args):
     """

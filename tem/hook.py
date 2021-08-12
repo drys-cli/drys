@@ -23,7 +23,7 @@ def setup_parser(parser):
 
     parser.set_defaults(func=cmd)
 
-@cli.subcommand_routine('hook')
+@cli.subcommand
 def cmd(args):
     # TODO this part is unusable
     # Create a cli interface for env and hooks, and potentially other files

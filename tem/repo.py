@@ -94,7 +94,7 @@ def find_template(template, repos, all=False):
 
     return result_paths
 
-@cli.subcommand_routine('repo')
+@cli.subcommand
 def cmd(args):
 
     if args.add or args.remove:

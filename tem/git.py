@@ -77,7 +77,7 @@ def ls_branch(branch):
     ls = p.stdout[:-1]                                  # Remove newline at end
     return ls.split('\n')
 
-@cli.subcommand_routine('git')
+@cli.subcommand
 def cmd(args):
     if not args.list:
         args.checkout = True

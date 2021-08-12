@@ -23,7 +23,7 @@ def setup_parser(parser):
 
     parser.set_defaults(func=cmd)
 
-@cli.subcommand_routine('init')
+@cli.subcommand
 def cmd(args):
     import shutil as sh
     import subprocess

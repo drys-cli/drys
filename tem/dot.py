@@ -240,7 +240,7 @@ def cmd_common(args, subdir=None):
 
 # Local helper functions
 
-@cli.subcommand_routine('dot')
+@cli.subcommand
 def cmd(*args, **kwargs):
     return cmd_common(*args, **kwargs)
 

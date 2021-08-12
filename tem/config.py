@@ -25,6 +25,7 @@ def setup_parser(parser):
                    help='configuration option to get or set')
     parser.add_argument('value', metavar='VALUE', nargs='*',
                    help='value for the specified configuration OPTION')
+    cli.add_general_options(parser)
 
     parser.set_defaults(func=cmd)
 
@@ -41,7 +42,7 @@ def determine_config_files_from_args(args):
         files.append(__prefix__ + '/share/tem/config') # TODO
     return files
 
-@cli.subcommand_routine('config')
+@cli.subcommand
 def cmd(args):
     files = determine_config_files_from_args(args)
 

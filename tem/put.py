@@ -26,7 +26,7 @@ def _error_exists_but_not_dir(path):
     print_cli_err("'{}' exists and is not a directory".format(path))
     quit(1)
 
-@cli.subcommand_routine('put')
+@cli.subcommand
 def cmd(args):
     repos = cli.resolve_and_validate_repos(args.repo, cmd='put')
 
