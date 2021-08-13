@@ -1,8 +1,11 @@
 """Functions and utilites for interfacing with external commands."""
-import os, shutil, subprocess as sp
+import os
+import shutil
+import subprocess as sp
+import sys
 
 from .cli import cfg
-from . import util
+
 
 def parse_args(args):
     """
@@ -11,10 +14,15 @@ def parse_args(args):
     """
     # Use the system shell to parse the string
     #   - the last element is a blank line which is popped before returning
-    return sp.run(['sh', '-c', r'printf "%s\n" {}'.format(args)],
-               stdout=sp.PIPE, encoding='utf-8').stdout.split('\n')[:-1]
+    return sp.run(
+        ["sh", "-c", r'printf "%s\n" {}'.format(args)],
+        stdout=sp.PIPE,
+        encoding="utf-8",
+        check=False,
+    ).stdout.split("\n")[:-1]
 
-def run(command, override=None, *args, **kwargs):
+
+def run(command, *args, override=None, **kwargs):
     """
     Call an external command with the specified arguments, honoring the user's
     command overrides. If `override` is specified, then that will be
@@ -27,22 +35,27 @@ def run(command, override=None, *args, **kwargs):
         cmd_string = override
     else:
         # Get the user's preferred command from the config
-        cmd_string = cfg.get(command[0], 'command', fallback=command[0])
+        cmd_string = cfg.get(command[0], "command", fallback=command[0])
     # Parse the command with the substitution in mind
     parsed_args = parse_args(cmd_string)
     # If `tem` output is to a tty, make the subprocess think that its output is
     # also to a tty
-    if os.isatty(1) and shutil.which('unbuffer'):
-        parsed_args = ['unbuffer'] + parsed_args
+    if os.isatty(1) and shutil.which("unbuffer"):
+        parsed_args = ["unbuffer"] + parsed_args
     try:
-        return sp.run(parsed_args + command[1:],
-                   *args, **kwargs)
-    except Exception as e:
-        util.print_error_from_exception(e)
-        exit(1)
+        return sp.run(parsed_args + command[1:], *args, check=False, **kwargs)
+    except Exception as exception:
+        # TODO create front end in cli
+        from . import cli
 
-shell = cfg['general.shell']
-if not shell: shell = os.environ.get('SHELL')
+        cli.print_error_from_exception(exception)
+        sys.exit(1)
+
+
+shell = cfg["general.shell"]
+if not shell:
+    shell = os.environ.get("SHELL")
+
 
 def shell_arglist(commandline):
     """
@@ -50,6 +63,11 @@ def shell_arglist(commandline):
     ``commandline``.
     .. note:: The shell is run as a subcommand for this.
     """
-    p = sp.run("printf '%%s\n' %s" % commandline, shell=True, stdout=sp.PIPE,
-               encoding='utf-8')
-    return p.stdout.split('\n')[:-1]
+    p = sp.run(
+        "printf '%%s\n' %s" % commandline,
+        shell=True,
+        stdout=sp.PIPE,
+        encoding="utf-8",
+        check=False,
+    )
+    return p.stdout.split("\n")[:-1]

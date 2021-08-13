@@ -1,0 +1,17 @@
+[BASIC]
+variable-rgx=[a-z0-9_]{1,30}$
+
+[FORMAT]
+max-line-length=79
+
+[MISCELLANEOUS]
+notes=FIXME
+
+[MESSAGES CONTROL]
+# NOTE: First entry is a workaround for a bug in pylint that shows it
+# as a false positive
+disable=relative-beyond-top-level,
+        # Just so it doesn't treat globals as constants
+        invalid-name,
+        # This just annoying
+        global-statement

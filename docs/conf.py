@@ -1,47 +1,52 @@
-import glob, sys, os
+import glob
+import os
+import sys
 
 # ┏━━━━━━━━━━━━━━┓
 # ┃ Project info ┃
 # ┗━━━━━━━━━━━━━━┛
-project = 'tem'
-copyright = '2021, Haris Gušić'
-author = 'Haris Gušić'
+project = "tem"
+copyright = "2021, Haris Gušić"
+author = "Haris Gušić"
 
-sys.path.insert(0, os.path.dirname(__file__) + '/..')
+sys.path.insert(0, os.path.dirname(__file__) + "/..")
 import tem
+
 release = tem.__version__
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ General configuration ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━┛
-extensions = [
-    'sphinx.ext.todo', 'sphinx.ext.autodoc'
-]
-exclude_patterns    = ['_build', 'Thumbs.db', '.DS_Store', 'man']
-todo_include_todos  = True
+extensions = ["sphinx.ext.todo", "sphinx.ext.autodoc"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "man"]
+todo_include_todos = True
 
-smartquotes = False     # Always display '--' verbatim
-default_role = 'envvar' # Like :code: role, but the text is black
+smartquotes = False  # Always display '--' verbatim
+default_role = "envvar"  # Like :code: role, but the text is black
 
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath(".."))
 # ┏━━━━━━┓
 # ┃ HTML ┃
 # ┗━━━━━━┛
-html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
+html_theme = "sphinx_rtd_theme"
+html_static_path = ["_static"]
 html_css_files = [
-    'custom.css',
+    "custom.css",
 ]
 # Tweak manpages for inclusion in the HTML version of the docs
-if 'html' in sys.argv:
+if "html" in sys.argv:
     from subprocess import call
-    call(['make', 'prepare-man'])
+
+    call(["make", "prepare-man"])
 
 # Generate substitutions for manual page descriptions
-sys.path.insert(1, 'man')
+sys.path.insert(1, "man")
 from man_descriptions import *
-try:                rst_prolog      # Variable exists?
-except NameError:   rst_prolog = '' # No: create it as an empty string
+
+try:
+    rst_prolog  # Variable exists?
+except NameError:
+    rst_prolog = ""  # No: create it as an empty string
 rst_prolog = generate_description_substitutions(rst_prolog)
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -49,21 +54,21 @@ rst_prolog = generate_description_substitutions(rst_prolog)
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 # ReadTheDocs doesn't use make -- it builds directly using sphinx and this file
-if os.environ.get('READTHEDOCS', False):
+if os.environ.get("READTHEDOCS", False):
     from subprocess import call
 
     # Scripts must be made executable on ReadTheDocs, but we just give full
     # permissions to all files to prevent future headaches
-    call('chmod -R 777 ./', shell=True)
-    call('umask 000', shell=True)
+    call("chmod -R 777 ./", shell=True)
+    call("umask 000", shell=True)
 
     # Add a tag so we can customize some rst files for ReadTheDocs
-    tags.add('ReadTheDocs')
+    tags.add("ReadTheDocs")
     # Confer [*]
-    exclude_patterns.remove('man')
+    exclude_patterns.remove("man")
 
     # Move them to man/ so the resulting URL looks nicer [*]
-    call('mv _intermediate/man/* man/', shell=True)
+    call("mv _intermediate/man/* man/", shell=True)
 
     # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓
     # ┃ Debugging on ReadTheDocs ┃
@@ -82,4 +87,3 @@ if os.environ.get('READTHEDOCS', False):
     def setup(app):
         app.connect('build-finished', build_finished_handler)
     """
-

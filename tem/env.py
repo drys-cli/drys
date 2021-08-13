@@ -1,11 +1,13 @@
-import sys, os
-import argparse
+"""tem env subcommand"""
+from . import dot
 
-from . import cli, dot
 
 def setup_parser(parser):
+    """Set up argument parser for this subcommand."""
     dot.setup_common_parser(parser)
     parser.set_defaults(func=cmd)
 
+
 def cmd(args):
-    dot.cmd_common(args, 'env')
+    """Execute this subcommand."""
+    dot.cmd_common(args, "env")

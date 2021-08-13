@@ -1,36 +1,48 @@
 #!/usr/bin/env python3
+"""Main tem script"""
+
+import argparse
+import os
+import sys
 
 import tem
-
-import argparse, sys, os
 from tem import cli, util
-
 from tem.cli import print_cli_err
+
 
 def init_user():
     """Initialize a user config file in a location with the highest priority"""
     try:
-        existing_cfg = next(path for path in cli.user_config_paths
-                    if os.path.exists(path))
+        existing_cfg = next(
+            path for path in cli.user_config_paths if os.path.exists(path)
+        )
     except StopIteration:
         existing_cfg = None
     if existing_cfg:
-        print_cli_err('configuration already exists at ' + existing_cfg)
-        exit(1)
+        print_cli_err("configuration already exists at " + existing_cfg)
+        sys.exit(1)
     else:
-        cfg_dest = cli.get_user_config_path()
-        util.copy(tem.__prefix__ + '/share/tem/config',
-                    cli.get_user_config_path())
-        os.makedirs(os.path.expanduser('~/.local/share/tem/repo'),
-                    exist_ok=True)
-        exit(0)
+        util.copy(
+            tem.__prefix__ + "/share/tem/config", cli.get_user_config_path()
+        )
+        os.makedirs(
+            os.path.expanduser("~/.local/share/tem/repo"), exist_ok=True
+        )
+        sys.exit(0)
+
 
 def main():
+    """Main program entry point"""
     # NOTE: These three functions have to be defined inside main() because they
     # access local objects
-    def cmd_warmup(module_name, parsers):
-        # Comments contain example calls when module_name = add
+    def cmd_lazy_load(module_name, parsers):
         def func():
+            """
+            Loads a subcommand module only after we know which subcommand was
+            invoked. This gives a small performance improvement.
+            """
+            # Comments contain example calls when module_name = add
+            # pylint: disable=exec-used
             # global add
             exec("global %s" % module_name)
             # from tem import add
@@ -39,68 +51,82 @@ def main():
             # add.setup_parser(parsers['add'])
             exec("{0}.setup_parser(_parsers['{0}'])".format(module_name))
             return module_name
+
         return func
 
     def print_help_exit(parser):
         parser.print_help()
-        exit(0)
+        sys.exit(0)
 
     def minimum_parser_setup(subcommand, *args, **kwargs):
         parsers[subcommand] = subparsers.add_parser(
             subcommand, *args, add_help=False, **kwargs
         )
-        parsers[subcommand].set_defaults(func=cmd_warmup(subcommand, parsers))
+        parsers[subcommand].set_defaults(
+            func=cmd_lazy_load(subcommand, parsers)
+        )
 
     # Create a proper parser and a dummy parser
     # The dummy parser will be used to find out which subcommand was run
     parser, dummy_parser = [
-        argparse.ArgumentParser(add_help=False,
-                                formatter_class=argparse.RawTextHelpFormatter)
+        argparse.ArgumentParser(
+            add_help=False, formatter_class=argparse.RawTextHelpFormatter
+        )
         for i in range(2)
     ]
 
     # Set up options for the main command -- `tem`
     # The same options are added to the proper and the dummy parser
     for i, p in enumerate([parser, dummy_parser]):
-        p.add_argument('-v', '--version', action='version',
-                       version='%(prog)s version {}'.format(tem.__version__))
+        p.add_argument(
+            "-v",
+            "--version",
+            action="version",
+            version="%(prog)s version {}".format(tem.__version__),
+        )
         cli.add_general_options(p, dummy=(i == 1))
-        p.add_argument('--init-user', action='store_true',
-                       help='generate initial user configuration file')
-        p.add_argument('--debug', action='store_true',
-                       help=argparse.SUPPRESS)
+        p.add_argument(
+            "--init-user",
+            action="store_true",
+            help="generate initial user configuration file",
+        )
+        p.add_argument("--debug", action="store_true", help=argparse.SUPPRESS)
         # Tem invoked with no args should print help and exit
         p.set_defaults(func=lambda: print_help_exit(parser))
 
     # The dummy parser gets a positional argument. This positional is the
     # subcommand that tem was run with
-    dummy_parser.add_argument('subcommand', nargs=argparse.REMAINDER, help=argparse.SUPPRESS)
+    dummy_parser.add_argument(
+        "subcommand", nargs=argparse.REMAINDER, help=argparse.SUPPRESS
+    )
 
     # Set up subcommand parsers
-    subparsers = parser.add_subparsers(title='commands', metavar='')
+    subparsers = parser.add_subparsers(title="commands", metavar="")
 
     # Bare minimum setup for subcommand parsers
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     parsers = dict()
-    minimum_parser_setup('add',    help='add templates to a repository')
-    minimum_parser_setup('rm',     help='remove templates from a repository')
-    minimum_parser_setup('put',    help='put templates into a desired directory')
-    minimum_parser_setup('ls',     help='list templates')
-    minimum_parser_setup('repo',   help='perform actions on tem repositories')
-    minimum_parser_setup('config', help='get and set configuration options')
-    minimum_parser_setup('init',   help='generate a .tem/ directory')
-    minimum_parser_setup('env',    help='run or modify local environments')
-    minimum_parser_setup('path',   help='run or modify the local path')
-    minimum_parser_setup('git',    help='use environments versioned under git')
-    minimum_parser_setup('hook',   help='run or modify command hooks')
-    minimum_parser_setup('dot')
+    minimum_parser_setup("add", help="add templates to a repository")
+    minimum_parser_setup("rm", help="remove templates from a repository")
+    minimum_parser_setup("put", help="put templates into a desired directory")
+    minimum_parser_setup("ls", help="list templates")
+    minimum_parser_setup("repo", help="perform actions on tem repositories")
+    minimum_parser_setup("config", help="get and set configuration options")
+    minimum_parser_setup("init", help="generate a .tem/ directory")
+    minimum_parser_setup("env", help="run or modify local environments")
+    minimum_parser_setup("path", help="run or modify the local path")
+    minimum_parser_setup("git", help="use environments versioned under git")
+    minimum_parser_setup("hook", help="run or modify command hooks")
+    minimum_parser_setup("dot")
 
     # Use the dummy parser to determine the subcommand
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     args = dummy_parser.parse_known_args()[0]
 
     if args.debug:
-        import pudb; pu.db
+        from pudb import set_trace
+
+        set_trace()
 
     if args.init_user:
         init_user()
@@ -110,7 +136,7 @@ def main():
     cli.load_user_config()
     cli.load_config_from_args(args)
 
-    # Subcommand contains the first positional, and all the subsequent arguments
+    # Subcommand contains the first positional, and all subsequent arguments
     if not args.subcommand:
         args.func()
     else:
@@ -135,5 +161,6 @@ def main():
 
     args.func(args)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -11,7 +11,6 @@ always a ``cmd`` function with the following skeleton:
 
 .. code-block:: python
 
-   @cli.subcommand_routine('SUBCOMMAND_NAME')
    def cmd(args):
        ...
 
@@ -22,7 +21,7 @@ In addition, there is a ``setup_parser`` function that sets up the
 
 .. code-block:: python
 
-   def setup_parser(subparsers):
+   def setup_parser(parser):
        ...
 
 Since there is a fair bit of common functionality that different subcommands

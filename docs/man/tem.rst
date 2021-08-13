@@ -220,8 +220,8 @@ lookup order is as follows, from higher to lower priority:
    with the name `repoX` exists in `REPO_PATH`, make it explicit that you want
    the local repository by using `./repoX`.
 
-CONVENTIONS
-===========
+COMMON BEHAVIOR
+===============
 
 The commands are designed in order to be maximally consistent. This section
 documents some of the common behaviors. Knowing those can significantly flatten
@@ -233,6 +233,8 @@ the learning curve for tem.
    absolute paths. However, if the specified file does not contain any
    :guilabel:`/` characters, it will be looked up in some of the directories
    recognized by tem. TODO
+2. Most commands support :option:`--edit<tem --edit>` and
+   :option:`--editor<tem --editor>` options.
 
 Each command can take a `--repo` option. This specifies a repository to look up
 in order to perform the command. If a `--template` option is given, then the
