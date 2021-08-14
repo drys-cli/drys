@@ -3,7 +3,7 @@ import glob
 import os
 import sys
 
-from . import cli
+from . import common as cli
 
 
 def setup_parser(parser):

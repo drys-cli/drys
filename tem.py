@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
+"""
+Test script for development purposes Run this when you need to quickly test new
+features during development -- so you don't have to re-install tem each time
+you make a change to test it.
 
-# This is a test script
-# Run it when you need to quickly test new features during development -- so you
-# don't have to install tem each time you make a change.
-
-# `tem env` puts this script into the PATH while you are inside the project
-# directory.
+If you have a shell plugin installed, running `tem env` puts this script into
+the PATH while you are inside the project directory. That way, simply running
+`tem` will run this script instead of the one installed on your system (or for
+your user).
+"""
 
 import os
 import sys
+from tem import __main__ as main
 
 # Prepend PWD to the PATH so that local modules are used over the global ones
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-from tem import __main__ as main
 
 sys.argv.insert(
     1, os.path.dirname(os.environ["TEM_EXECUTABLE"]) + "/conf/config"

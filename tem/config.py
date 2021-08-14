@@ -1,124 +1,97 @@
-"""tem config subcommand"""
+"""Configuration utilities"""
+import configparser
 import os
-import sys
 
-from . import __prefix__, cli, util
-
-
-def setup_parser(parser):
-    """Set up argument parser for this subcommand."""
-    parser.add_argument(
-        "-f",
-        "--file",
-        action="append",
-        default=[],
-        help="used config file (can be specified multiple times",
-    )
-    parser.add_argument(
-        "-g",
-        "--global",
-        dest="glob",
-        action="store_true",
-        help="global configuration file will be used",
-    )
-    parser.add_argument(
-        "-s",
-        "--system",
-        action="store_true",
-        help="system configuration file will be used",
-    )
-    parser.add_argument(
-        "-l",
-        "--local",
-        action="store_true",
-        help="local repository configuration file will be used",
-    )
-    cli.add_edit_options(parser)
-    parser.add_argument(
-        "-i",
-        "--instance",
-        action="store_true",
-        help="print OPTIONs that are active in the running instance",
-    )
-
-    parser.add_argument(
-        "option",
-        metavar="OPTION",
-        nargs="?",
-        help="configuration option to get or set",
-    )
-    parser.add_argument(
-        "value",
-        metavar="VALUE",
-        nargs="*",
-        help="value for the specified configuration OPTION",
-    )
-    cli.add_general_options(parser)
-
-    parser.set_defaults(func=cmd)
+from . import __prefix__, repo
 
 
-def determine_config_files_from_args(args):
-    """Determine all the config files this subcommand should operate on."""
-    files = []
-    local_config = "./.tem/config"
-    if args.file:
-        files += args.file
-    if args.local or not (
-        args.instance or args.glob or args.system or args.file
-    ):
-        files.append(local_config)
-    if args.glob:
-        files.append(os.path.expanduser("~/.config/tem/config"))
-    if args.system:
-        files.append(__prefix__ + "/share/tem/config")  # TODO
-    return files
+class Parser(configparser.ConfigParser):  # pylint: disable=too-many-ancestors
+    """Custom ConfigParser"""
+
+    def __init__(self, files=None, **kwargs):
+        super().__init__(**kwargs)
+        # Allow reading files on construction
+        if files:
+            self.read(files)
+
+    def set(self, section, option, value=None):
+        if not self.has_section(section):
+            self.add_section(section)
+        super().set(section, option, value=value)
+
+    def items(
+        self, section=configparser.DEFAULTSECT, raw=False, vars=None
+    ):  # pylint: disable=line-too-long,redefined-builtin
+        if self.has_section(section):
+            return super().items(section, raw=raw, vars=vars)
+        return []
+
+    def __getitem__(self, option):
+        split = option.split(".", 1)
+        if len(split) == 1:
+            split.insert(0, "general")
+        return self.get(*split, fallback="")
+
+    def __setitem__(self, option, value):
+        split = option.split(".", 1)
+        if len(split) == 1:
+            split.insert(0, "general")
+        section, option = tuple(split)
+        self.set(section, option, value)
 
 
-def cmd(args):
-    """Execute this subcommand."""
-    files = determine_config_files_from_args(args)
+cfg = Parser()
 
-    if args.edit or args.editor:
-        p = cli.try_open_in_editor(files, override_editor=args.editor)
-        sys.exit(p.returncode)
-    elif args.option:  # A config option was specified
-        # Form value by concatenating arguments
-        value = " ".join(args.value) if args.value else ""
-        # Write the configuration to all config files
-        for file in files:
-            # Parse the file's original contents
-            cfg = util.ConfigParser(file)
-            # Set the option's value to the one specified
-            cfg[args.option] = value
-            if not os.path.exists(os.path.dirname(file)):
-                os.makedirs(os.path.dirname(file))
-            # Write the changes
-            with open(file, "w") as file_object:
-                cfg.write(file_object)
-    else:  # No config options were specified
-        # We add an imaginary file that contains all the configuration that has
-        # been loaded into this instance of the program
-        if args.instance:
-            files.insert(0, None)
-        for file in files:
-            if file and not os.path.isfile(file):
-                print(
-                    "warning: file " + file + " does not exist",
-                    file=sys.stderr,
-                )
-            else:
-                if file:
-                    cfg = util.ConfigParser(file)
-                    fname = util.shortpath(file)
-                else:
-                    cfg = cli.cfg
-                    fname = "ACTIVE INSTANCE"
-                print("\033[1;4m" + fname + ":" + "\033[0m", file=sys.stderr)
-                from io import StringIO
+XDG_CONFIG_HOME = os.environ.get("XDG_CONFIG_HOME")
+TEM_CONFIG = os.environ.get("TEM_CONFIG")
 
-                stream = StringIO()
-                cfg.write(stream)
-                print(
-                    "    ", *stream.getvalue().split("\n")[:-1], sep="\n    "
-                )
+
+SYSTEM_PATHS = [__prefix__ + "/share/tem/config"]
+
+"""
+All possible user configuration files sorted in the order they should be read.
+"""
+USER_PATHS = [
+    os.path.expanduser("~/.config/tem/config"),
+    os.path.expanduser("~/.temconfig"),
+    XDG_CONFIG_HOME + "/tem/config" if XDG_CONFIG_HOME else "",
+    TEM_CONFIG if TEM_CONFIG else "",
+]
+
+
+def user_default_path():
+    """
+    Of all the possible paths for the user configuration, return the one with
+    the highest priority.
+
+    .. seealso:: :data:`USER_PATHS`
+    """
+    lst = [USER_PATHS[i] for i in [3, 2, 0, 1]]
+    return next(path for path in lst if path)
+
+
+def repo_path_from_config(config):
+    """Get `REPO_PATH` from the loaded configuration."""
+    if not config:
+        return []
+    return [
+        os.path.expanduser(repo)
+        for repo in cfg["general.repo_path"].split("\n")
+        if repo
+    ]
+
+
+def load(paths):
+    """
+    Load configuration from `paths`, in the specified order.
+    :returns: list of files that could not be read
+    """
+    if not paths:
+        return {}
+
+    global cfg
+    successful = cfg.read(paths)
+    repo.repo_path += repo_path_from_config(cfg)
+    repo.repo_path = list(dict.fromkeys(repo.repo_path))  # Remove duplicates
+
+    return set(paths) - set(successful)

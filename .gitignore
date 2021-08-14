@@ -10,3 +10,4 @@ tem.egg-info
 Pipfile.lock
 tests/.cache/
 tests/.local/
+.mypy_cache/

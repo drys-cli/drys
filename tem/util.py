@@ -1,45 +1,11 @@
 """Utility functions and classes"""
-import configparser
 import contextlib
 import os
 import re
 import shutil
 import sys
 
-
-class ConfigParser(configparser.ConfigParser):
-    """Custom ConfigParser."""
-
-    def __init__(self, files=None, **kwargs):
-        super().__init__(**kwargs)
-        # Allow reading files on construction
-        if files:
-            self.read(files)
-
-    def set(self, section, option, value=None):
-        if not self.has_section(section):
-            self.add_section(section)
-        super().set(section, option, value=value)
-
-    def items(
-        self, section=configparser.DEFAULTSECT, raw=False, vars=None
-    ):  # pylint: disable=line-too-long,redefined-builtin
-        if self.has_section(section):
-            return super().items(section, raw=raw, vars=vars)
-        return []
-
-    def __getitem__(self, option):
-        split = option.split(".", 1)
-        if len(split) == 1:
-            split.insert(0, "general")
-        return self.get(*split, fallback="")
-
-    def __setitem__(self, option, value):
-        split = option.split(".", 1)
-        if len(split) == 1:
-            split.insert(0, "general")
-        section, option = tuple(split)
-        self.set(section, option, value)
+from . import config, repo
 
 
 def print_err(*args, **kwargs):
@@ -66,6 +32,26 @@ def shortpath(path):
     """Get path with `$HOME` shortened to `~`."""
     # TODO make more robust
     return path.replace(os.path.expanduser("~"), "~")
+
+
+# TODO try to remember where I wanted to use this?
+def explicit_path(path):
+    """
+    If the path is relative, prepend './'. If the path is a directory, append a
+    '/'. In all other cases `path` is returned unmodified
+    """
+    if (
+        path
+        and path != "."
+        and path[0] != "/"
+        and path[0] != "~"
+        and (path[0] != "." or path[1] != "/")
+    ):
+        path = "./" + path
+    if os.path.isdir(path):
+        # Append a '/' if it's not there already
+        return re.sub(r"([^/])$", r"\1/", path)
+    return path
 
 
 def copy(src, dest="."):
@@ -109,7 +95,7 @@ def fetch_name(repo_path):
     Fetch the name of the repo at ``repo_path`` from its configuration. If the
     repo has not configured a name, the name of its directory is used.
     """
-    cfg = ConfigParser(repo_path + "/.tem/repo")
+    cfg = config.Parser(repo_path + "/.tem/repo")
     name = cfg["general.name"]
     if name:
         return name
@@ -133,18 +119,16 @@ def resolve_repo(repo_id, lookup_repos=None):
 
     # Otherwise try to find a repo whose name is `repo_id`
     if not lookup_repos:
-        from . import cli
+        lookup_repos = repo.repo_path
 
-        lookup_repos = cli.repo_path
-
-    for repo in lookup_repos:
-        if os.path.exists(repo) and fetch_name(repo) == repo_id:
-            return abspath(repo)
+    for repository in lookup_repos:
+        if os.path.exists(repository) and fetch_name(repository) == repo_id:
+            return abspath(repository)
 
     # If all else fails, try to find a repo whose basename is equal to `path`
-    for repo in lookup_repos:
-        if basename(repo) == repo_id:
-            return repo
+    for repository in lookup_repos:
+        if basename(repository) == repo_id:
+            return repository
 
     # The `path` must be relative/absolute then
     return os.path.expanduser(repo_id)

@@ -1,29 +1,45 @@
 #!/usr/bin/env python3
-"""Main tem script"""
+"""
+Main tem script
+
+This module contains the main entry point -- :func:`main`
+In that function, the following is done:
+  - the highest command-level parser is set up
+  - options relating to the `tem` command are parsed
+
+Additionally, this module should contain functions that implement the
+functionality of the highest-level command, subcommands should implement their
+own functionality.
+
+Unfortunately, due to some limitations of :mod:`argparse`, the parsing is a bit
+convoluted. If you want to understand what is going on, look at the comments
+carefully. This module is not supposed to change very often, so it shouldn't be
+necessary to understand the fine details.
+"""
 
 import argparse
 import os
 import sys
 
 import tem
-from tem import cli, util
-from tem.cli import print_cli_err
+from tem import config, util
+from tem.cli import common as cli
 
 
 def init_user():
     """Initialize a user config file in a location with the highest priority"""
     try:
         existing_cfg = next(
-            path for path in cli.user_config_paths if os.path.exists(path)
+            path for path in config.USER_PATHS if os.path.exists(path)
         )
     except StopIteration:
         existing_cfg = None
     if existing_cfg:
-        print_cli_err("configuration already exists at " + existing_cfg)
+        cli.print_cli_err("configuration already exists at " + existing_cfg)
         sys.exit(1)
     else:
         util.copy(
-            tem.__prefix__ + "/share/tem/config", cli.get_user_config_path()
+            tem.__prefix__ + "/share/tem/config", config.get_user_config_path()
         )
         os.makedirs(
             os.path.expanduser("~/.local/share/tem/repo"), exist_ok=True
@@ -41,16 +57,10 @@ def main():
             Loads a subcommand module only after we know which subcommand was
             invoked. This gives a small performance improvement.
             """
-            # Comments contain example calls when module_name = add
-            # pylint: disable=exec-used
-            # global add
-            exec("global %s" % module_name)
-            # from tem import add
-            exec("from tem import %s" % module_name)
-            _parsers = parsers
-            # add.setup_parser(parsers['add'])
-            exec("{0}.setup_parser(_parsers['{0}'])".format(module_name))
-            return module_name
+            from importlib import import_module
+
+            module = import_module("tem.cli.%s" % module_name)
+            module.setup_parser(parsers[module_name])
 
         return func
 
@@ -59,6 +69,7 @@ def main():
         sys.exit(0)
 
     def minimum_parser_setup(subcommand, *args, **kwargs):
+        # This is the local variable ``parsers`` in the main function
         parsers[subcommand] = subparsers.add_parser(
             subcommand, *args, add_help=False, **kwargs
         )
@@ -66,7 +77,6 @@ def main():
             func=cmd_lazy_load(subcommand, parsers)
         )
 
-    # Create a proper parser and a dummy parser
     # The dummy parser will be used to find out which subcommand was run
     parser, dummy_parser = [
         argparse.ArgumentParser(
@@ -124,7 +134,7 @@ def main():
     args = dummy_parser.parse_known_args()[0]
 
     if args.debug:
-        from pudb import set_trace
+        from pudb import set_trace  # pylint: disable=all
 
         set_trace()
 

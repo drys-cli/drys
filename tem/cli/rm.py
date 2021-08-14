@@ -1,7 +1,8 @@
 """tem rm subcommand"""
 import os
 
-from . import cli, util
+from .. import util
+from . import common as cli
 
 
 def setup_parser(parser):

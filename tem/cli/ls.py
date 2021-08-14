@@ -1,8 +1,9 @@
 """tem ls subcommand"""
 import os
+import subprocess as sp
 
-from . import cli, util
-from .cli import print_cli_err
+from .. import util, ext
+from . import common as cli
 
 
 def setup_parser(parser):
@@ -91,7 +92,6 @@ def fill_in_gaps(incomplete_paths):
     Take all paths from `incomplete_paths` and complete them to match actual
     files. Returns a list that contains the completed paths.
     """
-    import subprocess as sp
 
     paths = []
     for arg in incomplete_paths:
@@ -106,9 +106,6 @@ def fill_in_gaps(incomplete_paths):
 
 def cmd(args):
     """Execute this subcommand."""
-    import subprocess as sp
-
-    from . import ext
 
     # The repos that will be considered
     repos = cli.resolve_and_validate_repos(args.repo)
@@ -143,7 +140,7 @@ def cmd(args):
             if p.stdout:
                 print(p.stdout)
             if p.stderr:
-                print_cli_err(p.stderr)
+                cli.print_cli_err(p.stderr)
             return
         if not args.short:
             message = util.fetch_name(repo) + " @ " + repo
@@ -152,7 +149,7 @@ def cmd(args):
         if p.stdout:
             print(p.stdout[:-1])
         if p.stderr:
-            print_cli_err(p.stderr)
+            cli.print_cli_err(p.stderr)
 
         if args.number and i >= args.number - 1:  # --number option
             break

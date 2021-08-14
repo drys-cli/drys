@@ -1,9 +1,12 @@
 """tem dot subcommand"""
 import os
+import shutil
+import subprocess
 import sys
 
-from . import cli, util
-from .util import print_err
+from . import common as cli
+from .. import ext, repo, util
+from ..util import print_err
 
 
 def setup_common_parser(parser):
@@ -219,7 +222,6 @@ def cmd_common(args, subdir=None):
             print_err("\nTry running with --force.")
             sys.exit(1)
     elif args.add or args.symlink:  # --add or --symlink
-        import shutil
 
         any_nonexisting = False
         any_conflicts = False
@@ -280,7 +282,6 @@ def cmd_common(args, subdir=None):
                 if args.edit or args.editor:
                     cli.try_open_in_editor(files, args.editor)
                 try:
-                    import subprocess
 
                     subprocess.run(dotdir + "/" + file, check=False)
                     if args.verbose:
@@ -297,9 +298,6 @@ def cmd_common(args, subdir=None):
         cli.try_open_in_editor(dest_files, args.editor)
 
     if args.list:  # --list
-        import subprocess
-
-        from . import ext
 
         ls_args = ["ls", "-1"]
         os.chdir(dotdir)
@@ -327,12 +325,11 @@ def _create_executable_file(path):
 
 # TODO will probably be removed in favor of a more universal approach
 def _paths_from_templates(args):
-    from .repo import find_template
 
     repos = cli.resolve_and_validate_repos(args.repo)
     template_path = []
     for tmpl in args.template:
-        template_path += find_template(tmpl, repos)
+        template_path += repo.find_template(tmpl, repos)
     if not template_path:
         cli.print_cli_warn(
             "template '{}' cannot be found".format(args.template)

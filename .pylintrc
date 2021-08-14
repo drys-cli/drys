@@ -8,10 +8,8 @@ max-line-length=79
 notes=FIXME
 
 [MESSAGES CONTROL]
-# NOTE: First entry is a workaround for a bug in pylint that shows it
-# as a false positive
-disable=relative-beyond-top-level,
+
         # Just so it doesn't treat globals as constants
-        invalid-name,
-        # This just annoying
+disable=invalid-name,
+        # This is just annoying
         global-statement

@@ -2,7 +2,8 @@
 import os
 import sys
 
-from . import cli, util
+from . import common as cli
+from .. import util
 
 
 def setup_parser(parser):

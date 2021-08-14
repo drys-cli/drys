@@ -7,6 +7,8 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
     mkdir -p _out/;
 fi
 
+[ -n "$TEM_EXECUTABLE" ] && tem() { "$TEM_EXECUTABLE" "$@"; }
+
 @test "tem config section.option value -f _out/empty.cfg [MULTIPLE CONFIG OPTIONS]" {
     rm -f _out/empty.cfg
     tem config option1 value1 -f _out/empty.cfg

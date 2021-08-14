@@ -4,7 +4,7 @@ import shutil
 import subprocess as sp
 import sys
 
-from .cli import cfg
+from .config import cfg
 
 
 def parse_args(args):
@@ -44,11 +44,11 @@ def run(command, *args, override=None, **kwargs):
         parsed_args = ["unbuffer"] + parsed_args
     try:
         return sp.run(parsed_args + command[1:], *args, check=False, **kwargs)
-    except Exception as exception:
+    except Exception as e:
         # TODO create front end in cli
-        from . import cli
+        from .cli import common as cli
 
-        cli.print_error_from_exception(exception)
+        cli.print_error_from_exception(e)
         sys.exit(1)
 
 

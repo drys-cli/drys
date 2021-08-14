@@ -2,58 +2,14 @@
 import argparse
 import os
 import re
+import shutil
+import subprocess
 import sys
+import glob
 
-from . import __prefix__, util
-from .util import print_err
-
-repo_path = []
-
-cfg = util.ConfigParser()
-
-XDG_CONFIG_HOME = os.environ.get("XDG_CONFIG_HOME")
-TEM_CONFIG = os.environ.get("TEM_CONFIG")
-
-
-system_config_paths = [__prefix__ + "/share/tem/config"]
-
-"""
-All possible user configuration files sorted in the order they should be read.
-"""
-user_config_paths = [
-    os.path.expanduser("~/.config/tem/config"),
-    os.path.expanduser("~/.temconfig"),
-    XDG_CONFIG_HOME + "/tem/config" if XDG_CONFIG_HOME else "",
-    TEM_CONFIG if TEM_CONFIG else "",
-]
-
-
-def get_user_config_path():
-    """
-    Of all the possible paths for the user configuration, return the one with
-    the highest priority.
-
-    .. seealso:: user_config_paths
-    """
-    lst = [user_config_paths[i] for i in [3, 2, 0, 1]]
-    return next(path for path in lst if path)
-
-
-def load_config(paths):
-    """
-    Load configuration from `paths`, in the specified order. If some of the
-    files can't be read, print an error and exit.
-    :returns: list of files that could not be read
-    """
-    if not paths:
-        return {}
-
-    global cfg, repo_path
-    successful = cfg.read(paths)
-    repo_path += repo_path_from_config(cfg)
-    repo_path = list(dict.fromkeys(repo_path))  # Remove duplicates
-
-    return set(paths) - set(successful)
+from .. import config, ext, repo, util
+from ..util import print_err
+from . import common as cli
 
 
 def load_system_config():
@@ -61,7 +17,7 @@ def load_system_config():
     Load configuration from ``system_config_paths``. If any of the files
     cannot be read, print an error and exit.
     """
-    failed = load_config(system_config_paths)
+    failed = config.load(config.SYSTEM_PATHS)
     if failed:
         print_cli_err(
             "the following system configuration files could not be read:",
@@ -73,11 +29,11 @@ def load_system_config():
 
 def load_user_config():
     """
-    Load configuration from ``user_config_paths``. If some of the files can't
-    be read, print a warning.
+    Load configuration from :data:`config.USER_PATHS`. If some of the files
+    can't be read, print a warning.
     """
-    failed = load_config(user_config_paths)
-    if len(failed) == len(user_config_paths):
+    failed = config.load(config.USER_PATHS)
+    if len(failed) == len(config.USER_PATHS):
         print_cli_warn("no user configuration files could not be read:")
         print_cli_warn("The following files were tried:", *failed, sep="\n\t")
 
@@ -86,7 +42,7 @@ def load_config_from_args(args):
     """
     Load configuration files specified as command arguments in ``args``.
     If any of the files can't be read, print an error and exit."""
-    failed = load_config(args.config)
+    failed = config.load(args.config)
     if failed:
         print_cli_err(
             "the following configuration files could not be read:",
@@ -149,38 +105,6 @@ def existing_file(path):
     return path
 
 
-# TODO try to remember where I wanted to use this?
-def explicit_path(path):
-    """
-    If the path is relative, prepend './'. If the path is a directory, append a
-    '/'. In all other cases `path` is returned unmodified
-    """
-    if (
-        path
-        and path != "."
-        and path[0] != "/"
-        and path[0] != "~"
-        and (path[0] != "." or path[1] != "/")
-    ):
-        path = "./" + path
-    if os.path.isdir(path):
-        # Append a '/' if it's not there already
-        return re.sub(r"([^/])$", r"\1/", path)
-    return path
-
-
-# TODO change this concept later
-def repo_path_from_config(config):
-    """Get `REPO_PATH` from the loaded configuration."""
-    if not config:
-        return []
-    return [
-        os.path.expanduser(repo)
-        for repo in cfg["general.repo_path"].split("\n")
-        if repo
-    ]
-
-
 def resolve_and_validate_repos(repo_args):
     """
     Form a list of repo IDs that shall be used in the currently running
@@ -189,24 +113,23 @@ def resolve_and_validate_repos(repo_args):
     including those from any applicable configuration files. A repo id can be a
     repo name, a path or a special character (see manpages).
     """
-    global repo_path
     repo_ids = []
 
     # Parse arguments into a suitable list of entries
     if repo_args:  # repos specified with -R/--repo option
         include_def_repos = False
         read_from_stdin = False
-        for repo in repo_args:
-            if repo == "/":  # '/' is a special indicator
+        for r in repo_args:
+            if r == "/":  # '/' is a special indicator
                 include_def_repos = True
-            elif "\n" in repo:  # multiline text, each line is a repo id
-                repo_ids += [line for line in repo.split("\n") if line != ""]
-            elif repo == "-":  # Repos will be taken from stdin as well
+            elif "\n" in r:  # multiline text, each line is a repo id
+                repo_ids += [line for line in r.split("\n") if line != ""]
+            elif r == "-":  # Repos will be taken from stdin as well
                 read_from_stdin = True
             else:  # Regular repo id, just add it
-                repo_ids.append(repo)
+                repo_ids.append(r)
         if include_def_repos:  # Include default repos
-            repo_ids += repo_path
+            repo_ids += repo.repo_path
         if read_from_stdin:
             try:
                 while True:  # Read repos until empty line or EOF
@@ -217,17 +140,17 @@ def resolve_and_validate_repos(repo_args):
             except EOFError:
                 pass
     else:  # No repos were specified by -R/--repo
-        repo_ids = repo_path
+        repo_ids = repo.repo_path
 
     # Resolve the entries to valid file-like objects
     resolved_repos = []  # this will be returned
     any_repo_valid = False  # indicates if any repo_ids are valid
-    for repo in repo_ids:
-        if os.path.exists(r := util.resolve_repo(repo)):
+    for r in repo_ids:
+        if os.path.exists(r := util.resolve_repo(r)):
             any_repo_valid = True
             resolved_repos.append(r)
         else:
-            print_cli_warn("repository '{}' not valid".format(repo))
+            print_cli_warn("repository '{}' not valid".format(r))
     if not any_repo_valid:
         print_cli_err("no valid repositories")
         sys.exit(1)
@@ -241,10 +164,9 @@ def get_editor(override=None, default="vim"):
     `--editor` are used. Uses the fallback mechanism that is documented in
     tem(1).
     """
-    global cfg
     editors = [
         override,
-        cfg["general.editor"],
+        config.cfg["general.editor"],
         os.environ.get("EDITOR") if os.environ.get("EDITOR") else None,
         os.environ.get("VISUAL") if os.environ.get("VISUAL") else None,
         default,
@@ -259,11 +181,6 @@ def try_open_in_editor(files, override_editor=None):
     can be any string that the shell can parse into a list of arguments (e.g.
     'vim -o' is valid). If the editor cannot be found, print an error and exit.
     """
-    import shutil
-    import subprocess
-
-    from . import ext
-
     call_args = ext.parse_args(get_editor(override_editor)) + files
 
     if not shutil.which(call_args[0]):
@@ -276,14 +193,12 @@ def try_open_in_editor(files, override_editor=None):
         p = subprocess.run(call_args, check=False)
         return p
     except Exception as e:
-        print_error_from_exception(e)
+        cli.print_error_from_exception(e)
         sys.exit(1)
 
 
 def run_hooks(trigger, src_dir, dest_dir=".", environment=None):
     """For reference look at tem-hooks(1) manpage."""
-    import glob
-    import subprocess
 
     src_dir = util.abspath(src_dir)
 
@@ -314,12 +229,10 @@ def expand_alias(index, args):
     :param args: list of command arguments
     """
     alias = args[index]
-    aliased = cfg["alias.%s" % alias]
+    aliased = config.cfg["alias.%s" % alias]
 
     if not aliased:  # No alias found in config
         return args
-
-    from . import ext
 
     expanded_alias = ext.shell_arglist(aliased)  # Expand alias into arg list
     if index == -1:

@@ -2,8 +2,8 @@
 import subprocess as sp
 import sys
 
-from . import cli
-from .cli import cfg, print_cli_err
+from . import common as cli
+from .. import config
 
 
 def setup_parser(parser):
@@ -70,7 +70,7 @@ def get_tem_branch():
     if p.returncode != 0:
         sys.exit(p.returncode)
     elif not branches:  # No available branches
-        print_cli_err("current branch is the only branch")
+        cli.print_cli_err("current branch is the only branch")
         sys.exit(1)
     elif len(branches) == 1:  # Single available branch
         return branches[0]
@@ -86,10 +86,10 @@ def get_tem_branch():
     try:
         choice = int(choice)
     except ValueError:
-        print_cli_err("invalid choice")
+        cli.print_cli_err("invalid choice")
         sys.exit(1)
     if choice < 1 or choice > len(branches):
-        print_cli_err("invalid choice")
+        cli.print_cli_err("invalid choice")
         sys.exit(1)
 
     return branches[choice - 1]
@@ -113,7 +113,9 @@ def cmd(args):
     # Obtain current branch
     cur_branch = get_current_branch()
     # First we try to take `tem_branch` from arguments or from config
-    tem_branch = args.branch if args.branch else cfg["git.default_branch"]
+    tem_branch = (
+        args.branch if args.branch else config.cfg["git.default_branch"]
+    )
     # Then we check that it is a valid branch (must not be the active branch)
     p = _run_that_must_succeed(
         ["git", "branch"], encoding="utf-8", stdout=sp.PIPE
