@@ -5,7 +5,7 @@ import re
 import shutil
 import sys
 
-from . import config, repo
+from . import repo
 
 
 def print_err(*args, **kwargs):
@@ -89,24 +89,8 @@ def make_file_executable(path):
     os.chmod(path, os.stat(path).st_mode | 0o100)
 
 
-# TODO move to repo.py
-def fetch_name(repo_path):
-    """
-    Fetch the name of the repo at ``repo_path`` from its configuration. If the
-    repo has not configured a name, the name of its directory is used.
-    """
-    cfg = config.Parser(repo_path + "/.tem/repo")
-    name = cfg["general.name"]
-    if name:
-        return name
-    return basename(repo_path)
-
-
 def resolve_repo(repo_id, lookup_repos=None):
-    """
-    Resolve a repo ID (path, partial path or name) to the absolute path of a
-    repo.
-    """
+    """"""
     if not repo_id:
         return ""
     # Path is absolute or explicitly relative (starts with . or ..)
@@ -122,7 +106,7 @@ def resolve_repo(repo_id, lookup_repos=None):
         lookup_repos = repo.repo_path
 
     for repository in lookup_repos:
-        if os.path.exists(repository) and fetch_name(repository) == repo_id:
+        if os.path.exists(repository) and repo.get_name(repository) == repo_id:
             return abspath(repository)
 
     # If all else fails, try to find a repo whose basename is equal to `path`

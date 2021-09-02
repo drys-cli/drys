@@ -45,12 +45,9 @@ cfg = Parser()
 XDG_CONFIG_HOME = os.environ.get("XDG_CONFIG_HOME")
 TEM_CONFIG = os.environ.get("TEM_CONFIG")
 
-
 SYSTEM_PATHS = [__prefix__ + "/share/tem/config"]
 
-"""
-All possible user configuration files sorted in the order they should be read.
-"""
+# All possible user config files sorted in the order they should be read.
 USER_PATHS = [
     os.path.expanduser("~/.config/tem/config"),
     os.path.expanduser("~/.temconfig"),

@@ -16,11 +16,11 @@ def setup_parser(parser):
     parser.set_defaults(func=cmd)
 
 
+@cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
-    repos = cli.resolve_and_validate_repos(args.repo)
 
-    for repo in repos:
+    for repo in args.repo:
         for file in args.files:
             file = repo + "/" + file
             if os.path.exists(file):

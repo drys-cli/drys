@@ -45,6 +45,7 @@ def setup_parser(parser):
     parser.set_defaults(func=cmd)
 
 
+@cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
     import shutil as sh

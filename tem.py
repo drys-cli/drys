@@ -14,12 +14,15 @@ import os
 import sys
 from tem import __main__ as main
 
+
+executable_dir = os.path.abspath(os.path.dirname(__file__))
+if d := os.environ.get("TEM_EXECUTABLE"):
+    executable_dir = d
+executable_dir = os.path.dirname(executable_dir)
+
 # Prepend PWD to the PATH so that local modules are used over the global ones
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+sys.path.insert(0, executable_dir)
 
-
-sys.argv.insert(
-    1, os.path.dirname(os.environ["TEM_EXECUTABLE"]) + "/conf/config"
-)
+sys.argv.insert(1, executable_dir + "/conf/config")
 sys.argv.insert(1, "--config")
 main.main()

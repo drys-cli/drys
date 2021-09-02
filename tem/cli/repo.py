@@ -55,7 +55,7 @@ def print_repo(repository, args):
         print(*args, **kwargs, sep=" ", end="")
 
     if args.name:
-        pr(util.fetch_name(repository))
+        pr(repo.get_name(repository))
         if args.path:
             pr(" @ ")
     if args.path:
@@ -64,7 +64,7 @@ def print_repo(repository, args):
     if not args.name and not args.path:
         pr(
             "{} @ {}".format(
-                util.fetch_name(repository), util.abspath(repository)
+                repo.get_name(repository), util.abspath(repository)
             )
         )
     print()  # New line at the end
@@ -75,7 +75,6 @@ def print_repo(repository, args):
 # TODO make use RepoSpec
 def list_repos(args):
     """Print list of repositories from ``args``."""
-    repos = cli.resolve_and_validate_repos(args.repo)
 
     # True marks a repository from args.repositories as found
     matches = [False] * len(args.repositories)
@@ -84,11 +83,11 @@ def list_repos(args):
 
     # With --add or --remove, or with no args.repositories print all repos
     if args.add or args.remove or not args.repositories:
-        for repository in repos:
+        for repository in args.repo:
             print_repo(repository, args)
     else:
-        for repository in repos:
-            name = util.fetch_name(repository)
+        for repository in args.repo:
+            name = repo.get_name(repository)
             # Does the repo match any of the ids in args.repositories?
             for i, repo_id in enumerate(args.repositories):
                 if repo_id == name or repo_id == util.basename(repository):
@@ -107,9 +106,9 @@ def list_repos(args):
         sys.exit(1)
 
 
+@cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
-
     if args.add or args.remove:
         user_cfg_path = config.user_default_path()
         if user_cfg_path:

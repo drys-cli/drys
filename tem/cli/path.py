@@ -1,5 +1,5 @@
 """tem path subcommand"""
-from . import dot
+from . import dot, common as cli
 
 
 def setup_parser(parser):
@@ -8,6 +8,7 @@ def setup_parser(parser):
     parser.set_defaults(func=cmd)
 
 
+@cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
     dot.cmd_common(args, subdir="path")

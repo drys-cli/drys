@@ -1,15 +1,15 @@
 """Common functions for most CLI subcommands."""
 import argparse
+import glob
 import os
 import re
 import shutil
 import subprocess
 import sys
-import glob
 
-from .. import config, ext, repo, util
+from .. import config, ext, util
+from ..repo import RepoSpec
 from ..util import print_err
-from . import common as cli
 
 
 def load_system_config():
@@ -52,15 +52,29 @@ def load_config_from_args(args):
         sys.exit(1)
 
 
+def subcommand(cmd):
+    """Decorator that handles general CLI options"""
+
+    def wrapper(args):
+        # Transform RepoSpecs into absolute paths
+        args.repo = args.repo.abspaths()
+        for path in args.repo:
+            if not os.path.isdir(path):
+                print_cli_err("repository '%s' does not exist" % path)
+                sys.exit(1)
+        return cmd(args)
+
+    return wrapper
+
+
 def add_general_options(parser, dummy=False):
     """
     Add options that are common among various commands. By default, when a
     subcommand is called, all options that are defined for the main command are
-    valid but they must be specified before the subcommand name. By using this
-    function with each subcommand, the option can be specified after the
-    subcommand name.
+    valid but they must be specified before the subcommand. By using this
+    function on each subcommand parser, the option can be specified after the
+    subcommand name as well.
     """
-    # TODO remove this after a tryout period
     group = parser.add_argument_group("general options")
     group.add_argument(
         "-h",
@@ -71,9 +85,26 @@ def add_general_options(parser, dummy=False):
     group.add_argument(
         "-R",
         "--repo",
+        default=RepoSpec(),
         action="append",
-        default=[],
+        type=RepoSpec,
         help="use the repository REPO",
+    )
+    group.add_argument(
+        "-R%",
+        dest="repo",
+        default=RepoSpec(),
+        action="append_const",
+        const=RepoSpec(RepoSpec.FROM_LOOKUP_PATH),
+        help=argparse.SUPPRESS,
+    )
+    group.add_argument(
+        "-R!",
+        dest="repo",
+        default=RepoSpec(),
+        action="append",
+        type=RepoSpec.of_type(RepoSpec.EXCLUDE),
+        help=argparse.SUPPRESS,
     )
     group.add_argument(
         "-c",
@@ -103,59 +134,6 @@ def existing_file(path):
     if not os.path.exists(path):
         raise argparse.ArgumentTypeError(path + " does not exist")
     return path
-
-
-def resolve_and_validate_repos(repo_args):
-    """
-    Form a list of repo IDs that shall be used in the currently running
-    subcommand. Repos from `repo_args` are arguments to the `--repo` options
-    passed to the subcommand. Every applicable repository is considered,
-    including those from any applicable configuration files. A repo id can be a
-    repo name, a path or a special character (see manpages).
-    """
-    repo_ids = []
-
-    # Parse arguments into a suitable list of entries
-    if repo_args:  # repos specified with -R/--repo option
-        include_def_repos = False
-        read_from_stdin = False
-        for r in repo_args:
-            if r == "/":  # '/' is a special indicator
-                include_def_repos = True
-            elif "\n" in r:  # multiline text, each line is a repo id
-                repo_ids += [line for line in r.split("\n") if line != ""]
-            elif r == "-":  # Repos will be taken from stdin as well
-                read_from_stdin = True
-            else:  # Regular repo id, just add it
-                repo_ids.append(r)
-        if include_def_repos:  # Include default repos
-            repo_ids += repo.repo_path
-        if read_from_stdin:
-            try:
-                while True:  # Read repos until empty line or EOF
-                    line = input()
-                    if line == "":
-                        break
-                    repo_ids.append(line)
-            except EOFError:
-                pass
-    else:  # No repos were specified by -R/--repo
-        repo_ids = repo.repo_path
-
-    # Resolve the entries to valid file-like objects
-    resolved_repos = []  # this will be returned
-    any_repo_valid = False  # indicates if any repo_ids are valid
-    for r in repo_ids:
-        if os.path.exists(r := util.resolve_repo(r)):
-            any_repo_valid = True
-            resolved_repos.append(r)
-        else:
-            print_cli_warn("repository '{}' not valid".format(r))
-    if not any_repo_valid:
-        print_cli_err("no valid repositories")
-        sys.exit(1)
-
-    return resolved_repos
 
 
 def get_editor(override=None, default="vim"):
@@ -193,7 +171,7 @@ def try_open_in_editor(files, override_editor=None):
         p = subprocess.run(call_args, check=False)
         return p
     except Exception as e:
-        cli.print_error_from_exception(e)
+        print_error_from_exception(e)
         sys.exit(1)
 
 
@@ -247,13 +225,13 @@ def expand_alias(index, args):
 _active_subcommand = ""
 
 
-def set_active_subcommand(subcommand):
+def set_active_subcommand(subcmd):
     """
     Set the name of the active subcommand. This is used when reporting errors
     and warnings.
     """
     global _active_subcommand
-    _active_subcommand = subcommand
+    _active_subcommand = subcmd
 
 
 def print_cli_err(*args, sep=" ", **kwargs):

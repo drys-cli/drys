@@ -1,6 +1,7 @@
 """tem git subcommand"""
 import subprocess as sp
 import sys
+import re
 
 from . import common as cli
 from .. import config
@@ -55,7 +56,6 @@ def get_tem_branch():
     Get the tem branch from the current git repository.
     Git is called to obtain a list of branches.
     """
-    import re
 
     # Obtain branches from git and filter them
     p = _run_that_must_succeed(
@@ -106,6 +106,7 @@ def ls_branch(branch):
     return ls.split("\n")
 
 
+@cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
     if not args.list:

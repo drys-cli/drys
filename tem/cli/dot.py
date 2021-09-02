@@ -312,6 +312,7 @@ def cmd_common(args, subdir=None):
     # --add: handle multiple files with same name
 
 
+@cli.subcommand
 def cmd(*args, **kwargs):
     """Execute this subcommand."""
     return cmd_common(*args, **kwargs)
@@ -326,10 +327,9 @@ def _create_executable_file(path):
 # TODO will probably be removed in favor of a more universal approach
 def _paths_from_templates(args):
 
-    repos = cli.resolve_and_validate_repos(args.repo)
     template_path = []
     for tmpl in args.template:
-        template_path += repo.find_template(tmpl, repos)
+        template_path += repo.find_template(tmpl, args.repo)
     if not template_path:
         cli.print_cli_warn(
             "template '{}' cannot be found".format(args.template)

@@ -2,7 +2,7 @@
 import os
 import subprocess as sp
 
-from .. import util, ext
+from .. import ext, repo as repo_module
 from . import common as cli
 
 
@@ -104,18 +104,17 @@ def fill_in_gaps(incomplete_paths):
     return [p for p in paths if os.path.exists(p)]
 
 
+@cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
 
-    # The repos that will be considered
-    repos = cli.resolve_and_validate_repos(args.repo)
     ls_args = args.templates + args.ls_arguments
 
     edit_files = []  # Files that will be edited if --edit[or] was provided
     original_cwd = os.getcwd()
     # TODO Make it so that ls is always displayed per-file, so that other file
     # info can be appended or prepended on each line
-    for i, repo in enumerate(repos):
+    for i, repo in enumerate(args.repo):
         os.chdir(repo)
         file_args, opt_args = separare_files_and_options(ls_args)
         # Any missing file extensions are filled in here
@@ -143,7 +142,7 @@ def cmd(args):
                 cli.print_cli_err(p.stderr)
             return
         if not args.short:
-            message = util.fetch_name(repo) + " @ " + repo
+            message = repo_module.get_name(repo) + " @ " + repo
             print(message)
             print("=" * len(message))
         if p.stdout:

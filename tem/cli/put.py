@@ -43,6 +43,7 @@ def _err_exists_but_not_dir(path):
     sys.exit(1)
 
 
+@cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
     repos = cli.resolve_and_validate_repos(args.repo)

@@ -39,6 +39,7 @@ def setup_parser(parser):
     parser.set_defaults(func=cmd)
 
 
+@cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
     # TODO this part is unusable

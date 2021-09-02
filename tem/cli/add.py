@@ -56,9 +56,9 @@ def setup_parser(parser):
     parser.set_defaults(func=cmd)
 
 
+@cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
-    repos = cli.resolve_and_validate_repos(args.repo)
 
     edit_files = []  # Files that will be edited if --edit[or] was provided
     try:
@@ -72,7 +72,7 @@ def cmd(args):
             ]
             # Get first that is not None
             dest = next(path for path in dests if path is not None)
-            for repo in repos:
+            for repo in args.repo:
                 # Create the destination path if it doesn't exist
                 if not os.path.exists(repo):
                     os.makedirs(repo, mode=0o777)

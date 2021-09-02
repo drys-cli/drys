@@ -1,6 +1,7 @@
 """tem config subcommand"""
 import os
 import sys
+from io import StringIO
 
 from .. import config, util
 from . import common as cli
@@ -76,6 +77,7 @@ def determine_config_files_from_args(args):
     return files
 
 
+@cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
     files = determine_config_files_from_args(args)
@@ -116,7 +118,6 @@ def cmd(args):
                     cfg = config.cfg
                     fname = "ACTIVE INSTANCE"
                 print("\033[1;4m" + fname + ":" + "\033[0m", file=sys.stderr)
-                from io import StringIO
 
                 stream = StringIO()
                 cfg.write(stream)
