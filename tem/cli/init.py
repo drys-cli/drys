@@ -1,8 +1,11 @@
 """tem init subcommand"""
 import glob
 import os
+import shutil as sh
+import subprocess
 import sys
 
+from .. import __prefix__
 from . import common as cli
 
 
@@ -48,10 +51,6 @@ def setup_parser(parser):
 @cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
-    import shutil as sh
-    import subprocess
-
-    from . import __prefix__
 
     # Make sure that .tem/ is valid before doing anything else
     if os.path.exists(".tem"):
@@ -61,9 +60,9 @@ def cmd(args):
             else:
                 os.remove(".tem")  # Remove existing
         else:  # Refuse to init if .tem exists
-            cli.print_err(".tem already exists", end="")
+            cli.print_cli_err(".tem/ already exists", end="")
             if not os.path.isdir(".tem"):
-                cli.print_err(" and is not a directory", end="")
+                cli.print_cli_err(" and is not a directory", end="")
             cli.print_err()  # New line
             sys.exit(1)
 

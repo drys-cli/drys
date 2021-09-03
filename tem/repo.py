@@ -137,7 +137,10 @@ class RepoSpec:
                     result[:] = [
                         spec
                         for spec in result
-                        if spec not in item._abspaths(False)  # pylint: disable=protected-access disable=line-too-long
+                        if spec
+                        not in item._abspaths(  # pylint: disable=protected-access disable=line-too-long
+                            False
+                        )
                     ]
                 else:
                     result += item.abspaths()

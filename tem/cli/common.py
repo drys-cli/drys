@@ -239,7 +239,9 @@ def print_cli_err(*args, sep=" ", **kwargs):
     Print an error with conventional formatting. The first line starts with
     '<subcommand>: error:'.
     """
-    print_err("tem " + _active_subcommand + ": error: ", end="", **kwargs)
+    kwargs1 = kwargs.copy()
+    kwargs1["end"] = ""
+    print_err("tem " + _active_subcommand + ": error: ", **kwargs1)
     print_err(*args, sep=sep, **kwargs)
 
 

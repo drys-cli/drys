@@ -2,7 +2,8 @@
 import os
 import subprocess as sp
 
-from .. import ext, repo as repo_module
+from .. import ext
+from .. import repo as repo_module
 from . import common as cli
 
 

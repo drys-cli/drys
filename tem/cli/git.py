@@ -1,10 +1,10 @@
 """tem git subcommand"""
+import re
 import subprocess as sp
 import sys
-import re
 
-from . import common as cli
 from .. import config
+from . import common as cli
 
 
 def setup_parser(parser):

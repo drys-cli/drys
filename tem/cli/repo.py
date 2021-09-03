@@ -2,7 +2,7 @@
 import os
 import sys
 
-from .. import config, util, repo
+from .. import config, repo, util
 from . import common as cli
 
 

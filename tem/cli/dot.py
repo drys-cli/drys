@@ -4,9 +4,9 @@ import shutil
 import subprocess
 import sys
 
-from . import common as cli
 from .. import ext, repo, util
 from ..util import print_err
+from . import common as cli
 
 
 def setup_common_parser(parser):

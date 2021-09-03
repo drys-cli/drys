@@ -34,15 +34,15 @@ def init_user():
         )
     except StopIteration:
         existing_cfg = None
+    os.makedirs(
+        os.path.expanduser("~/.local/share/tem/repo"), exist_ok=True
+    )
     if existing_cfg:
         cli.print_cli_err("configuration already exists at " + existing_cfg)
         sys.exit(1)
     else:
         util.copy(
-            tem.__prefix__ + "/share/tem/config", config.get_user_config_path()
-        )
-        os.makedirs(
-            os.path.expanduser("~/.local/share/tem/repo"), exist_ok=True
+            tem.__prefix__ + "/share/tem/config", config.user_default_path()
         )
         sys.exit(0)
 

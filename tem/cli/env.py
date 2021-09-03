@@ -1,5 +1,6 @@
 """tem env subcommand"""
-from . import dot, common as cli
+from . import common as cli
+from . import dot
 
 
 def setup_parser(parser):
