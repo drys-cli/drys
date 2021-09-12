@@ -9,12 +9,10 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
     ./prepare_files.sh files ~/repo
 fi
 
-tem_ls() {
-    tem ls "$@"
-}
-
 @test "tem ls -R ~/repo" {
-    run tem_ls -R ~/repo
+
+    run tem ls -R ~/repo
+
     header="repo @ $(realpath ~)/repo"
     expected="$(
         echo "$header"
@@ -25,13 +23,17 @@ tem_ls() {
 }
 
 @test "tem ls -R ~/repo -s" {
-    run tem_ls -R ~/repo -s
+
+    run tem ls -R ~/repo -s
+
     expect ls ~/repo
     compare_output_expected
 }
 
 @test "tem ls -R ~/repo -s file1" {
-    run tem_ls -R ~/repo -s file1
+
+    run tem ls -R ~/repo -s file1
+
     expected='file1.txt'
     compare_output_expected
 }

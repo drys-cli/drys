@@ -15,16 +15,20 @@ fi
 
 @test "tem put {FILE}" {
     cd "$DESTDIR"
+
     tem_put file1.txt
+
     [ "$(cat "$DESTDIR"/file1.txt)" = "$(cat "$REPO"/file1.txt)" ]
 }
 
 @test "tem put {FILE} [with -o xor -d]" {
     cd "$DESTDIR"
 
+    # --output
     tem_put file1.txt -o _file1.txt
     [ "$(cat "$DESTDIR"/_file1.txt)" = "$(cat "$REPO"/file1.txt)" ]
 
+    # --directory
     tem_put file1.txt -d dir
     [ "$(cat "$DESTDIR"/dir/file1.txt)" = "$(cat "$REPO"/file1.txt)" ]
 }
@@ -33,6 +37,7 @@ fi
     cd "$DESTDIR"
 
     tem_put dir1
+
     compare_trees "$REPO"/dir1 "$DESTDIR"/dir1/**
 }
 

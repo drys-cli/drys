@@ -1,7 +1,7 @@
 BATS = bats --formatter pretty --timing
 
 # ../tem.py uses this variable
-export TEM_EXECUTABLE   = $(shell realpath ../tem.py)
+export PROJECT_ROOT   	= $(shell realpath ../)
 export HOME             = $(shell pwd)/_out
 export DEFAULT_REPO     = ${HOME}/.local/share/tem/repo
 export PATH             = $(shell echo "$$PWD/path:$$PATH")

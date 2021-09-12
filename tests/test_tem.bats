@@ -6,10 +6,6 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
     begin_test 'tem'
 fi
 
-tem_() {
-    "$TEM_EXECUTABLE" "$@"
-}
-
 @test "tem {each_command...} --help" {
     ./print_help.sh
 }
@@ -17,16 +13,18 @@ tem_() {
 @test "tem --init-user" {
     # Test if the command creates ~/.config/tem/config and
     # ~/.local/share/tem/repo
-    tem_ --init-user
-    expected="$(tree -a --noreport home/.config/ | tail -n +2)"
-    cd ~
-    output="$(tree -a --noreport ~/.config/ | tail -n +2)"
-    compare_output_expected
+    rm -rf ~/.config
+
+    tem --init-user
+
+    [ -f ~/.config/tem/config ]
     [ -d ~/.local/share/tem/repo ]
 }
 
 @test "tem --init-user [AGAIN] [ERR]" {
-    run tem_ --init-user
+
+    run tem --init-user
+
     [ "$status" != 0 ]
 }
 

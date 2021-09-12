@@ -2,9 +2,6 @@
 
 . common.bats.in
 
-tem_git() {
-    tem git "$@"
-}
 pushd() {
     command pushd "$@" 1>/dev/null 2>/dev/null
 }
@@ -37,30 +34,31 @@ fi
 @test "tem git --branch tem-vim" {
     cd _out/git
     git checkout master                 2>/dev/null
-    run tem_git --checkout --branch tem-vim
+
+    run tem git --checkout --branch tem-vim
 
     # tem-vim contains everything master does plus extra
     output="$(find * -type f -not -path '*/\.*')"
     expect git ls-tree -r --name-only tem-vim
-
     compare_output_expected
 }
 
 @test "tem git --checkout --branch tem-nvim" {
     cd _out/git
     git checkout master                 2>/dev/null
-    run tem_git --checkout --branch tem-nvim
+
+    run tem git --checkout --branch tem-nvim
 
     output="$(find * -type f -not -path '*/\.*')"
     expect git ls-tree -r --name-only tem-nvim
-
     compare_output_expected
 }
 
 @test "tem git --list" {
     cd _out/git
     git checkout master                 2>/dev/null
-    run tem_git --list -b tem-vim
+
+    run tem git --list -b tem-vim
 
     expect echo -e 'subdir/vimrc\nvimrc'
     compare_output_expected

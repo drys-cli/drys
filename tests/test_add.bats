@@ -7,7 +7,9 @@ prepare() {
     REPO="$1"
     mkdir -p "$REPO"
     rm -rf "$REPO"/*
-    tem_add="tem add -R $REPO"
+    tem_add () {
+        tem add -R $REPO "$@"
+    }
 }
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then
@@ -20,41 +22,48 @@ fi
 @test "tem add {FILE}" {
     prepare _out/add_singlefile1/
 
-    $tem_add _out/files/file1.txt
+    tem_add _out/files/file1.txt
+
     [ "$(cat $REPO/file1.txt)" = "$(cat _out/files/file1.txt)" ]
 }
 
 @test "tem add {FILE} [with -o xor -d]" {
     prepare _out/add_singlefile2/
 
-    $tem_add _out/files/file1.txt -o _file1.txt
+    # --output
+    tem_add _out/files/file1.txt -o _file1.txt
     [ "$(cat $REPO/_file1.txt)" = "$(cat _out/files/file1.txt)" ]
 
-    $tem_add _out/files/file1.txt -d dir
+    # --directory
+    tem_add _out/files/file1.txt -d dir
     [ "$(cat $REPO/dir/file1.txt)" = "$(cat _out/files/file1.txt)" ]
 }
 
 @test "tem add {DIR}" {
     prepare _out/add_singledir/
 
-    $tem_add _out/files
+    tem_add _out/files
+
     compare_trees "$REPO/files" _out/files/**
 }
 
 @test "tem add {DIR} [with -o xor -d]" {
     prepare _out/add_singledir1/
 
-    $tem_add _out/files -o dir
+    # --output
+    tem_add _out/files -o dir
     compare_trees "$REPO/dir" _out/files/**
 
-    $tem_add _out/files -d _dir
+    # --directory
+    tem_add _out/files -d _dir
     compare_trees "$REPO/_dir/files" _out/files/**
 }
 
 @test "tem add {FILE1,FILE2}" {
     prepare _out/add_multifile/
 
-    $tem_add _out/files/file1.txt _out/files/file2.txt
+    tem_add _out/files/file1.txt _out/files/file2.txt
+
     compare_trees "$REPO" _out/files/file{1,2}.txt
 }
 
