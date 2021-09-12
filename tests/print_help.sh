@@ -14,6 +14,12 @@ print_help() {
 }
 
 print_help
+
+for cmd_raw in "$(dirname "$TEM_EXECUTABLE")"/tem/cli/*.py; do
+    cmd="$(basename ${cmd_raw%%.py})"
+    print_help "$cmd"
+done
+
 print_help add
 print_help rm
 print_help put

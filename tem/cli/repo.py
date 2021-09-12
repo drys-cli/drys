@@ -112,32 +112,28 @@ def cmd(args):
     if args.add or args.remove:
         user_cfg_path = config.user_default_path()
         if user_cfg_path:
-            cfg = config.Parser(user_cfg_path)
-            # Read contents of REPO_PATH from the user config file
-            paths = [r for r in cfg["general.repo_path"].split("\n") if r]
             # TODO notify if repo already exists (add) or doesn't (remove)
             if args.add:
                 arg_repos = [util.abspath(r) for r in args.repositories]
-                paths += arg_repos
+                repo.repo_path += arg_repos
             elif args.remove:
                 arg_repos = [
                     util.abspath(util.resolve_repo(r))
                     for r in args.repositories
                 ]
                 # Remove matching paths from REPO_PATH
-                paths = [
+                repo.repo_path[:] = (
                     cfg_path
-                    for cfg_path in paths
+                    for cfg_path in repo.repo_path
                     if util.abspath(cfg_path) not in arg_repos
-                ]
+                )
             # Remove any duplicates
-            paths = list(dict.fromkeys(paths))
-            cfg["general.repo_path"] = "\n".join(paths)
+            paths = list(dict.fromkeys(repo.repo_path))
+            config.cfg["general.repo_path"] = "\n".join(paths)
             # Save modified data to the same file
             with open(user_cfg_path, "w") as file_object:
                 try:
-                    cfg.write(file_object)
-                    repo.repo_path = paths
+                    config.cfg.write(file_object)
                     if args.list:
                         list_repos(args)
                 except Exception as e:
@@ -146,7 +142,7 @@ def cmd(args):
                     cli.print_error_from_exception(e)
                     sys.exit(1)
         else:
-            print("tem: error: no user configuration file was found")
+            cli.print_cli_err("no user configuration file was found")
             sys.exit(1)
 
     else:

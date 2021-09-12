@@ -46,7 +46,6 @@ def _err_exists_but_not_dir(path):
 @cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
-    repos = cli.resolve_and_validate_repos(args.repo)
 
     if args.output:
         # --output option doesn't make sense for multiple files
@@ -68,7 +67,7 @@ def cmd(args):
     edit_files = []  # Files that will be edited if --edit[or] was provided
     for template in args.templates:
         exists = False  # Indicates that file exists in at least one repo
-        for repo in repos:
+        for repo in args.repo:
             src = repo + "/" + template
             if os.path.exists(src):
                 exists = True
