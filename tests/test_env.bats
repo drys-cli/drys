@@ -1,5 +1,3 @@
-#!/usr/bin/env bats
-
 . common.bats.in
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then

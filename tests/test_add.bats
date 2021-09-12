@@ -1,5 +1,3 @@
-#!/usr/bin/env bats
-
 . common.bats.in
 
 # Prepare an empty repository at the path in "$1"
