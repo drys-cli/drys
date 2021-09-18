@@ -15,7 +15,7 @@ import sys
 from tem import __main__ as main
 
 
-executable_dir = os.path.abspath(os.path.dirname(__file__))
+executable_dir = os.path.abspath(__file__)
 if d := os.environ.get("TEM_EXECUTABLE"):
     executable_dir = d
 executable_dir = os.path.dirname(executable_dir)

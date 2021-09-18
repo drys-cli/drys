@@ -6,6 +6,8 @@ export HOME             = $(shell pwd)/_out
 export DEFAULT_REPO     = ${HOME}/.local/share/tem/repo
 export PATH             = $(shell echo "$$PWD/path:$$PATH")
 
+.PHONY: all put ls add repo config env git test-pip clean
+
 all:
 	@# Some redundancy for increased safety when dealing with HOME
 	@if [ "$$HOME" != "$(shell pwd)/_out" ]; then\
