@@ -22,6 +22,9 @@ def setup_parser(parser):
     )
     cli.add_edit_options(parser)
     parser.add_argument(
+        "-s", "--symlink", action="store_true", help="create symlinks instead"
+    )
+    parser.add_argument(
         "templates",
         metavar="TEMPLATES",
         nargs="+",
@@ -91,10 +94,11 @@ def cmd(args):
             # If template is a directory, run pre hooks
             if os.path.isdir(src):
                 environment = {"TEM_DESTDIR": util.abspath(dest)}
-                cli.run_hooks("put.pre", src, dest, environment)
+                # TODO debug, creates dest as a directory
+                # cli.run_hooks("put.pre", src, dest, environment)
 
             try:
-                util.copy(src, dest)
+                util.copy(src, dest, symlink=args.symlink)
             except Exception as e:
                 cli.print_error_from_exception(e)
                 sys.exit(1)

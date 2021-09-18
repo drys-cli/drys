@@ -34,9 +34,7 @@ def init_user():
         )
     except StopIteration:
         existing_cfg = None
-    os.makedirs(
-        os.path.expanduser("~/.local/share/tem/repo"), exist_ok=True
-    )
+    os.makedirs(os.path.expanduser("~/.local/share/tem/repo"), exist_ok=True)
     if existing_cfg:
         cli.print_cli_err("configuration already exists at " + existing_cfg)
         sys.exit(1)

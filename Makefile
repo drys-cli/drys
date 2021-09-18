@@ -29,6 +29,13 @@ install:
 	cp -r 		   docs/demo/.tem-home  ${DESTDIR}/${PREFIX}/share/tuterm/scripts/.tem-home
 	chmod 755 ${DESTDIR}/${PREFIX}/share/tuterm/scripts/.tem-home
 
+uninstall:
+	rm -rf ${SHARE_DIR} ${DOC_DIR} \
+		   ${DESTDIR}/${PREFIX}/bin/tem \
+		   ${DESTDIR}/${PREFIX}/lib/python3.*/site-packages/tem \
+		   ${DESTDIR}/${PREFIX}/share/tuterm/scripts/tem \
+		   ${DESTDIR}/${PREFIX}/share/tuterm/scripts/.tem-home
+
 test:
 	cd tests; ${MAKE} test
 

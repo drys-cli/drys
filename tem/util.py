@@ -54,18 +54,27 @@ def explicit_path(path):
     return path
 
 
-def copy(src, dest="."):
+def copy(src, dest=".", symlink=False):
     """
     Copy ``src`` to ``dest``. If ``dest`` is a directory, ``src`` will be
-    placed under it.
+    placed under it. Create a symlink if ``symlink`` is True.
     """
+    # TODO add `force` argument
     _dirname = dirname(dest)
     if _dirname and not os.path.exists(_dirname):
         os.makedirs(_dirname, exist_ok=True)
-    if os.path.isdir(src):
+
+    if symlink:
+        try:
+            os.symlink(src, dest)
+            return dest
+        except OSError:
+            return ""
+    elif os.path.isdir(src):
         return shutil.copytree(
             src, dest, dirs_exist_ok=True, copy_function=shutil.copy
         )
+
     return shutil.copy(src, dest)
 
 

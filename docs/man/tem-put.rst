@@ -11,8 +11,9 @@ SYNOPSIS
 
    <center><pre><code class="no-decor">
 
-|  tem put [**--help**] [**--output** *<OUT>* | **--directory** *<DIR>*] [**--edit**]
-|          [**--editor** *<EDITOR>*] [**--repo** *<REPO>*] [**--config** *<FILE>*]
+|  tem put [**--help**] [**--output** *<OUT>* | **--directory** *<DIR>*]
+|          [**--symlink**] [**--edit**] [**--editor** *<EDITOR>*]
+|          [**--repo** *<REPO>*] [**--config** *<FILE>*]
 |          [*<TEMPLATES>*]
 
 .. raw:: html
@@ -45,6 +46,10 @@ OPTIONS
 
    The file will be added under the directory `<DIR>`. Missing directories will
    be created.
+
+.. option:: -s, --symlink
+
+   Create symbolic links instead.
 
 .. option:: -e, --edit
 
