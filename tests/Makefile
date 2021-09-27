@@ -42,7 +42,7 @@ git:
 
 test-pip:
 	pipenv install
-	pipenv run "${MAKE}" test
+	pipenv run "${MAKE}" all
 
 clean:
 	rm -rf _out/
