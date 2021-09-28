@@ -2,7 +2,7 @@
 import os
 import subprocess as sp
 
-from .. import ext
+from .. import ext, util
 from .. import repo as repo_module
 from . import common as cli
 
@@ -66,14 +66,13 @@ def setup_parser(parser):
     parser.set_defaults(func=cmd)
 
 
-# TODO decouple the shorthand-completion part into another function
-def separare_files_and_options(args):
+def separate_files_and_options(args):
     """
     Take a list of arguments and separate out files and options. An option is
     any string starting with a '-'. File arguments are relative to the current
-    working directory and they can be incomplete. Any file argument will be
-    completed to a valid path if a file whose name start with that argument
-    exists. Returns a tuple (file_list, option_list).
+    working directory and they can be incomplete.
+    Returns:
+        a tuple (file_list, option_list)
     """
     file_args = []
     opt_args = []
@@ -105,6 +104,12 @@ def fill_in_gaps(incomplete_paths):
     return [p for p in paths if os.path.exists(p)]
 
 
+def print_repo_header(name: str, path: str):
+    if os.isatty(1):
+        print("\033[1;32m" + name + " @ " + "\033[0;4;32m" + path + "\033[0m")
+    else:
+        print("# " + name + " @ " + path)
+
 @cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
@@ -117,15 +122,15 @@ def cmd(args):
     # info can be appended or prepended on each line
     for i, repo in enumerate(args.repo):
         os.chdir(repo)
-        file_args, opt_args = separare_files_and_options(ls_args)
+        file_args, opt_args = separate_files_and_options(ls_args)
         # Any missing file extensions are filled in here
         # TODO Check for excluded files
-        full_file_args = fill_in_gaps(file_args)
-        if not any(os.scandir()) or (file_args and not full_file_args):
+        files = fill_in_gaps(file_args)
+        if not any(os.scandir()) or (file_args and not files):
             continue  # Nothing to show in this repo
         if args.path:
-            full_file_args = [os.path.abspath(f) for f in full_file_args]
-        cmd_args = ["ls"] + opt_args + full_file_args
+            files = [os.path.abspath(f) for f in files]
+        cmd_args = ["ls"] + opt_args + files
         p = ext.run(
             cmd_args,
             override=args.command,
@@ -134,7 +139,7 @@ def cmd(args):
             stderr=sp.PIPE,
         )
         if args.edit or args.editor:
-            edit_files += [os.path.abspath(f) for f in full_file_args]
+            edit_files += [os.path.abspath(f) for f in files]
         # Print what the command spit out
         if p.returncode != 0:
             if p.stdout:
@@ -143,9 +148,7 @@ def cmd(args):
                 cli.print_cli_err(p.stderr)
             return
         if not args.short:
-            message = repo_module.get_name(repo) + " @ " + repo
-            print(message)
-            print("=" * len(message))
+            print_repo_header(repo_module.get_name(repo), repo)
         if p.stdout:
             print(p.stdout[:-1])
         if p.stderr:

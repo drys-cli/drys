@@ -9,12 +9,10 @@ fi
 
 @test "tem ls -R ~/repo" {
 
-    run tem ls -R ~/repo
+    output="$(tem ls -R ~/repo)"
 
-    header="repo @ $(realpath ~)/repo"
     expected="$(
-        echo "$header"
-        echo "$(echo "$header" | sed 's/./=/g')"
+        echo "# repo @ $(realpath ~)/repo"
         ls ~/repo
     )"
     compare_output_expected
