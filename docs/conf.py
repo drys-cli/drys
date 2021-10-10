@@ -49,6 +49,11 @@ except NameError:
     rst_prolog = ""  # No: create it as an empty string
 rst_prolog = generate_description_substitutions(rst_prolog)
 
+# ┏━━━━━━━━━━━━━━━━┓
+# ┃ Python autodoc ┃
+# ┗━━━━━━━━━━━━━━━━┛
+add_module_names = False
+
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ Specific steps for ReadTheDocs ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛

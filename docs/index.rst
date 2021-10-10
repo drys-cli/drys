@@ -14,4 +14,4 @@ Welcome to tem's documentation!
    :caption: DEVELOPER DOCS
 
    dev/overview.rst
-   dev/modules.rst
+   dev/modules/index.rst
