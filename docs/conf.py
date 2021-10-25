@@ -17,7 +17,13 @@ release = tem.__version__
 # ┏━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ General configuration ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━┛
-extensions = ["sphinx.ext.todo", "sphinx.ext.autodoc"]
+extensions = [
+    "sphinx.ext.todo",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.autosummary",
+    "sphinx_rtd_dark_mode",
+]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "man"]
 todo_include_todos = True
 
@@ -29,6 +35,7 @@ sys.path.insert(0, os.path.abspath(".."))
 # ┃ HTML ┃
 # ┗━━━━━━┛
 html_theme = "sphinx_rtd_theme"
+default_dark_mode = False
 html_static_path = ["_static"]
 html_css_files = [
     "custom.css",
@@ -49,10 +56,12 @@ except NameError:
     rst_prolog = ""  # No: create it as an empty string
 rst_prolog = generate_description_substitutions(rst_prolog)
 
-# ┏━━━━━━━━━━━━━━━━┓
-# ┃ Python autodoc ┃
-# ┗━━━━━━━━━━━━━━━━┛
+# ┏━━━━━━━━━━━━┓
+# ┃ Python doc ┃
+# ┗━━━━━━━━━━━━┛
 add_module_names = False
+autosummary_generate = True
+napoleon_custom_sections = ["Constants", "Attributes", "Returns", "Methods"]
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ Specific steps for ReadTheDocs ┃

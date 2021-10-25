@@ -1,10 +1,14 @@
 ``tem.cli``
 ===========
 
-.. toctree::
-   :maxdepth: 1
+This package contains modules corresponding to each subcommand. There are some
+additional modules that provide common functionality for multiple subcommands.
 
-   common.rst
+.. currentmodule:: tem.cli
+
+.. toctree::
+   :caption: Subcommand modules
+
    add.rst
    rm.rst
    put.rst
@@ -12,13 +16,14 @@
    repo.rst
    config.rst
    init.rst
-   dot.rst
    env.rst
    path.rst
    git.rst
    hook.rst
 
-.. automodule:: tem.cli
-   :members:
-   :undoc-members:
 
+.. toctree::
+   :caption: Helper modules
+
+   common.rst
+   dot.rst

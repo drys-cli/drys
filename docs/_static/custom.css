@@ -19,3 +19,12 @@ code.no-decor {
     background: none !important;
     margin: -30px !important;
 }
+
+/*
+ * Render function/class/etc signatures in a monospace font
+*/
+.sig-object, dt {
+    font-family: monospace;
+    font-size-adjust: 0.4;
+}
+dt { padding-left: 8px; }

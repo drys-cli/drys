@@ -1,7 +1,18 @@
 ``tem.repo``
-==============
+============
+
+.. currentmodule:: tem.repo
+
+.. toctree::
+   :hidden:
+
+.. autosummary::
+   :toctree: blah
+   :nosignatures:
+
+   RepoSpec
 
 .. automodule:: tem.repo
    :members:
-   :undoc-members:
+   :no-undoc-members:
 
