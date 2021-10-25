@@ -77,6 +77,21 @@ def determine_config_files_from_args(args):
     return files
 
 
+# TODO use this function as standard, especially in this module
+def write_config(config_file):
+    """Write instance configuration to ``config_file``
+
+    On error, print a standard error message to stderr.
+    """
+
+    with open(config_file, "w") as file_object:
+        try:
+            config.cfg.write(file_object)
+        except Exception as e:
+            cli.print_error_from_exception(e)
+            sys.exit(1)
+
+
 @cli.subcommand
 def cmd(args):
     """Execute this subcommand."""

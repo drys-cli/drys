@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import sys
 
-from .. import config, ext, util
+from .. import config, ext, util, repo
 from ..repo import RepoSpec
 from ..util import print_err
 
@@ -53,14 +53,16 @@ def load_config_from_args(args):
 
 
 def subcommand(cmd):
-    """Decorator that handles general CLI options"""
+    """Decorator for tem subcommand functions"""
 
     def wrapper(args):
         # Transform RepoSpecs into absolute paths
-        args.repo = args.repo.abspaths()
-        for path in args.repo:
-            if not os.path.isdir(path):
-                print_cli_err("repository '%s' does not exist" % path)
+        global repo
+        repo.lookup_path = args.repo.repos()
+        args.repo = args.repo.repos()
+        for repo in args.repo:
+            if not os.path.isdir(repo.abspath()):
+                print_cli_err("repository '%s' does not exist" % repo)
                 sys.exit(1)
         return cmd(args)
 

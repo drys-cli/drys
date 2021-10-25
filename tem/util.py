@@ -5,8 +5,6 @@ import re
 import shutil
 import sys
 
-from . import repo
-
 
 def print_err(*args, **kwargs):
     """Like regular print, but print to stderr."""
@@ -96,35 +94,6 @@ def remove(path):
 def make_file_executable(path):
     """Equivalent to performing `chmod u+x` on ``path``."""
     os.chmod(path, os.stat(path).st_mode | 0o100)
-
-
-def resolve_repo(repo_id, lookup_repos=None):
-    """"""
-    if not repo_id:
-        return ""
-    # Path is absolute or explicitly relative (starts with . or ..)
-    if (
-        repo_id[0] == "/"
-        or repo_id in [".", ".."]
-        or re.match(r"\.\.*/", repo_id)
-    ):
-        return repo_id
-
-    # Otherwise try to find a repo whose name is `repo_id`
-    if not lookup_repos:
-        lookup_repos = repo.repo_path
-
-    for repository in lookup_repos:
-        if os.path.exists(repository) and repo.get_name(repository) == repo_id:
-            return abspath(repository)
-
-    # If all else fails, try to find a repo whose basename is equal to `path`
-    for repository in lookup_repos:
-        if basename(repository) == repo_id:
-            return repository
-
-    # The `path` must be relative/absolute then
-    return os.path.expanduser(repo_id)
 
 
 @contextlib.contextmanager

@@ -16,7 +16,7 @@ fi
     tem --init-user
 
     [ -f ~/.config/tem/config ]
-    [ -d ~/.local/share/tem/repo ]
+    [ -d "$DEFAULT_REPO" ]
 }
 
 @test "tem --init-user [AGAIN] [ERR]" {

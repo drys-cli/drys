@@ -73,6 +73,7 @@ def cmd(args):
             # Get first that is not None
             dest = next(path for path in dests if path is not None)
             for repo in args.repo:
+                repo = repo.abspath()
                 # Create the destination path if it doesn't exist
                 if not os.path.exists(repo):
                     os.makedirs(repo, mode=0o777)

@@ -6,6 +6,8 @@ from .. import ext, util
 from .. import repo as repo_module
 from . import common as cli
 
+from ..repo import Repo
+
 
 def setup_parser(parser):
     """Set up argument parser for this subcommand."""
@@ -104,11 +106,14 @@ def fill_in_gaps(incomplete_paths):
     return [p for p in paths if os.path.exists(p)]
 
 
-def print_repo_header(name: str, path: str):
+def print_repo_header(repo: Repo):
+    name = repo.name()
+    path = repo.abspath()
     if os.isatty(1):
         print("\033[1;32m" + name + " @ " + "\033[0;4;32m" + path + "\033[0m")
     else:
         print("# " + name + " @ " + path)
+
 
 @cli.subcommand
 def cmd(args):
@@ -121,7 +126,7 @@ def cmd(args):
     # TODO Make it so that ls is always displayed per-file, so that other file
     # info can be appended or prepended on each line
     for i, repo in enumerate(args.repo):
-        os.chdir(repo)
+        os.chdir(repo.abspath())
         file_args, opt_args = separate_files_and_options(ls_args)
         # Any missing file extensions are filled in here
         # TODO Check for excluded files
@@ -148,7 +153,7 @@ def cmd(args):
                 cli.print_cli_err(p.stderr)
             return
         if not args.short:
-            print_repo_header(repo_module.get_name(repo), repo)
+            print_repo_header(repo)
         if p.stdout:
             print(p.stdout[:-1])
         if p.stderr:

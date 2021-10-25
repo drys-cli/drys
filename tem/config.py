@@ -79,16 +79,21 @@ def repo_path_from_config(config):
 
 
 def load(paths):
-    """
-    Load configuration from `paths`, in the specified order.
-    :returns: list of files that could not be read
+    """Load configuration from `paths` in the specified order.
+
+    Returns
+    -------
+    failed_paths
+        List of config files that could not be read
     """
     if not paths:
         return {}
 
     global cfg
     successful = cfg.read(paths)
-    repo.repo_path += repo_path_from_config(cfg)
-    repo.repo_path = list(dict.fromkeys(repo.repo_path))  # Remove duplicates
+    repo.lookup_path += repo_path_from_config(cfg)
+    repo.lookup_path = list(
+        dict.fromkeys(repo.lookup_path)
+    )  # Remove duplicates
 
     return set(paths) - set(successful)

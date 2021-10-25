@@ -71,7 +71,7 @@ def cmd(args):
     for template in args.templates:
         exists = False  # Indicates that file exists in at least one repo
         for repo in args.repo:
-            src = repo + "/" + template
+            src = repo.abspath() + "/" + template
             if os.path.exists(src):
                 exists = True
             else:

@@ -3,36 +3,93 @@ import os
 
 from . import config, util
 
+
+class Repo:
+    """A python representation of a repository."""
+
+    def __init__(self, *args):
+        if not args:
+            self.path = ""
+        if isinstance(args[0], str):
+            self.path = args[0]
+        elif isinstance(args[0], Repo):
+            self.path = args[0].path
+
+    def abspath(self):
+        """Get the absolute path of the repo, preserving symlinks."""
+        return util.abspath(self.path)
+
+    def realpath(self):
+        """Get the real path of the repo."""
+        return os.path.realpath(self.path)
+
+    def name(self):
+        """Get the name of the repo at ``path`` from its configuration.
+
+        If the repo has not configured a name, the base name of its directory
+        is used. This works even if the repository does not exist on the
+        filesystem.
+        """
+
+        # TODO put this entry in the local config file
+        cfg = config.Parser(self.path + "/.tem/repo")
+        name = cfg["general.name"]
+        if name:
+            return name
+        return util.basename(self.path)
+
+    def has_template(self, template):
+        """Test if the repo contains `template`."""
+        return os.path.exists(util.abspath(self.path + "/" + template))
+
+
 #: List of lookup paths for tem repositories
-repo_path = [
-    line for line in os.environ.get("REPO_PATH", "").split("\n") if line
+lookup_path = [
+    Repo(line) for line in os.environ.get("REPO_PATH", "").split("\n") if line
 ]
 
 
 class RepoSpec:
     """An abstraction for various ways of specifying tem repositories
 
-    Args:
-        paths (str, list, optional): repository paths or other types of specs
-        spec_type: type of spec. Values: `INCLUDE`, `EXCLUDE`,
-            `FROM_LOOKUP_PATHS`
-
     The following types of specs are supported:
 
       - absolute or relative path to a repository
       - name of a repository
       - absolute or relative path to a repository that is to be excluded
-      (when `spec_type` is `exclude`)
-      - all repositories from `repo_path`
+        (when `spec_type` is :attr:`EXCLUDE`)
+      - all repositories from :data:`path`
 
-    You can obtain the list of usable repository paths by calling
-    :func:`abspaths`.
+    You can obtain the list of repositories from a spec by calling
+    :func:`repos`.
 
-    By default, ``pseudopaths`` will be included in the final list of
-    repositories. If ``spec_type`` is :attr:`EXCLUDE` then ``pseudopaths`` are
+    If ``spec_type`` is :attr:`EXCLUDE` then ``pseudopaths`` are
     excluded from the final list. If ``spec_type`` is :attr:`FROM_LOOKUP_PATH`
-    then all the paths from :data:`repo_path` are included in the spec. An
-    empty spec is euivalent to a `FROM_LOOKUP_PATH` spec.
+    then all the paths from :data:`repo.lookup_path` are included in the spec.
+    An empty spec is euivalent to a `FROM_LOOKUP_PATH` spec.
+
+    Attributes
+    ----------
+    paths : str, list, optional
+        Repository paths or other types of specs
+    spec_type
+        Values: `INCLUDE`, `EXCLUDE`, `FROM_LOOKUP_PATH` or a bitwise OR of
+        these
+
+    Constants
+    ---------
+    INCLUDE
+        Specified repos or specs will be included in the final list of repos.
+    EXCLUDE
+        Specified specs will be excluded from the final list of repos.
+    FROM_LOOKUP_PATH
+        Repos from :data:`path` will be:
+
+          - included if `INCLUDE` is set
+          - excluded if `EXCLUDE` is set
+
+    Methods
+    -------
     """
 
     INCLUDE = 1
@@ -114,13 +171,13 @@ class RepoSpec:
 
         if not self._data:
             if included:
-                return repo_path
+                return lookup_path
             return []
 
         if self.spec_type & RepoSpec.FROM_LOOKUP_PATH:
-            return repo_path
+            return lookup_path
 
-        result = repo_path.copy()
+        result = lookup_path.copy()
         # If at least one subspec is not EXCLUDE, initialize empty result
         for item in self._data:
             if isinstance(item, str) or (
@@ -143,7 +200,7 @@ class RepoSpec:
                         )
                     ]
                 else:
-                    result += item.abspaths()
+                    result += item.repos()
             else:
                 raise ValueError(
                     "Spec list contains invalid types. Please "
@@ -152,28 +209,15 @@ class RepoSpec:
 
         return list(dict.fromkeys(result))  # Remove duplicates
 
-    def abspaths(self):
+    def repos(self):
         """Return absolute paths of repositores specified by this spec."""
-        return self._abspaths(True)
+        # return self._abspaths(True)
+        return [Repo(path) for path in self._abspaths(True)]
 
 
 def is_valid_name(name):
     """Test if ``name`` is a valid repository name."""
     return "/" not in name
-
-
-def get_name(path):
-    """
-    Get the name of the repo at ``path`` from its configuration. If the
-    repo has not configured a name, the base name of its directory is used.
-    This works even if the repository does not exist on the filesystem.
-    """
-    # TODO put this entry in the local config file
-    cfg = config.Parser(path + "/.tem/repo")
-    name = cfg["general.name"]
-    if name:
-        return name
-    return util.basename(path)
 
 
 def named(name):
@@ -182,48 +226,69 @@ def named(name):
     otherwise return `name` unmodified.
     """
     # TODO decide how to handle ambiguity
-    for repository in repo_path:
-        if get_name(repository) == name:
-            return repository
+    for repo in lookup_path:
+        repo = Repo(repo)
+        if repo.name() == name:
+            return repo
 
-    return name  # Nothing found in REPO_PATH
+    return Repo(None)
 
 
 def resolve(path_or_name):
-    """Return the absolute path of the repo identified by ``path_or_name``.
+    """Get the repo identified by ``path_or_name``.
 
     The following strategy is used:
-    - If the argument is a valid repository name, find a repo in
-      :data:`repo_path` with the given name
-    - If the argument is a path or the previous step failed to find a repo,
-      return the absolute path version of the input path
+
+      - If the argument is a valid repository name, find a repo in
+        `repo.lookup_path` with the given name.
+      - If the argument is a path or the previous step failed to find a repo,
+        return the absolute path version of the input path.
     """
     if not path_or_name:
-        return ""
+        return Repo()
 
     if is_valid_name(path_or_name):
         return named(path_or_name)
 
-    return util.abspath(path_or_name)
+    return Repo(path_or_name)
 
 
-def find_template(template, repos, all_repos=False):
+def find_template(template: str, repos=None, at_most=-1):
+    """Return the absolute path of a template, looked up in ``repos``.
+
+    Parameters
+    ----------
+    template : str
+        Path to template relative to the containing repo.
+    repos : list[int]
+        Repositories to look up. A None value will use :data:`path`.
+    at_most : int
+        Return no more than this number of repositories.
+
+    Returns
+    -------
+    template_paths : list[str]
+        List of absolute paths to templates under the given repos.
+
+    Notes
+    -----
+      A template can be a directory tree, e.g. "a/b/c".
     """
-    Return the absolute path of a template, looked up in ``repos``. If
-    ``all_repos`` is ``True`` then a list of matching templates in each
-    repository is returned. Otherwise, only the match in the first repository
-    is returned (a list with one element). If there are no matches an empty
-    list is returned.
-    .. note:: A template can be a directory tree.
-    """
+
+    if repos is None:
+        repos = [Repo(repo) for repo in lookup_path]
+
+    if at_most == -1:
+        return []
+
     result_paths = []
 
-    for repository in repos:
-        template_abspath = util.abspath(repository + "/" + template)
-        if not os.path.exists(template_abspath):
-            continue
-        if not all_repos:
-            return [template_abspath]
-        result_paths.append(template_abspath)
+    i = 0
+    for repo in repos:
+        if i >= at_most and at_most != -1:
+            break
+        template_abspath = util.abspath(repo + "/" + template)
+        if os.path.exists(template_abspath):
+            result_paths.append(template_abspath)
 
     return result_paths
