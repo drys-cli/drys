@@ -24,7 +24,7 @@ all:
 	@${BATS} config.bats
 	@${BATS} env.bats
 	# FIXME Fails when run as a pre-commit hook
-	{ [ -z "$$SKIP_GIT" ] && @${BATS} git.bats; } || true
+	{ [ -z "$$SKIP_GIT" ] && ${BATS} git.bats; } || true
 
 put:
 	@${BATS} put.bats

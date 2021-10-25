@@ -45,8 +45,6 @@ def setup_parser(parser):
     #  p.add_argument('-m', '--merge', action='store_true',
     #  help='merge with existing')
 
-    parser.set_defaults(func=cmd)
-
 
 @cli.subcommand
 def cmd(args):

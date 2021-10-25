@@ -36,8 +36,6 @@ def setup_parser(parser):
         help="the hooks on which to operate",
     )
 
-    parser.set_defaults(func=cmd)
-
 
 @cli.subcommand
 def cmd(args):

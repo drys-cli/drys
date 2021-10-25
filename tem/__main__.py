@@ -6,6 +6,7 @@ This module contains the main entry point -- :func:`main`
 In that function, the following is done:
   - the highest command-level parser is set up
   - options relating to the `tem` command are parsed
+  - the subcommands' parsers are set up and invoked
 
 Additionally, this module should contain functions that implement the
 functionality of the highest-level command, subcommands should implement their
@@ -18,11 +19,14 @@ necessary to understand the fine details.
 """
 
 import argparse
+import glob
 import os
+import re
 import sys
+from importlib import import_module
 
 import tem
-from tem import config, util
+from tem import config, plugin, util
 from tem.cli import common as cli
 
 
@@ -45,36 +49,35 @@ def init_user():
         sys.exit(0)
 
 
+def print_help_exit(parser):
+    parser.print_help()
+    sys.exit(0)
+
+
+def cmd_lazy_load(subcommand, parsers):
+    """
+    Loads a subcommand module only after we know which subcommand was
+    invoked. This gives a small performance improvement.
+    """
+
+    def func():
+        module = import_module("tem.cli.%s" % subcommand)
+        module.setup_parser(parsers[subcommand])
+        parsers[subcommand].set_defaults(func=module.cmd)
+
+    return func
+
+
+def minimum_parser_setup(subparsers, parsers, subcommand, *args, **kwargs):
+    # This is the local variable ``parsers`` in the main function
+    parsers[subcommand] = subparsers.add_parser(
+        subcommand, *args, add_help=False, **kwargs
+    )
+    parsers[subcommand].set_defaults(func=cmd_lazy_load(subcommand, parsers))
+
+
 def main():
     """Main program entry point"""
-    # NOTE: These three functions have to be defined inside main() because they
-    # access local objects
-    def cmd_lazy_load(module_name, parsers):
-        def func():
-            """
-            Loads a subcommand module only after we know which subcommand was
-            invoked. This gives a small performance improvement.
-            """
-            from importlib import import_module
-
-            module = import_module("tem.cli.%s" % module_name)
-            module.setup_parser(parsers[module_name])
-
-        return func
-
-    def print_help_exit(parser):
-        parser.print_help()
-        sys.exit(0)
-
-    def minimum_parser_setup(subcommand, *args, **kwargs):
-        # This is the local variable ``parsers`` in the main function
-        parsers[subcommand] = subparsers.add_parser(
-            subcommand, *args, add_help=False, **kwargs
-        )
-        parsers[subcommand].set_defaults(
-            func=cmd_lazy_load(subcommand, parsers)
-        )
-
     # The dummy parser will be used to find out which subcommand was run
     parser, dummy_parser = [
         argparse.ArgumentParser(
@@ -98,7 +101,6 @@ def main():
             action="store_true",
             help="generate initial user configuration file",
         )
-        p.add_argument("--debug", action="store_true", help=argparse.SUPPRESS)
         # Tem invoked with no args should print help and exit
         p.set_defaults(func=lambda: print_help_exit(parser))
 
@@ -114,30 +116,42 @@ def main():
     # Bare minimum setup for subcommand parsers
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     parsers = dict()
-    minimum_parser_setup("add", help="add templates to a repository")
-    minimum_parser_setup("rm", help="remove templates from a repository")
-    minimum_parser_setup("put", help="put templates into a desired directory")
-    minimum_parser_setup("ls", help="list templates")
-    minimum_parser_setup("repo", help="perform actions on tem repositories")
-    minimum_parser_setup("config", help="get and set configuration options")
-    minimum_parser_setup("init", help="generate a .tem/ directory")
-    minimum_parser_setup("env", help="run or modify local environments")
-    minimum_parser_setup("path", help="run or modify the local path")
-    minimum_parser_setup("git", help="use environments versioned under git")
-    minimum_parser_setup("hook", help="run or modify command hooks")
-    minimum_parser_setup("find", help="find anything tem-related")
-    minimum_parser_setup("dot")
+    # fmt: off
+    # pylint: disable=line-too-long
+    minimum_parser_setup(subparsers, parsers, "add", help="add templates to a repository")
+    minimum_parser_setup(subparsers, parsers, "rm", help="remove templates from a repository")
+    minimum_parser_setup(subparsers, parsers, "put", help="put templates into a desired directory")
+    minimum_parser_setup(subparsers, parsers, "ls", help="list templates")
+    minimum_parser_setup(subparsers, parsers, "repo", help="perform actions on tem repositories")
+    minimum_parser_setup(subparsers, parsers, "config", help="get and set configuration options")
+    minimum_parser_setup(subparsers, parsers, "init", help="generate a .tem/ directory")
+    minimum_parser_setup(subparsers, parsers, "env", help="run or modify local environments")
+    minimum_parser_setup(subparsers, parsers, "path", help="run or modify the local path")
+    minimum_parser_setup(subparsers, parsers, "git", help="use environments versioned under git")
+    minimum_parser_setup(subparsers, parsers, "hook", help="run or modify command hooks")
+    minimum_parser_setup(subparsers, parsers, "find", help="find anything tem-related")
+    minimum_parser_setup(subparsers, parsers, "dot")
+    # pylint: enable=line-too-long
+    # fmt: on
+    for plug in plugin.load_all():
+        description = plug.__doc__.split("\n", maxsplit=1)[0]
+        p = subparsers.add_parser(
+            plug.__name__,
+            add_help=True,
+            help=plug.__doc__ + " \033[33;1m[plugin]\033[0m",
+        )
+        def cli_setup_function(plug, parser):
+            def func():
+                plug.setup_parser(parser)
+                parser.set_defaults(func=plug.cmd)
+            return func
+        p.set_defaults(func=cli_setup_function(plug, p))
 
     # Use the dummy parser to determine the subcommand
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     args = dummy_parser.parse_known_args()[0]
 
-    if args.debug:
-        from pudb import set_trace  # pylint: disable=all
-
-        set_trace()
-
-    if args.init_user:
+    if args.init_user:  # --init-user option
         init_user()
 
     # Load configuration that is applicable so far

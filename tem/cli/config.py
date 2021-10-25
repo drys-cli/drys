@@ -57,8 +57,6 @@ def setup_parser(parser):
     )
     cli.add_general_options(parser)
 
-    parser.set_defaults(func=cmd)
-
 
 def determine_config_files_from_args(args):
     """Determine all the config files this subcommand should operate on."""

@@ -48,8 +48,6 @@ def setup_parser(parser):
         help="repository paths, partial paths or names",
     )
 
-    parser.set_defaults(func=cmd)
-
 
 # TODO Make a function that just returns the string
 def print_repo(repo: Repo, args):

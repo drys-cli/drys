@@ -29,8 +29,6 @@ def setup_parser(parser):
         "-b", "--branch", help="git branch that contains tem files"
     )
 
-    parser.set_defaults(func=cmd)
-
 
 def _run_that_must_succeed(*args, **kwargs):
     """

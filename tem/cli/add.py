@@ -2,8 +2,8 @@
 import os
 import sys
 
-from .. import util
-from . import common as cli
+from tem import util
+from tem.cli import common as cli
 
 
 def setup_parser(parser):
@@ -53,7 +53,6 @@ def setup_parser(parser):
     )
 
     cli.add_general_options(parser)
-    parser.set_defaults(func=cmd)
 
 
 @cli.subcommand

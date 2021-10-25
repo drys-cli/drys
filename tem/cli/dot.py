@@ -91,8 +91,6 @@ def setup_parser(parser):
         "--subdir", metavar="SUB", help="subdirectory under .tem/ to use"
     )
 
-    parser.set_defaults(func=cmd)
-
 
 def validate_file_arguments_as_script_names(files):
     """

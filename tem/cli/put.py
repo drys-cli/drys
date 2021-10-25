@@ -30,7 +30,6 @@ def setup_parser(parser):
         nargs="+",
         help="which templates to put",
     )
-    parser.set_defaults(func=cmd)
 
 
 def _err_output_multiple_templates():

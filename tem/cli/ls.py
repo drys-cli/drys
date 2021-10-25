@@ -65,7 +65,6 @@ def setup_parser(parser):
         nargs="*",
         help="additional arguments that will be passed to ls",
     )
-    parser.set_defaults(func=cmd)
 
 
 def separate_files_and_options(args):

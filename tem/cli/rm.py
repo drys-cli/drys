@@ -13,8 +13,6 @@ def setup_parser(parser):
         "files", metavar="FILES", nargs="+", help="files/directories to remove"
     )
 
-    parser.set_defaults(func=cmd)
-
 
 @cli.subcommand
 def cmd(args):

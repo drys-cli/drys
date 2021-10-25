@@ -26,8 +26,6 @@ def setup_parser(parser):
     )
     parser.add_argument("templates", help="templates to find", nargs='*')
 
-    parser.set_defaults(func=cmd)
-
 
 @cli.subcommand
 def cmd(args):
