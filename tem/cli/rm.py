@@ -22,6 +22,6 @@ def cmd(args):
 
     for repo in args.repo:
         for file in args.files:
-            file = repo + "/" + file
+            file = repo.abspath() + "/" + file
             if os.path.exists(file):
                 util.remove(file)

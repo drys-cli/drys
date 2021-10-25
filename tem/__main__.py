@@ -125,6 +125,7 @@ def main():
     minimum_parser_setup("path", help="run or modify the local path")
     minimum_parser_setup("git", help="use environments versioned under git")
     minimum_parser_setup("hook", help="run or modify command hooks")
+    minimum_parser_setup("find", help="find anything tem-related")
     minimum_parser_setup("dot")
 
     # Use the dummy parser to determine the subcommand

@@ -276,9 +276,9 @@ def find_template(template: str, repos=None, at_most=-1):
     """
 
     if repos is None:
-        repos = [Repo(repo) for repo in lookup_path]
+        repos = lookup_path
 
-    if at_most == -1:
+    if at_most == 0:
         return []
 
     result_paths = []
@@ -287,7 +287,7 @@ def find_template(template: str, repos=None, at_most=-1):
     for repo in repos:
         if i >= at_most and at_most != -1:
             break
-        template_abspath = util.abspath(repo + "/" + template)
+        template_abspath = repo.abspath() + "/" + template
         if os.path.exists(template_abspath):
             result_paths.append(template_abspath)
 
