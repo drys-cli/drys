@@ -24,7 +24,8 @@ def setup_parser(parser):
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="print more details"
     )
-    parser.add_argument("templates", help="templates to find", nargs='*')
+    cli.add_edit_options(parser)
+    parser.add_argument("templates", help="templates to find", nargs="*")
 
 
 @cli.subcommand
@@ -37,26 +38,34 @@ def cmd(args):
     # use the TEM_ENV environment variable (this variable is not yet used by
     # any commands)
 
+    result_paths = []
+
     # No options given, print the closest tem rootdir (TODO document)
     if not args.root and not args.templates:
         if args.verbose:
             cli.print_err("Root directories:")  # TODO add coloring
-        print(env.find_temdirs_with_env(os.getcwd())[0])
+        result_paths += util.get_parents_with_subdir(os.getcwd(), ".tem/env")
 
     if args.root:  # --root option
         if args.verbose:
             cli.print_err("Root directories:")  # TODO add coloring
-        temdirs_with_env = env.find_temdirs_with_env(os.getcwd())
-        args.root[:] = list(dict.fromkeys(args.root))
+        temdirs_with_env = util.get_parents_with_subdir(
+            os.getcwd(), ".tem/env"
+        )
         # Print all directories with basenames that match those given to
         # --root
+        args.root[:] = list(dict.fromkeys(args.root))
         for directory in temdirs_with_env:
             for searched_directory in args.root:
                 if os.path.basename(directory) == searched_directory:
-                    print(directory)
+                    result_paths.append(directory)
 
-    if args.templates:
+    if args.templates:  # templates specified as positional arguments
         for template in args.templates:
             paths = repo.find_template(template)
-            for path in paths:
-                print(path)
+            result_paths += paths
+
+    if args.edit or args.editor:
+        cli.try_open_in_editor(result_paths)
+
+    print(*result_paths, sep="\n")

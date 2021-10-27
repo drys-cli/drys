@@ -107,3 +107,21 @@ def chdir(new_dir):
         yield
     finally:
         os.chdir(old_dir)
+
+
+def get_parents_with_subdir(path, subdir):
+    """
+    Return parent absolute paths that contain a subdirectory tree `subdir`.
+    """
+
+    path = os.path.realpath(path)
+    result_paths = []
+
+    while True:
+        if os.path.isdir(path + "/" + subdir):
+            result_paths.append(path)
+        path = os.path.dirname(path)
+        if path == "/":
+            break
+
+    return result_paths
