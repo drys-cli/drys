@@ -12,4 +12,6 @@ notes=FIXME
         # Just so it doesn't treat globals as constants
 disable=invalid-name,
         # This is just annoying
-        global-statement
+        global-statement,
+        # We use generic Exceptions to generate CLI error messages
+        broad-except

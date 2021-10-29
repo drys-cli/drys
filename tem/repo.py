@@ -1,7 +1,7 @@
 """Repository operations"""
 import os
 
-from . import config, util
+from tem import config, util
 
 
 class Repo:

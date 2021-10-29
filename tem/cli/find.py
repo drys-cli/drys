@@ -66,6 +66,6 @@ def cmd(args):
             result_paths += paths
 
     if args.edit or args.editor:
-        cli.try_open_in_editor(result_paths)
+        cli.try_open_in_editor(result_paths, args.editor)
 
     print(*result_paths, sep="\n")
