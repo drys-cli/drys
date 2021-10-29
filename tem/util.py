@@ -111,22 +111,4 @@ def chdir(new_dir):
 
 def unique(iterable):
     """Remove duplicates from `iterable`."""
-    return (x for x in dict.fromkeys(iterable))
-
-
-def get_parents_with_subdir(path, subdir):
-    """
-    Return parent absolute paths that contain a subdirectory tree `subdir`.
-    """
-
-    path = os.path.realpath(path)
-    result_paths = []
-
-    while True:
-        if os.path.isdir(path + "/" + subdir):
-            result_paths.append(path)
-        path = os.path.dirname(path)
-        if path == "/":
-            break
-
-    return result_paths
+    return type(iterable)(x for x in dict.fromkeys(iterable))

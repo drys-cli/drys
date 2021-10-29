@@ -1,7 +1,8 @@
 import os
 
-from .. import env, util, repo
-from . import common as cli
+from tem import env, find, repo, util
+from tem.cli import common as cli
+
 from .common import print_cli_err, print_cli_warn
 
 # TODO DOCUMENT IN MANPAGE
@@ -44,12 +45,12 @@ def cmd(args):
     if not args.root and not args.templates:
         if args.verbose:
             cli.print_err("Root directories:")  # TODO add coloring
-        result_paths += util.get_parents_with_subdir(os.getcwd(), ".tem/env")
+        result_paths += find.find_parents_with_subdir(os.getcwd(), ".tem/env")
 
     if args.root:  # --root option
         if args.verbose:
             cli.print_err("Root directories:")  # TODO add coloring
-        temdirs_with_env = util.get_parents_with_subdir(
+        temdirs_with_env = find.find_parents_with_subdir(
             os.getcwd(), ".tem/env"
         )
         # Print all directories with basenames that match those given to
@@ -62,8 +63,7 @@ def cmd(args):
 
     if args.templates:  # templates specified as positional arguments
         for template in args.templates:
-            paths = repo.find_template(template)
-            result_paths += paths
+            result_paths += repo.find_template(template)
 
     if args.edit or args.editor:
         cli.try_open_in_editor(result_paths, args.editor)

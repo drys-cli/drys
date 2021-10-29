@@ -7,7 +7,9 @@ import shutil
 import subprocess
 import sys
 
-from .. import config, ext, util, repo
+import tem
+from tem import config, ext, repo, util
+
 from ..repo import RepoSpec
 from ..util import print_err
 
@@ -61,10 +63,19 @@ def subcommand(cmd):
         repo.lookup_path = args.repo.repos()
         args.repo = args.repo.repos()
         for repo in args.repo:
-            if not os.path.isdir(repo.abspath()):
-                print_cli_err("repository '%s' does not exist" % repo)
+            abspath = repo.abspath()
+            if not os.path.isdir(abspath) and (
+                os.path.realpath(abspath) != os.path.realpath(tem.default_repo)
+            ):
+                print_cli_err(
+                    "repository '%s' does not exist" % repo.abspath()
+                )
                 sys.exit(1)
-        return cmd(args)
+        try:
+            return cmd(args)
+        except Exception as e:
+            print_error_from_exception(e)
+            sys.exit(1)
 
     return wrapper
 
