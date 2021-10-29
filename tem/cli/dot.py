@@ -367,14 +367,6 @@ def cmd(*args, **kwargs):
     return cmd_common(*args, **kwargs)
 
 
-def _create_executable_file(path):
-    """Create a file with the executable permission set."""
-    # Create empty file
-    with open(path, "x", encoding="utf-8") as f:
-        f.close()
-    util.make_file_executable(path)  # chmod u+x `path`
-
-
 # TODO will probably be removed in favor of a more universal approach
 def _paths_from_templates(args):
 

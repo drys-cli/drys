@@ -140,11 +140,14 @@ def main():
             add_help=True,
             help=plug.__doc__ + " \033[33;1m[plugin]\033[0m",
         )
+
         def cli_setup_function(plug, parser):
             def func():
                 plug.setup_parser(parser)
                 parser.set_defaults(func=plug.cmd)
+
             return func
+
         p.set_defaults(func=cli_setup_function(plug, p))
 
     # Use the dummy parser to determine the subcommand
