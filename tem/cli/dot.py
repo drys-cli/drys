@@ -1,10 +1,11 @@
 """tem dot subcommand"""
 import os
+import select
 import shutil
 import subprocess
 import sys
 
-from .. import ext, repo, util
+from tem import ext, repo, util, env
 from ..util import print_err
 from . import common as cli
 
@@ -51,7 +52,7 @@ def setup_common_parser(parser):
     # Modifier options
     modifier_opts = parser.add_argument_group("modifier options")
     modifier_opts.add_argument(
-        "-t", "--template", help="use TEMPLATE as root directory"
+        "-T", "--template", help="use TEMPLATE as root directory"
     )
     modifier_opts.add_argument(
         "--root", metavar="DIR", help="override root directory with DIR"
@@ -168,11 +169,145 @@ def validate_and_get_dotdir(subdir, rootdir=None, recursive=False):
     return rootdir, subdir
 
 
+def no_action(args):
+    """Return True if no action options were specified."""
+    return not (
+        args.new
+        or args.add
+        or args.symlink
+        or args.edit
+        or args.editor
+        or args.list
+        or args.exec
+    )
+
+
+def create_new_files(dotdir, file_names, force):
+    # TODO This should only be used in some dot derivatives
+    # (path, env, maybe others)
+    dest_files = []
+    validate_file_arguments_as_script_names(file_names)
+    any_conflicts = False
+
+    # File contents are taken from stdin, if it has data
+    contents = ""
+    # NOTE: non-portable
+    if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+        contents = sys.stdin.read()
+
+    for file in file_names:
+        dest = dotdir + "/" + file
+
+        if not os.path.exists(dest) or force:
+            with open(dest, "w", encoding="utf-8") as f:
+                f.write(contents)
+            util.make_file_executable(dest)
+        else:
+            any_conflicts = True
+            cli.print_cli_err("file '{}' already exists".format(dest))
+        dest_files.append(dest)
+
+    if any_conflicts:
+        print_err("\nTry running with --force.")
+        sys.exit(1)
+
+    return dest_files
+
+
+def add_existing_files(
+    dotdir: str, files: list[str], force: bool, create_symlinks: bool
+):
+    """Copy existing `files` into `dotdir`.
+
+    Parameters
+    ----------
+    force
+        Overwrite existing files.
+    create_symlinks
+        If True, symlinks will be created instead of hard copies.
+    Returns
+    -------
+    dest_files : list[str]
+        Relative paths to the newly created files.
+    """
+    dest_files = []
+    any_nonexisting = False
+    any_conflicts = False
+    for src in files:
+        dest = dotdir + "/" + util.basename(src)
+        if os.path.exists(src):
+            if not os.path.exists(dest) or force:
+                if create_symlinks:  # --symlink
+                    if os.path.exists(dest):
+                        os.remove(dest)
+                    os.symlink(src, dest)
+                else:  # regular copy
+                    shutil.copy(src, dest)
+            else:
+                cli.print_cli_warn("file '{}' already exists".format(dest))
+                any_conflicts = True
+        else:
+            cli.print_cli_warn("file '{}' does not exist".format(src))
+            any_nonexisting = True
+        dest_files.append(dest)
+    if any_nonexisting or any_conflicts:
+        sys.exit(1)
+
+    return dest_files
+
+
+def execute_files(files, verbose):
+    env.path_prepend_unique(".tem/path")
+    for file in files:
+        if os.path.isdir(file):
+            continue
+        try:
+            subprocess.run(file, check=False)
+            if verbose:
+                cli.print_cli_info(
+                    "script '{}' was run successfully".format(file)
+                )
+        except Exception:
+            cli.print_cli_err("script `{}` could not be run".format(file))
+            sys.exit(1)
+
+
+def list_files(dotdir: str, file_names: list[str]):
+    """
+    Parameters
+    ----------
+    dotdir
+        Path to the relevant dotdir.
+    file_names
+        List of base names of files under `dotdir` that should be listed.
+        If empty, all files under `dotdir` will be listed.
+    """
+    with util.chdir(dotdir):
+        ls_args = ["ls", "-1", *file_names]
+        p = ext.run(ls_args, encoding="utf-8")
+        sys.exit(p.returncode)
+
+
+def delete_files(dotdir: str, file_names: list[str]):
+    any_problems = False
+    for file in file_names:
+        target_file = dotdir + "/" + file
+        if os.path.isfile(target_file):
+            os.remove(target_file)
+        elif os.path.isdir(target_file):
+            cli.print_cli_warn("'{}' is a directory".format(target_file))
+        else:
+            cli.print_cli_warn("'{}' does not exist".format(target_file))
+    if any_problems:
+        sys.exit(1)
+
+
 def cmd_common(args, subdir=None):
     """
     If this is called from a `dot` derivative subcommand, subdir and root
     must be specified as function arguments.
     """
+    # TODO implement --template argument
     if subdir is None:
         subdir = args.subdir
 
@@ -180,131 +315,47 @@ def cmd_common(args, subdir=None):
     if subdir is not None:
         cli.set_active_subcommand(subdir)
 
-    files = args.files
-
-    if args.template:
-        files += _paths_from_templates(args.template)
     rootdir, subdir = validate_and_get_dotdir(
         subdir, args.root, recursive=args.recursive
     )
     dotdir = rootdir + "/.tem/" + subdir
 
     # Exec is the default action if no other actions have been specified
-    if not (
-        args.new
-        or args.add
-        or args.symlink
-        or args.edit
-        or args.editor
-        or args.list
-    ):
+    if no_action(args):
         args.exec = True
 
     dest_files = []
 
     if args.new:  # --new
-        # TODO Only valid in some dot derivatives (path, env, maybe more)
-        validate_file_arguments_as_script_names(files)
-        any_conflicts = False
-        for file in files:
-            dest = dotdir + "/" + file
-            if not os.path.exists(dest):
-                _create_executable_file(dest)
-            elif args.force:
-                util.make_file_executable(dest)
-            else:
-                any_conflicts = True
-                cli.print_cli_err("file '{}' already exists".format(dest))
-            dest_files.append(dest)
-        if any_conflicts:
-            print_err("\nTry running with --force.")
-            sys.exit(1)
+        dest_files += create_new_files(dotdir, args.files, args.force)
     elif args.add or args.symlink:  # --add or --symlink
-
-        any_nonexisting = False
-        any_conflicts = False
-        for src in files:
-            dest = dotdir + "/" + util.basename(src)
-            if os.path.exists(src):
-                if not os.path.exists(dest) or args.force:
-                    if args.add:  # --add
-                        shutil.copy(src, dest)
-                    else:  # --symlink
-                        if os.path.exists(dest):
-                            os.remove(dest)
-                        os.symlink(src, dest)
-                else:
-                    cli.print_cli_warn("file '{}' already exists".format(dest))
-                    any_conflicts = True
-            else:
-                cli.print_cli_warn("file '{}' does not exist".format(src))
-                any_nonexisting = True
-            dest_files.append(dest)
-        if any_nonexisting or any_conflicts:
-            sys.exit(1)
+        add_existing_files(dotdir, args.files, args.force, args.symlink)
     elif args.delete:  # --delete
-        any_problems = False
-        for file in files:
-            target_file = dotdir + "/" + file
-            if os.path.isfile(target_file):
-                os.remove(target_file)
-            elif os.path.isdir(target_file):
-                cli.print_cli_warn("'{}' is a directory".format(target_file))
-            else:
-                cli.print_cli_warn("'{}' does not exist".format(target_file))
-        if any_problems:
-            sys.exit(1)
+        delete_files(dotdir, args.files)
     else:
+        file_names = args.files
         # If no files are passed as arguments, use all files from the dotdir
-        if not files:
-            files = [
+        if not file_names:
+            file_names = [
                 file for file in os.listdir(dotdir) if file not in args.ignore
             ]
-        if not files:
+        dest_files += [dotdir + "/" + f for f in file_names]
+        if not file_names:
             if args.verbose:
+                # TODO make this abstract
                 cli.print_cli_err("no scripts found")
                 sys.exit(1)
-        elif args.edit or args.editor:
-            cli.try_open_in_editor(
-                [(dotdir + "/" + f) for f in files], args.editor
-            )
-            sys.exit(0)
         elif args.exec:
-            # Add .tem/path/ to the PATH env
-            os.environ["PATH"] = (
-                util.abspath(rootdir) + "/.tem/path:" + os.environ["PATH"]
-            )
-            for file in files:
-                if os.path.isdir(dotdir + "/" + file):
-                    continue
-                if args.edit or args.editor:
-                    cli.try_open_in_editor(files, args.editor)
-                try:
-
-                    subprocess.run(dotdir + "/" + file, check=False)
-                    if args.verbose:
-                        cli.print_cli_info(
-                            "script '{}' was run successfully".format(file)
-                        )
-                except Exception:
-                    cli.print_cli_err(
-                        "script `{}` could not be run".format(file)
-                    )
-                    sys.exit(1)
+            execute_files([dotdir + "/" + f for f in file_names], args.verbose)
 
     if dest_files and (args.edit or args.editor):  # --edit, --editor
         cli.try_open_in_editor(dest_files, args.editor)
 
     if args.list:  # --list
-
-        ls_args = ["ls", "-1"]
-        os.chdir(dotdir)
-        # Without --new and --add options, only display files from `files`.
-        # With --new or --add options, all files will be displayed.
-        if not args.new and not args.add:
-            ls_args += files
-        p = ext.run(ls_args, encoding="utf-8")
-        sys.exit(p.returncode)
+        # With --new or --add, all files should be displayed.
+        if args.new or args.add:
+            file_names = []
+        list_files(dotdir, file_names)
 
     # TODO:
     # --add: handle multiple files with same name
@@ -318,18 +369,20 @@ def cmd(*args, **kwargs):
 
 def _create_executable_file(path):
     """Create a file with the executable permission set."""
-    open(path, "x").close()  # Create empty file
-    util.make_file_executable(path)  # chmod u+x
+    # Create empty file
+    with open(path, "x", encoding="utf-8") as f:
+        f.close()
+    util.make_file_executable(path)  # chmod u+x `path`
 
 
 # TODO will probably be removed in favor of a more universal approach
 def _paths_from_templates(args):
 
-    template_path = []
+    template_paths = []
     for tmpl in args.template:
-        template_path += repo.find_template(tmpl, args.repo)
-    if not template_path:
+        template_paths += repo.find_template(tmpl, args.repo, at_most=1)
+    if not template_paths:
         cli.print_cli_warn(
             "template '{}' cannot be found".format(args.template)
         )
-    return template_path
+    return template_paths
