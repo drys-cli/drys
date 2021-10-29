@@ -38,7 +38,7 @@ def init_user():
         )
     except StopIteration:
         existing_cfg = None
-    os.makedirs(os.path.expanduser("~/.local/share/tem/repo"), exist_ok=True)
+    os.makedirs(tem.default_repo, exist_ok=True)
     if existing_cfg:
         cli.print_cli_err("configuration already exists at " + existing_cfg)
         sys.exit(1)
@@ -130,6 +130,7 @@ def main():
     minimum_parser_setup(subparsers, parsers, "git", help="use environments versioned under git")
     minimum_parser_setup(subparsers, parsers, "hook", help="run or modify command hooks")
     minimum_parser_setup(subparsers, parsers, "find", help="find anything tem-related")
+    minimum_parser_setup(subparsers, parsers, "var", help="manipulate tem variants")
     minimum_parser_setup(subparsers, parsers, "dot")
     # pylint: enable=line-too-long
     # fmt: on

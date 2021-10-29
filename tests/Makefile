@@ -23,6 +23,7 @@ all:
 	@${BATS} repo.bats
 	@${BATS} config.bats
 	@${BATS} env.bats
+	@${BATS} var.bats
 	# FIXME Fails when run as a pre-commit hook
 	{ [ -z "$$SKIP_GIT" ] && ${BATS} git.bats; } || true
 
@@ -38,6 +39,8 @@ config:
 	@${BATS} config.bats
 env:
 	@${BATS} env.bats
+var:
+	@${BATS} var.bats
 git:
 	@${BATS} git.bats
 
