@@ -71,11 +71,7 @@ def subcommand(cmd):
                     "repository '%s' does not exist" % repo.abspath()
                 )
                 sys.exit(1)
-        try:
-            return cmd(args)
-        except Exception as e:
-            print_error_from_exception(e)
-            sys.exit(1)
+        return cmd(args)
 
     return wrapper
 

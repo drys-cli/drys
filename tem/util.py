@@ -58,6 +58,10 @@ def copy(src, dest=".", symlink=False):
     placed under it. Create a symlink if ``symlink`` is True.
     """
     # TODO add `force` argument
+
+    if dest == sys.stdout:
+        return cat(src)
+
     _dirname = dirname(dest)
     if _dirname and not os.path.exists(_dirname):
         os.makedirs(_dirname, exist_ok=True)
@@ -90,6 +94,11 @@ def remove(path):
     else:
         os.remove(path)
 
+
+def cat(file):
+    """Same as coreutils `cat` program."""
+    with open(file, "r", encoding="utf-8") as f:
+        print(f.read(), sep="\n")
 
 def make_file_executable(path):
     """Equivalent to performing `chmod u+x` on ``path``."""

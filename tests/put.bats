@@ -2,7 +2,7 @@
 
 REPO="$PWD/_out/put_repo"
 DESTDIR="$PWD/_out/put_dest"
-tem_put() { tem put -R "$REPO" "$@"; }
+tem_put() { unbuffer tem put -R "$REPO" "$@"; }
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then
     begin_test 'put'
@@ -37,6 +37,28 @@ fi
     tem_put dir1
 
     compare_trees "$REPO"/dir1 "$DESTDIR"/dir1/**
+}
+
+@test "tem put --output -" {
+    # Print file contents to stdout
+    cd "$DESTDIR"
+
+    run tem_put file1.txt -o -
+
+    [ "$status" = 0 ]
+    expect cat "$REPO/file1.txt"
+    compare_output_expected
+}
+
+@test "tem put | PIPE" {
+    # Detect pipe and automatically print file to stdout
+    cd "$DESTDIR"
+
+    output="$(tem put -R "$REPO" file1.txt | cat)"
+
+    [ "$?" = 0 ]
+    expect cat "$REPO/file1.txt"
+    compare_output_expected
 }
 
 # @test "tem put {}

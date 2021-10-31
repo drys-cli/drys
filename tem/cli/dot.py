@@ -237,12 +237,7 @@ def add_existing_files(
         dest = dotdir + "/" + util.basename(src)
         if os.path.exists(src):
             if not os.path.exists(dest) or force:
-                if create_symlinks:  # --symlink
-                    if os.path.exists(dest):
-                        os.remove(dest)
-                    os.symlink(src, dest)
-                else:  # regular copy
-                    shutil.copy(src, dest)
+                util.copy(src, dest, symlink=create_symlinks)
             else:
                 cli.print_cli_warn("file '{}' already exists".format(dest))
                 any_conflicts = True

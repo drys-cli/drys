@@ -2,8 +2,8 @@
 import os
 import sys
 
-from .. import util
-from . import common as cli
+from tem import util, repo
+from tem.cli import common as cli
 
 
 def setup_parser(parser):
@@ -32,6 +32,73 @@ def setup_parser(parser):
     )
 
 
+def destinations_from_args(args, template):
+    """Return a list of destinations by reading `args`."""
+    # TODO currently only works with one destination
+    # Determine destination file based on arguments
+    if not args.output and not args.directory and not os.isatty(1):
+        return [sys.stdout]
+    dest_candidates = [
+        args.output,  # --output
+        args.directory + "/" + os.path.basename(template)  # --directory
+        if args.directory
+        else None,
+        os.path.basename(template),  # neither, use local path
+    ]
+    dest = next(x for x in dest_candidates if x)
+    return [dest]
+
+
+def pre_hooks(dest):
+    environment = {"TEM_DESTDIR": util.abspath(dest)}
+    # TODO debug, creates dest as a directory
+    # cli.run_hooks("put.pre", src, dest, environment)
+
+
+@cli.subcommand
+def cmd(args):
+    """Execute this subcommand."""
+
+    if args.output:
+        _verify_output_option(args)
+
+    if args.directory:
+        _verify_directory_option(args)
+
+    edit_files = []  # Files that will be edited if --edit[or] was provided
+    for template in args.templates:
+        exists = False  # Indicates that file exists in at least one repo
+        for src in repo.find_template(template, repos=args.repo):
+            exists = True
+            destinations = destinations_from_args(args, template)
+            if args.edit or args.editor:
+                edit_files.append(destinations)
+
+            for dest in destinations:
+                # If template is a directory, run pre hooks
+                if os.path.isdir(src):
+                    pre_hooks(dest)
+                if dest == "-":
+                    util.cat(src)
+                else:
+                    util.copy(src, dest, symlink=args.symlink)
+                # If template is a directory, run post hooks
+                if os.path.isdir(src):
+                    cli.run_hooks("put.post", src)
+
+        if not exists:
+            cli.print_cli_err(
+                "template '{}' could not be found in the available "
+                "repositories".format(template)
+            )
+            sys.exit(1)
+    if edit_files:
+        cli.try_open_in_editor(edit_files, override_editor=args.editor)
+
+
+# HELPER FUNCTIONS
+
+
 def _err_output_multiple_templates():
     cli.print_cli_err(
         """option -o/--output is allowed with multiple templates
@@ -45,72 +112,18 @@ def _err_exists_but_not_dir(path):
     sys.exit(1)
 
 
-@cli.subcommand
-def cmd(args):
-    """Execute this subcommand."""
-
-    if args.output:
-        # --output option doesn't make sense for multiple files
-        # (multiple directories are OK)
-        if len(args.templates) != 1:
-            for file in args.templates:
-                # TODO doesn't work. Where is the repo path in here?
-                if os.path.isfile(file):
-                    _err_output_multiple_templates()
-                    return
-
-    if args.directory:
-        # The path exists and is not a directory
-        if os.path.exists(args.directory) and not os.path.isdir(
-            args.directory
-        ):
-            _err_exists_but_not_dir(args.directory)
-
-    edit_files = []  # Files that will be edited if --edit[or] was provided
-    for template in args.templates:
-        exists = False  # Indicates that file exists in at least one repo
-        for repo in args.repo:
-            src = repo.abspath() + "/" + template
-            if os.path.exists(src):
-                exists = True
-            else:
-                continue
-
-            # Determine destination file based on arguments
-            dest_candidates = [
-                args.output,  # --output
-                args.directory
-                + "/"
-                + os.path.basename(template)  # --directory
-                if args.directory
-                else None,
-                os.path.basename(template),  # neither
-            ]
-            dest = next(x for x in dest_candidates if x)
-            if args.edit or args.editor:
-                edit_files.append(dest)
-
-            # If template is a directory, run pre hooks
-            if os.path.isdir(src):
-                environment = {"TEM_DESTDIR": util.abspath(dest)}
-                # TODO debug, creates dest as a directory
-                # cli.run_hooks("put.pre", src, dest, environment)
-
-            try:
-                util.copy(src, dest, symlink=args.symlink)
-            except Exception as e:
-                cli.print_error_from_exception(e)
+def _verify_output_option(args):
+    # --output option doesn't make sense for multiple files
+    # (multiple directories are OK)
+    if len(args.templates) != 1:
+        for file in args.templates:
+            # TODO doesn't work. Where is the repo path in here?
+            if os.path.isfile(file):
+                _err_output_multiple_templates()
                 sys.exit(1)
 
-            # If template is a directory, run post hooks
-            if os.path.isdir(src):
-                cli.run_hooks("put.post", src)
 
-        if not exists:
-            cli.print_cli_err(
-                "template '{}' could not be found in the available "
-                "repositories".format(template)
-            )
-            sys.exit(1)
-    if edit_files:
-        cli.try_open_in_editor(edit_files, override_editor=args.editor)
+def _verify_directory_option(args):
+    # The path exists and is not a directory
+    if os.path.exists(args.directory) and not os.path.isdir(args.directory):
+        _err_exists_but_not_dir(args.directory)
