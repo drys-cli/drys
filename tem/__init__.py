@@ -1,7 +1,5 @@
 """Template and Environment Manager API"""
 import os
-
-__version__ = "0.0.0"
-__prefix__ = "/usr"
+from tem._meta import __prefix__, __version__
 
 default_repo = os.path.expanduser("~/.local/share/tem/repo")
