@@ -1,21 +1,24 @@
 #!/usr/bin/env sh
 
-[ -z "$EXE" ] && EXE=tem
-
 print_help() {
-    mid="┃ Command: $EXE $* ┃"
+    mid="┃ Command: tem $* ┃"
     top="$(echo "$mid" | sed 's_._━_g' | sed 's_.\(.*\)._┏\1┓_')"
     bot="$(echo "$mid" | sed 's_._━_g' | sed 's_.\(.*\)._┗\1┛_')"
 
     echo "$top"
     echo "$mid"
     echo "$bot"
-    $EXE "$@" --help
+    tem "$@" --help
 }
 
 print_help
 
-for cmd_raw in "$(dirname "$TEM_EXECUTABLE")"/tem/cli/*.py; do
+for cmd_raw in "$PROJECT_ROOT"/tem/cli/*.py; do
     cmd="$(basename ${cmd_raw%%.py})"
-    print_help "$cmd"
+    # Ignore files starting with _ and some other files
+    if [ -z "$(echo "$cmd" | sed -n '/^_/p')" ]\
+        && [ "$cmd" != "errors" ]
+    then
+        print_help "$cmd"
+    fi
 done

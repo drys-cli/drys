@@ -8,7 +8,6 @@ _build
 /dist/
 __pycache__
 tem.egg-info
-Pipfile.lock
 tests/.cache/
 tests/.local/
 .mypy_cache/

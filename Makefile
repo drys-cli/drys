@@ -42,10 +42,7 @@ uninstall:
 		   ${DESTDIR}/${PREFIX}/share/tuterm/scripts/.tem-home
 
 test:
-	cd tests; ${MAKE} test
-
-test-pip:
-	cd tests; ${MAKE} test-pip
+	@"${MAKE}" -C tests docker-all
 
 clean:
 	rm -rf build dist tem.egg-info

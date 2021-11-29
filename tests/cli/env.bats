@@ -2,14 +2,14 @@
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then
     begin_test 'env'
-    rm -rf _out/.tem 2>/dev/null
-    mkdir -p _out/.tem
-    cp -r tem/env _out/.tem/env
+    rm -rf ~/.tem 2>/dev/null
+    mkdir -p ~/.tem
+    cp -r tem/env ~/.tem/env
 fi
 
 
 @test "tem env --list" {
-    cd _out
+    cd ~
 
     run tem env --list
 
@@ -19,7 +19,7 @@ fi
 }
 
 @test "tem env --exec --ignore [FILE]" {
-    cd _out
+    cd ~
 
     run tem env --exec --ignore unexecutable.sh
 
@@ -28,7 +28,7 @@ fi
 }
 
 @test "tem env --exec --list [FILE]" {
-    cd _out
+    cd ~
 
     run tem env --exec --list --ignore unexecutable.sh
 
@@ -36,9 +36,9 @@ fi
     compare_output_expected
 }
 
-# Create files new_script1 and new_script2. Root directory is _out/.
+# Create files new_script1 and new_script2.
 @test "tem env --new [MULTIPLE FILES]" {
-    cd _out
+    cd ~
 
     run tem env --new new_script1 new_script2
 
@@ -49,7 +49,7 @@ fi
 
 # TODO
 # @test "<ERROR_CHECK> tem env --new [MULTIPLE FILES]" {
-    # cd _out 1>/dev/null
+    # cd ~ 1>/dev/null
     # run tem env --new new_script1 new_script2
     # expected=''
 
@@ -60,7 +60,7 @@ fi
 # File new_script1 from the previous test is created again (--force option is
 # used)
 @test "tem env --new --force [MULTIPLE FILES]" {
-    cd _out
+    cd ~
 
     run tem env --new --force new_script1 new_script3
 
@@ -70,37 +70,37 @@ fi
 }
 
 # @test "tem env --new --root [DIR] [MULTIPLE FILES]" {
-#     rm -f _out/.tem/env/*
-#     run tem env --new --root _out new_script1 new_script2
+#     rm -f ~/.tem/env/*
+#     run tem env --new --root ~ new_script1 new_script2
 #     expected=''
 
 #     compare_output_expected
-#     [ "$(ls _out/.tem/env)" = "$(echo -e 'new_script1\nnew_script2')" ]
+#     [ "$(ls ~/.tem/env)" = "$(echo -e 'new_script1\nnew_script2')" ]
 # }
 
 # @test "tem env --add --root [DIR] [MULTIPLE FILES]" {
-#     rm -f _out/.tem/env/*
-#     run tem env --add --root _out tem/env/*
+#     rm -f ~/.tem/env/*
+#     run tem env --add --root ~ tem/env/*
 #     expected=''
 
 #     compare_output_expected
-#     [ "$(ls _out/.tem/env)" = "$(ls tem/env)" ]
+#     [ "$(ls ~/.tem/env)" = "$(ls tem/env)" ]
 # }
 
 @test "tem env --add --force [MULTIPLE FILES]" {
-    cd _out
+    cd ~
     rm -f .tem/env/*
-    cp ../tem/env/unexecutable.sh .tem/env/
+    cp "$TESTS/cli/tem/env/unexecutable.sh" .tem/env/
 
-    run tem env --add --force ../tem/env/*
+    run tem env --add --force "$TESTS"/cli/tem/env/*
 
     expected=''
     compare_output_expected
-    [ "$(ls .tem/env)" = "$(ls ../tem/env)" ]
+    [ "$(ls .tem/env)" = "$(ls "$TESTS/cli/tem/env")" ]
 }
 
 @test "tem env --add [NONEXISTENT FILE]" {
-    cd _out
+    cd ~
     rm -f .tem/env/*
 
     run tem env --add /nonexistentfile_blabla
@@ -111,8 +111,8 @@ fi
 }
 
 @test "tem env --delete [MULTIPLE FILES]" {
-    cp -r tem/env _out/.tem/
-    cd _out
+    cp -r tem/env ~/.tem/
+    cd ~
 
     run tem env --delete print.sh unexecutable.sh
 
@@ -122,9 +122,9 @@ fi
 }
 
 @test "tem env" {
-    rm -f _out/.tem/env/*
-    cp tem/env/print.sh _out/.tem/env
-    cd _out
+    rm -f ~/.tem/env/*
+    cp tem/env/print.sh ~/.tem/env
+    cd ~
 
     run tem env
 

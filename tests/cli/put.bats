@@ -1,7 +1,7 @@
 . common.bats.in
 
-REPO="$PWD/_out/put_repo"
-DESTDIR="$PWD/_out/put_dest"
+REPO=~/put_repo
+DESTDIR=~/put_dest
 tem_put() { unbuffer tem put -R "$REPO" "$@"; }
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then

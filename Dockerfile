@@ -1,18 +1,24 @@
-# Default dockerfile for ad-hoc testing without affecting your actual system
-
 # Setup
-FROM alpine:3.14.3
+FROM python:3.9.9-alpine3.14
 RUN adduser -D user
-RUN apk add python3 py3-setuptools make
+RUN apk add make
+RUN pip install pipenv setuptools
 
+# Setup source directory
 WORKDIR /home/user/tem
 
-# Copy files into container
-COPY tem tem
-COPY conf conf
-COPY Makefile setup.py pyproject.toml LICENSE README.md ./
-
-# Install and make ready for interactive testing
-RUN make install-base PREFIX=/usr
-RUN chown -R user .
 USER user
+
+COPY Makefile Pipfile Pipfile.lock setup.py pyproject.toml LICENSE README.md ./
+RUN pipenv sync
+COPY conf conf
+COPY tem tem
+
+USER root
+RUN chown -R user .
+# Install tem system-wide
+RUN make install-base
+
+USER user
+
+CMD ["pipenv", "run", "sh"]

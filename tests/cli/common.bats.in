@@ -1,5 +1,4 @@
 
-[ -z "$EXE" ] && EXE=tem
 shopt -s globstar
 
 print() { echo -e "$*" >&2; }

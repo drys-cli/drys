@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+# Custom BATS executable
+# WARNING: Please only run inside a make target
+#
+# Usage: ./bats testname
+# - Runs the test cli/testname.bats
+
+cd "$PROJECT_ROOT"
+pipenv run sh -c "cd $TESTS/cli && bats --formatter pretty --timing $1.bats"

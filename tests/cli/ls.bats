@@ -9,12 +9,13 @@ fi
 
 @test "tem ls -R ~/repo" {
 
-    output="$(tem ls -R ~/repo)"
+    run tem ls -R ~/repo
 
     expected="$(
-        echo "# repo @ $(realpath ~)/repo"
+        echo "# repo @ $(cd "$OUTDIR"; pwd)/repo"
         ls ~/repo
     )"
+    [ "$status" = 0 ]
     compare_output_expected
 }
 

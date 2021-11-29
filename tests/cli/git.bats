@@ -8,12 +8,12 @@ shopt -s globstar
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then
     begin_test 'git'
-    rm -rf _out/.tem                2>/dev/null
-    mkdir -p _out
-    rm -rf _out/git
-    cp -r git _out/git
+    rm -rf ~/.tem                       2>/dev/null
+    mkdir -p ~
+    rm -rf ~/git
+    cp -r git ~/git
     # NOTE: Don't forget about this
-    cd _out/git
+    cd ~/git
     git config --global init.defaultBranch master
     git config --global user.email "bats@tem"
     git config --global user.name "bats"
@@ -26,34 +26,34 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
     git checkout -b tem-nvim            2>/dev/null
     git add **/nvimrc
     git commit -m "Add nvimrc files"    1>/dev/null
-    cd ../..
+    cd "$TESTS/cli"
 fi
 
 @test "tem git --branch tem-vim" {
-    cd _out/git
+    cd ~/git
     git checkout master                 2>/dev/null
 
     run tem git --checkout --branch tem-vim
 
     # tem-vim contains everything master does plus extra
-    output="$(find * -type f -not -path '*/\.*')"
+    output="$(find * -type f -not -path '*/\.*' | sort)"
     expect git ls-tree -r --name-only tem-vim
     compare_output_expected
 }
 
 @test "tem git --checkout --branch tem-nvim" {
-    cd _out/git
+    cd ~/git
     git checkout master                 2>/dev/null
 
     run tem git --checkout --branch tem-nvim
 
-    output="$(find * -type f -not -path '*/\.*')"
+    output="$(find * -type f -not -path '*/\.*' | sort)"
     expect git ls-tree -r --name-only tem-nvim
     compare_output_expected
 }
 
 @test "tem git --list" {
-    cd _out/git
+    cd ~/git
     git checkout master                 2>/dev/null
 
     run tem git --list -b tem-vim
