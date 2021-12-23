@@ -2,9 +2,9 @@
 import os
 import subprocess as sp
 
-from .. import ext, util
-from .. import repo as repo_module
-from . import common as cli
+from tem import ext, util
+from tem import repo as repo_module
+from tem.cli import common as cli
 
 from ..repo import Repo
 

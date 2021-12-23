@@ -5,11 +5,11 @@ USER root
 
 # Prepare system-level dependencies
 # ---------------------------------
-RUN apk add bats git
+RUN apk add --no-cache bats git
 # Required in order to run BATS under make
-RUN apk add ncurses
+RUN apk add --no-cache ncurses
 # Required by some tests that use the 'unbuffer' command
-RUN apk add expect
+RUN apk add --no-cache expect
 
 # Prepare user-level environment
 # ------------------------------

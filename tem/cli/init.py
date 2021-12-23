@@ -5,8 +5,8 @@ import shutil as sh
 import subprocess
 import sys
 
-from .. import __prefix__
-from . import common as cli
+from tem import __prefix__, errors
+from tem.cli import common as cli
 
 
 def setup_parser(parser):
@@ -53,16 +53,10 @@ def cmd(args):
     # Make sure that .tem/ is valid before doing anything else
     if os.path.exists(".tem"):
         if args.force:
-            if os.path.isdir(".tem"):
-                sh.rmtree(".tem")
-            else:
-                os.remove(".tem")  # Remove existing
-        else:  # Refuse to init if .tem exists
-            cli.print_cli_err(".tem/ already exists", end="")
             if not os.path.isdir(".tem"):
-                cli.print_cli_err(" and is not a directory", end="")
-            cli.print_err()  # New line
-            sys.exit(1)
+                os.remove(".tem")  # Remove existing file
+        else:  # Refuse to init if .tem exists
+            raise errors.TemInitializedError(os.getcwd())
 
     files = []  # Keeps track of all files that have been copied
     # Copy the files

@@ -1,7 +1,7 @@
 # Setup
 FROM python:3.9.9-alpine3.14
 RUN adduser -D user
-RUN apk add make
+RUN apk add --no-cache make
 RUN pip install pipenv setuptools
 
 # Setup source directory

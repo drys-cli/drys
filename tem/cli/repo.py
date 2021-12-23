@@ -2,9 +2,9 @@
 import os
 import sys
 
-from .. import config, util, repo as repo_module
-from . import common as cli
-from . import config as config_cli
+from tem import config, util, errors, repo as repo_module
+from tem.cli import common as cli
+from tem.cli import config as config_cli
 
 from ..repo import (
     Repo,
@@ -43,7 +43,6 @@ def setup_parser(parser):
     parser.add_argument(
         "repositories",
         metavar="REPOSITORIES",
-        type=Repo,
         nargs="*",
         help="repository paths, partial paths or names",
     )
@@ -70,9 +69,7 @@ def print_repo(repo: Repo, args):
         pr("{} @ {}".format(repo.name(), repo.abspath()))
     print()  # New line at the end
     if not os.path.exists(repo.abspath()):
-        cli.print_cli_warn(
-            "repository '{}' does not exist".format(repo.abspath())
-        )
+        raise errors.RepoDoesNotExistError(repo.abspath())
 
 
 # TODO make use RepoSpec
@@ -102,9 +99,8 @@ def list_repos(args):
     if not args.add and not args.remove:
         for i, match in enumerate(matches):
             if not match:
-                cli.print_cli_err(
-                    "repository '{}' not found".format(args.repositories[i])
-                )
+                # TODO don't quit but continue
+                raise errors.RepoNotFoundError(args.repositories[i])
     if (
         not any_matching_repos  # no matching repos
         and args.repositories  # some repos specified in positional arguments
@@ -116,7 +112,7 @@ def list_repos(args):
 
 def remove_from_path(remove_repos):
     """Remove matching repos from REPO_PATH environment variable."""
-    remove_repo_paths = [r.realpath() for r in remove_repos]
+    remove_repo_paths = [Repo(r).realpath() for r in remove_repos]
     repo_module.lookup_path[:] = (
         repo
         for repo in repo_module.lookup_path
@@ -127,23 +123,20 @@ def remove_from_path(remove_repos):
 @cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
-    # print(args.repositories)
-    # print()
-    # print(*[r.abspath() for r in args.repo], sep='\n')
-    # print()
-    # print(args.repo.repos())
     if args.add or args.remove:
         user_cfg_path = config.user_default_path()
         if user_cfg_path:
             # TODO notify if repo already exists (add) or doesn't (remove)
             if args.add:
-                repo_module.lookup_path += args.repositories
+                repo_module.lookup_path += [
+                    Repo.from_id(repo_id) for repo_id in args.repositories
+                ]
             elif args.remove:
                 # Remove matching paths from REPO_PATH
                 remove_from_path(args.repositories)
             # Remove any duplicates
             paths = [r.abspath() for r in repo_module.lookup_path]
-            paths = list(dict.fromkeys(paths))  # remove dubplicates
+            paths = list(dict.fromkeys(paths))  # remove duplicates
             config.cfg["general.repo_path"] = "\n".join(paths)
             config_cli.write_config(user_cfg_path)
         else:
@@ -151,7 +144,4 @@ def cmd(args):
             sys.exit(1)
 
     if args.list or (not args.add and not args.remove):
-        # if args.add or args.remove:
         list_repos(args)
-        # TODO else:
-        #     list_repos(args, args.repo)

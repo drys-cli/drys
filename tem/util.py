@@ -28,8 +28,7 @@ def dirname(path):
 
 def shortpath(path):
     """Get path with `$HOME` shortened to `~`."""
-    # TODO make more robust
-    return path.replace(os.path.expanduser("~"), "~")
+    return re.sub("^" + re.escape(os.path.expanduser("~")), "~", path)
 
 
 # TODO try to remember where I wanted to use this?

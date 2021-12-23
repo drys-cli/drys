@@ -60,36 +60,33 @@ def cmd(args):
     """Execute this subcommand."""
 
     edit_files = []  # Files that will be edited if --edit[or] was provided
-    try:
-        # Copy or move the files
-        for file in args.files:
-            basename = os.path.basename(file)
-            dests = [
-                args.directory + "/" + basename if args.directory else None,
-                args.output,
-                basename,
-            ]
-            # Get first that is not None
-            dest = next(path for path in dests if path is not None)
-            for repo in args.repo:
-                repo = repo.abspath()
-                # Create the destination path if it doesn't exist
-                if not os.path.exists(repo):
-                    os.makedirs(repo, mode=0o777)
-                    print(
-                        "The repo directory '"
-                        + repo
-                        + "' did not exist. It was created for you."
-                    )
-                if not args.move:  # copy
-                    dest_file = util.copy(file, repo + "/" + dest)
-                else:  # move
-                    dest_file = util.move(file, repo + "/" + dest)
+    # Copy or move the files
+    for file in args.files:
+        basename = os.path.basename(file)
+        dests = [
+            args.directory + "/" + basename if args.directory else None,
+            args.output,
+            basename,
+        ]
+        # Get first that is not None
+        dest = next(path for path in dests if path is not None)
+        for repo in args.repo:
+            repo = repo.abspath()
+            # Create the destination path if it doesn't exist
+            if not os.path.exists(repo):
+                os.makedirs(repo, mode=0o777)
+                print(
+                    "The repo directory '"
+                    + repo
+                    + "' did not exist. It was created for you."
+                )
+            if not args.move:  # copy
+                dest_file = util.copy(file, repo + "/" + dest)
+            else:  # move
+                dest_file = util.move(file, repo + "/" + dest)
 
-                if args.edit or args.editor:
-                    edit_files.append(dest_file)
-    except Exception as exception:
-        cli.print_error_from_exception(exception)
-        sys.exit(1)
+            if args.edit or args.editor:
+                edit_files.append(dest_file)
+
     if edit_files:
         cli.try_open_in_editor(edit_files, override_editor=args.editor)

@@ -12,6 +12,7 @@ your user).
 
 import os
 import sys
+import shutil as sh
 from tem import __main__ as main
 
 
@@ -23,6 +24,11 @@ executable_dir = os.path.dirname(executable_dir)
 # Prepend PWD to the PATH so that local modules are used over the global ones
 sys.path.insert(0, executable_dir)
 
-sys.argv.insert(1, executable_dir + "/conf/config")
+# Create a temporary configuration
+config_dir = f"{executable_dir}/.tem/tmp"
+os.makedirs(config_dir, exist_ok=True)
+sh.copy(f"{executable_dir}/conf/config", config_dir)
+
+sys.argv.insert(1, f"{config_dir}/config")
 sys.argv.insert(1, "--config")
 main.main()

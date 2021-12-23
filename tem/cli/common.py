@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 import tem
-from tem import config, ext, repo, util
+from tem import config, ext, repo, util, errors
 
 from ..repo import RepoSpec
 from ..util import print_err
@@ -36,7 +36,7 @@ def load_user_config():
     """
     failed = config.load(config.USER_PATHS)
     if len(failed) == len(config.USER_PATHS):
-        print_cli_warn("no user configuration files could not be read:")
+        print_cli_warn("no user configuration files could be read")
         print_cli_warn("The following files were tried:", *failed, sep="\n\t")
 
 
@@ -58,20 +58,23 @@ def subcommand(cmd):
     """Decorator for tem subcommand functions"""
 
     def wrapper(args):
-        # Transform RepoSpecs into absolute paths
-        global repo
-        repo.lookup_path = args.repo.repos()
-        args.repo = args.repo.repos()
-        for repo in args.repo:
-            abspath = repo.abspath()
-            if not os.path.isdir(abspath) and (
-                os.path.realpath(abspath) != os.path.realpath(tem.default_repo)
-            ):
-                print_cli_err(
-                    "repository '%s' does not exist" % repo.abspath()
-                )
-                sys.exit(1)
-        return cmd(args)
+        try:
+            # Transform RepoSpecs into absolute paths
+            global repo
+            repo.lookup_path = args.repo.repos()
+            # Convert the RepoSpec into a list of repos
+            args.repo = args.repo.repos()
+            for repo in args.repo:
+                abspath = repo.abspath()
+                if not os.path.isdir(abspath) and (
+                    os.path.realpath(abspath)
+                    != os.path.realpath(tem.default_repo)
+                ):
+                    raise errors.RepoDoesNotExistError(repo.abspath())
+            return cmd(args)
+        except errors.TemError as e:
+            print_cli_err(e.cli())
+            sys.exit(1)
 
     return wrapper
 

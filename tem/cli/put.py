@@ -2,7 +2,7 @@
 import os
 import sys
 
-from tem import util, repo
+from tem import util, repo, errors
 from tem.cli import common as cli
 
 
@@ -87,11 +87,7 @@ def cmd(args):
                     cli.run_hooks("put.post", src)
 
         if not exists:
-            cli.print_cli_err(
-                "template '{}' could not be found in the available "
-                "repositories".format(template)
-            )
-            sys.exit(1)
+            raise errors.TemplateNotFoundError(template)
     if edit_files:
         cli.try_open_in_editor(edit_files, override_editor=args.editor)
 
@@ -104,11 +100,6 @@ def _err_output_multiple_templates():
         """option -o/--output is allowed with multiple templates
           only if all of them are directories"""
     )
-    sys.exit(1)
-
-
-def _err_exists_but_not_dir(path):
-    cli.print_cli_err("'{}' exists and is not a directory".format(path))
     sys.exit(1)
 
 
@@ -126,4 +117,4 @@ def _verify_output_option(args):
 def _verify_directory_option(args):
     # The path exists and is not a directory
     if os.path.exists(args.directory) and not os.path.isdir(args.directory):
-        _err_exists_but_not_dir(args.directory)
+        raise errors.FileNotDirError(args.directory)

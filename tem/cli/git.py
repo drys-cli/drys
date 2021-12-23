@@ -3,8 +3,9 @@ import re
 import subprocess as sp
 import sys
 
-from .. import config
-from . import common as cli
+from tem import config
+from tem.cli import common as cli
+from tem.errors import TemError
 
 
 def setup_parser(parser):
@@ -68,8 +69,7 @@ def get_tem_branch():
     if p.returncode != 0:
         sys.exit(p.returncode)
     elif not branches:  # No available branches
-        cli.print_cli_err("current branch is the only branch")
-        sys.exit(1)
+        raise TemError("current branch is the only branch")
     elif len(branches) == 1:  # Single available branch
         return branches[0]
     # Prompt the user for a choice
@@ -83,12 +83,10 @@ def get_tem_branch():
     # Verify and convert the choice
     try:
         choice = int(choice)
-    except ValueError:
-        cli.print_cli_err("invalid choice")
-        sys.exit(1)
+    except ValueError as e:
+        raise TemError("invalid choice") from e
     if choice < 1 or choice > len(branches):
-        cli.print_cli_err("invalid choice")
-        sys.exit(1)
+        raise TemError("invalid choice")
 
     return branches[choice - 1]
 

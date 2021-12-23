@@ -1,12 +1,12 @@
 """tem dot subcommand"""
 import os
 import select
-import shutil
 import subprocess
 import sys
 
-from tem import ext, repo, util, env
-from ..util import print_err
+from tem import ext, repo, util, env, errors
+from tem.errors import TemError
+
 from . import common as cli
 
 
@@ -101,7 +101,7 @@ def validate_file_arguments_as_script_names(files):
     any_invalid_files = False
     for file in files:
         if "/" in file:
-            cli.print_cli_err("'{}' is an invalid script name".format(file))
+            raise TemError("'{}' is an invalid script name".format(file))
             any_invalid_files = True
     if any_invalid_files:
         sys.exit(1)
@@ -123,8 +123,7 @@ def validate_and_get_dotdir(subdir, rootdir=None, recursive=False):
         If ``recursive`` is ``False``, cwd will be used as ``rootdir``.
     """
     if not subdir:
-        cli.print_cli_err("subdir must be non-empty")
-        sys.exit(1)
+        raise TemError("subdir must be non-empty")
 
     if rootdir is None:
         # We have to look upwards for a suitable rootdir
@@ -143,27 +142,21 @@ def validate_and_get_dotdir(subdir, rootdir=None, recursive=False):
         else:
             rootdir = "."
     elif not os.path.isdir(rootdir):  # rootdir doesn't exist
-        cli.print_cli_err("'{}' is not a directory".format(rootdir))
-        sys.exit(1)
+        raise errors.NotADirError(rootdir)
     dotdir = rootdir + "/.tem/" + subdir
 
     # Validation
     if not os.path.isdir(dotdir):
         if os.path.exists(dotdir):
             # TODO
-            cli.print_cli_err(
-                "'{}' exists and is not a directory".format(
-                    util.abspath(dotdir)
-                )
-            )
-            print_err(
-                "Try running `tem init --force`. "
+            raise errors.DirNotFoundError(dotdir).append(
+                "\nTry running `tem init --force`. "
                 "Please read the manual before doing that."
             )
         else:
-            cli.print_cli_err("directory '{}' not found".format(dotdir))
-            print_err("Try running `tem init` first.")
-            sys.exit(1)
+            raise errors.DirNotFoundError(dotdir).append(
+                "\nTry running `tem init` first."
+            )
         # TODO if args.exec or not args.force: sys.exit(1)
 
     return rootdir, subdir
@@ -187,7 +180,6 @@ def create_new_files(dotdir, file_names, force):
     # (path, env, maybe others)
     dest_files = []
     validate_file_arguments_as_script_names(file_names)
-    any_conflicts = False
 
     # File contents are taken from stdin, if it has data
     contents = ""
@@ -203,13 +195,10 @@ def create_new_files(dotdir, file_names, force):
                 f.write(contents)
             util.make_file_executable(dest)
         else:
-            any_conflicts = True
-            cli.print_cli_err("file '{}' already exists".format(dest))
+            raise errors.FileExistsError(dest).append(
+                "\nTry running with --force."
+            )
         dest_files.append(dest)
-
-    if any_conflicts:
-        print_err("\nTry running with --force.")
-        sys.exit(1)
 
     return dest_files
 
@@ -338,8 +327,7 @@ def cmd_common(args, subdir=None):
         if not file_names:
             if args.verbose:
                 # TODO make this abstract
-                cli.print_cli_err("no scripts found")
-                sys.exit(1)
+                raise TemError("no scripts found")
         elif args.exec:
             execute_files([dotdir + "/" + f for f in file_names], args.verbose)
 

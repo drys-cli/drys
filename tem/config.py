@@ -67,7 +67,7 @@ def user_default_path():
     return next(path for path in lst if path)
 
 
-def repo_path_from_config(config):
+def get_repo_path(config):
     """Get `REPO_PATH` from the loaded configuration."""
     if not config:
         return []
@@ -91,7 +91,7 @@ def load(paths):
 
     global cfg
     successful = cfg.read(paths)
-    repo.lookup_path += repo_path_from_config(cfg)
+    repo.lookup_path += get_repo_path(cfg)
     repo.lookup_path = list(
         dict.fromkeys(repo.lookup_path)
     )  # Remove duplicates

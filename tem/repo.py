@@ -42,6 +42,36 @@ class Repo:
         """Test if the repo contains `template`."""
         return os.path.exists(util.abspath(self.path + "/" + template))
 
+    @staticmethod
+    def named(name):
+        """
+        Return absolute path to the repository with the given name if it exists;
+        otherwise return `name` unmodified.
+        """
+        # TODO decide how to handle ambiguity
+        for repo in lookup_path:
+            repo = Repo(repo)
+            if repo.name() == name:
+                return repo
+
+        return Repo(None)
+
+    @staticmethod
+    def from_id(repo_id):
+        """Get a repository with id ``repo_id``.
+
+        A repository id is a common term for name and path. To determine if
+        ``repo_id`` is a name or a path, the following strategy is used:
+        - If it contains a '/', it is resolved as a path
+        - Otherwise, a repo with the name ``repo_id`` is looked up and if
+        found, that repo is returned
+        - If the above fails, ``repo_id`` is resolved as a path. In this case,
+        the repo need not exist on the filesystem.
+        """
+        if "/" in repo_id:
+            return Repo(repo_id)
+        return Repo.named(repo_id)
+
 
 #: List of lookup paths for tem repositories
 lookup_path = [
@@ -220,20 +250,6 @@ def is_valid_name(name):
     return "/" not in name
 
 
-def named(name):
-    """
-    Return absolute path to the repository with the given name if it exists;
-    otherwise return `name` unmodified.
-    """
-    # TODO decide how to handle ambiguity
-    for repo in lookup_path:
-        repo = Repo(repo)
-        if repo.name() == name:
-            return repo
-
-    return Repo(None)
-
-
 def resolve(path_or_name):
     """Get the repo identified by ``path_or_name``.
 
@@ -292,3 +308,14 @@ def find_template(template: str, repos=None, at_most=-1):
             result_paths.append(template_abspath)
 
     return result_paths
+
+
+def remove_from_path(remove_repos):
+    """Remove matching repos from REPO_PATH environment variable."""
+    remove_repo_paths = [r.realpath() for r in remove_repos]
+    lookup_path[:] = (
+        repo
+        for repo in lookup_path
+        if repo.realpath() not in remove_repo_paths
+    )
+

@@ -1,0 +1,108 @@
+"""Tem error definitions."""
+
+# pylint: disable=missing-class-docstring,missing-function-docstring
+
+import os
+
+from tem.util import abspath, print_err
+
+cli_enabled = False
+
+
+class TemError(Exception):
+    _brief = "an unknown error has occured"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(self, *args, **kwargs)
+        self._additional_text = ""
+        if isinstance(args[0], str):
+            self._brief = args[0]
+
+    def cli(self):
+        """The error text to print if the CLI is active."""
+        return self._brief
+
+    def append(self, text):
+        """Append additional text to the error."""
+        self._additional_text += f"{text}"
+        return self
+
+    def print(self):
+        """Print the error to the CLI."""
+        from tem.cli.common import print_cli_err
+
+        print_cli_err(self.cli())
+        print_err(self._additional_text)
+
+
+class PathError(TemError):
+    """An error that has a path as an argument."""
+
+    def __init__(self, path):
+        super().__init__(self, path)
+        self.path = path
+
+
+class RepoDoesNotExistError(PathError):
+    def cli(self):
+        return f"repository '{self.path}' does not exist"
+
+
+class FileNotDirError(PathError):
+    def cli(self):
+        return f"'{abspath(self.path)}' exists and is not a directory"
+
+
+class DirNotFoundError(PathError):
+    def cli(self):
+        return f"directory '{abspath(self.path)}' was not found"
+
+
+class FileExistsError(PathError):  # pylint: disable=redefined-builtin
+    def cli(self):
+        return f"file '{abspath(self.path)}' already exists"
+
+
+class NotADirError(PathError):
+    def cli(self):
+        return f"'{abspath(self.path)}' is not a directory"
+
+
+class TemInitializedError(PathError):
+    """Note: the argument is the path to the temdir."""
+
+    def cli(self):
+        text = "'.tem' already exists"
+        if not os.path.isdir(self.path):
+            text += " and is not a directory"
+        return text
+
+
+class TemLookupError(TemError):
+    """Base class for errors related to lookup."""
+
+    def __init__(self, *args):  # pylint: disable=super-init-not-called
+        Exception.__init__(  # pylint: disable=non-parent-init-called
+            self, *args
+        )
+
+
+class RepoNotFoundError(TemLookupError):
+    def __init__(self, repo_name):
+        super().__init__(self)
+        self.repo_name = repo_name
+
+    def cli(self):
+        return f"repository '{self.repo_name}' not found"
+
+
+class TemplateNotFoundError(TemError):
+    def __init__(self, template_name):
+        super().__init__(self, template_name)
+        self.template_name = self.args[0]
+
+    def cli(self):
+        return (
+            f"template '{self.template_name}' could not be found in the"
+            "available repositories"
+        )
