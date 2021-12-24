@@ -61,7 +61,6 @@ def cmd(args):
 
     if args.output:
         _verify_output_option(args)
-
     if args.directory:
         _verify_directory_option(args)
 
@@ -104,8 +103,10 @@ def _err_output_multiple_templates():
 
 
 def _verify_output_option(args):
-    # --output option doesn't make sense for multiple files
-    # (multiple directories are OK)
+    """The `--output` option doesn't make sense for multiple files.
+
+    Multiple directories are ok.
+    """
     if len(args.templates) != 1:
         for file in args.templates:
             # TODO doesn't work. Where is the repo path in here?
@@ -115,6 +116,6 @@ def _verify_output_option(args):
 
 
 def _verify_directory_option(args):
-    # The path exists and is not a directory
+    """Verify that the path exists and is not a directory."""
     if os.path.exists(args.directory) and not os.path.isdir(args.directory):
         raise errors.FileNotDirError(args.directory)

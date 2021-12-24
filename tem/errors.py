@@ -99,10 +99,10 @@ class RepoNotFoundError(TemLookupError):
 class TemplateNotFoundError(TemError):
     def __init__(self, template_name):
         super().__init__(self, template_name)
-        self.template_name = self.args[0]
+        self.template_name = template_name
 
     def cli(self):
         return (
-            f"template '{self.template_name}' could not be found in the"
+            f"template '{self.template_name}' could not be found in the "
             "available repositories"
         )
