@@ -167,6 +167,19 @@ interest to **tem**. The standard contents of that directory are:
 Extensions to **tem** may use additional subdirectories. Please consult the
 appropriate manuals.
 
+ENVIRONMENT
+===========
+
+TEM_SHELL
+---------
+The tem shell plugin that is used. Must be one of `fish`, `bash` or `zsh`. An
+unset or empty value means that no shell plugin is used.
+
+TEM_ENVIRONMENT
+---------------
+Directories that take part in forming the environment for tem. The directories
+are separated by newlines. TODO: should this be visible to the user?
+
 REPOSITORY
 ==========
 

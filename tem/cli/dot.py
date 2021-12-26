@@ -348,16 +348,3 @@ def cmd_common(args, subdir=None):
 def cmd(*args, **kwargs):
     """Execute this subcommand."""
     return cmd_common(*args, **kwargs)
-
-
-# TODO will probably be removed in favor of a more universal approach
-def _paths_from_templates(args):
-
-    template_paths = []
-    for tmpl in args.template:
-        template_paths += repo.find_template(tmpl, args.repo, at_most=1)
-    if not template_paths:
-        cli.print_cli_warn(
-            "template '{}' cannot be found".format(args.template)
-        )
-    return template_paths

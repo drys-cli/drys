@@ -118,19 +118,31 @@ def main():
     parsers = dict()
     # fmt: off
     # pylint: disable=line-too-long
-    minimum_parser_setup(subparsers, parsers, "add", help="add templates to a repository")
-    minimum_parser_setup(subparsers, parsers, "rm", help="remove templates from a repository")
-    minimum_parser_setup(subparsers, parsers, "put", help="put templates into a desired directory")
+    minimum_parser_setup(subparsers, parsers, "add",
+                         help="add templates to a repository")
+    minimum_parser_setup(subparsers, parsers, "rm",
+                         help="remove templates from a repository")
+    minimum_parser_setup(subparsers, parsers, "put",
+                         help="put templates into a desired directory")
     minimum_parser_setup(subparsers, parsers, "ls", help="list templates")
-    minimum_parser_setup(subparsers, parsers, "repo", help="perform actions on tem repositories")
-    minimum_parser_setup(subparsers, parsers, "config", help="get and set configuration options")
-    minimum_parser_setup(subparsers, parsers, "init", help="generate a .tem/ directory")
-    minimum_parser_setup(subparsers, parsers, "env", help="run or modify local environments")
-    minimum_parser_setup(subparsers, parsers, "path", help="run or modify the local path")
-    minimum_parser_setup(subparsers, parsers, "git", help="use environments versioned under git")
-    minimum_parser_setup(subparsers, parsers, "hook", help="run or modify command hooks")
-    minimum_parser_setup(subparsers, parsers, "find", help="find anything tem-related")
-    minimum_parser_setup(subparsers, parsers, "var", help="manipulate tem variants")
+    minimum_parser_setup(subparsers, parsers, "repo",
+                         help="perform actions on tem repositories")
+    minimum_parser_setup(subparsers, parsers, "config",
+                         help="get and set configuration options")
+    minimum_parser_setup(subparsers, parsers, "init",
+                         help="generate a .tem/ directory")
+    minimum_parser_setup(subparsers, parsers, "env",
+                         help="run or modify local environments")
+    minimum_parser_setup(subparsers, parsers, "path",
+                         help="run or modify the local path")
+    minimum_parser_setup(subparsers, parsers, "git",
+                         help="use environments versioned under git")
+    minimum_parser_setup(subparsers, parsers, "hook",
+                         help="run or modify command hooks")
+    minimum_parser_setup(subparsers, parsers, "find",
+                         help="find anything tem-related")
+    minimum_parser_setup(subparsers, parsers, "var",
+                         help="manipulate tem variants")
     minimum_parser_setup(subparsers, parsers, "dot")
     # pylint: enable=line-too-long
     # fmt: on

@@ -1,12 +1,11 @@
 """tem init subcommand"""
 import glob
 import os
-import shutil as sh
 import subprocess
-import sys
 
-from tem import __prefix__, errors
+from tem.fs import TemDir
 from tem.cli import common as cli
+from tem import errors
 
 
 def setup_parser(parser):
@@ -49,38 +48,7 @@ def setup_parser(parser):
 @cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
-
-    # Make sure that .tem/ is valid before doing anything else
-    if os.path.exists(".tem"):
-        if args.force:
-            if not os.path.isdir(".tem"):
-                os.remove(".tem")  # Remove existing file
-        else:  # Refuse to init if .tem exists
-            raise errors.TemInitializedError(os.getcwd())
-
-    files = []  # Keeps track of all files that have been copied
-    # Copy the files
-    try:
-        SHARE_DIR = __prefix__ + "/share/tem/"
-        os.mkdir(".tem")
-        os.mkdir(".tem/path")
-        os.mkdir(".tem/hooks")
-        os.mkdir(".tem/env")
-        # Create a list of files that will be copied
-        files = [SHARE_DIR + file for file in ["config", "ignore"]]
-        if args.as_repo:
-            files.append(SHARE_DIR + "repo")
-        if args.example_hooks:
-            files += glob.glob(SHARE_DIR + "hooks/*")
-        if args.example_env:
-            files += glob.glob(SHARE_DIR + "env/*")
-        # Copy files to .tem/
-        for i, file in enumerate(files):
-            dest = sh.copy(file, ".tem/" + file.replace(SHARE_DIR, ""))
-            files[i] = dest
-    except Exception as e:
-        cli.print_error_from_exception(e)
-
+    TemDir.init(os.getcwd(), force=args.force)
     print("Initialization was successful.")
     if args.verbose:
         # If 'tree' command exists, show the generated tree
@@ -95,7 +63,8 @@ def cmd(args):
             print("Generated tree:")
             print(p.stdout)
             print("Legend:\n\t/ directory\n\t* executable file")
-        except Exception:
-            pass
+        except FileNotFoundError:
+            print("tem: info: install 'tree' for more verbose output")
     if args.edit or args.editor:
+        files = [f for f in glob.iglob("**/*", recursive=True) if os.path.isfile(f)]
         p = cli.try_open_in_editor(files, override_editor=args.editor)

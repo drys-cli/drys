@@ -55,7 +55,7 @@ def load_config_from_args(args):
 
 
 def subcommand(cmd):
-    """Decorator for tem subcommand functions"""
+    """Decorator for tem subcommand functions."""
 
     def wrapper(args):
         try:
@@ -72,7 +72,7 @@ def subcommand(cmd):
                 ):
                     raise errors.RepoDoesNotExistError(repo.abspath())
             return cmd(args)
-        except errors.TemError as e:
+        except errors.all_errors as e:
             print_cli_err(e.cli())
             sys.exit(1)
 

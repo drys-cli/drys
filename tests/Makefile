@@ -7,7 +7,7 @@ ifdef __TEM_TESTS_INSIDE_DOCKER_CONTAINER__
     export OUTDIR   = /t
 else
 	# We are not inside a docker container
-    export OUTDIR   = ${TESTS}/cli/_out
+    export OUTDIR   = ${TESTS}/_out
 endif
 export HOME         = ${OUTDIR}
 export PATH         = $(shell echo "${TESTS}/cli/path:$$PATH")
@@ -71,7 +71,7 @@ _cli: _protections
 
 _py: _protections
 	@export PYTHONPATH="${PROJECT_ROOT}" \
-		&& ${PIPENV_RUN} pytest "${TESTS}/py"
+		&& pytest "${TESTS}/py" -s
 
 # Some redundancy to avoid making a mess of your system
 # If you make any changes to this target, verify that they work inside the

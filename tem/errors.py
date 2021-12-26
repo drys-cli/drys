@@ -3,13 +3,14 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring
 
 import os
+import inspect
 
 from tem.util import abspath, print_err
 
-cli_enabled = False
-
+# pylint: disable=redefined-builtin
 
 class TemError(Exception):
+    """Base class for all tem errors."""
     _brief = "an unknown error has occured"
 
     def __init__(self, *args, **kwargs):
@@ -48,9 +49,14 @@ class RepoDoesNotExistError(PathError):
         return f"repository '{self.path}' does not exist"
 
 
-class FileNotDirError(PathError):
+class FileNotFoundError(PathError):
     def cli(self):
-        return f"'{abspath(self.path)}' exists and is not a directory"
+        return f"file '{abspath(self.path)}' was not found"
+
+
+class ProgramNotFoundError(PathError):
+    def cli(self):
+        return f"program '{self.path}' was not found"
 
 
 class DirNotFoundError(PathError):
@@ -58,7 +64,12 @@ class DirNotFoundError(PathError):
         return f"directory '{abspath(self.path)}' was not found"
 
 
-class FileExistsError(PathError):  # pylint: disable=redefined-builtin
+class FileNotDirError(PathError):
+    def cli(self):
+        return f"'{abspath(self.path)}' exists and is not a directory"
+
+
+class FileExistsError(PathError):
     def cli(self):
         return f"file '{abspath(self.path)}' already exists"
 
@@ -66,6 +77,11 @@ class FileExistsError(PathError):  # pylint: disable=redefined-builtin
 class NotADirError(PathError):
     def cli(self):
         return f"'{abspath(self.path)}' is not a directory"
+
+
+class NotATemDirError(PathError):
+    def cli(self):
+        return f"'{abspath(self.path)}' is not a temdir"
 
 
 class TemInitializedError(PathError):
@@ -106,3 +122,8 @@ class TemplateNotFoundError(TemError):
             f"template '{self.template_name}' could not be found in the "
             "available repositories"
         )
+
+
+#: Tuple of all tem error classes
+all_errors = tuple(obj for obj in globals().values()
+                   if inspect.isclass(obj) and issubclass(obj, TemError))
