@@ -1,6 +1,8 @@
 Overview
 ========
 
+.. todo:: This section is outdated
+
 Tem uses python's ``argparse`` library for parsing the command line. Everything
 starts in the ``__main__`` module. An ``ArgumentParser`` is constructed and each
 subcommand is added. The subcommands are responsible for customizing their own
