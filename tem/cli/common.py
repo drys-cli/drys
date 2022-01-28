@@ -14,6 +14,10 @@ from ..repo import RepoSpec
 from ..util import print_err
 
 
+#: Exit code of the CLI program
+exit_code = 0
+
+
 def load_system_config():
     """
     Load configuration from ``system_config_paths``. If any of the files
@@ -60,7 +64,7 @@ def subcommand(cmd):
     def wrapper(args):
         try:
             # Transform RepoSpecs into absolute paths
-            global repo
+            global repo, exit_code
             repo.lookup_path = args.repo.repos()
             # Convert the RepoSpec into a list of repos
             args.repo = args.repo.repos()
@@ -71,7 +75,8 @@ def subcommand(cmd):
                     != os.path.realpath(tem.default_repo)
                 ):
                     raise errors.RepoDoesNotExistError(repo.abspath())
-            return cmd(args)
+            cmd(args)
+            sys.exit(exit_code)
         except errors.all_errors as e:
             print_cli_err(e.cli())
             sys.exit(1)

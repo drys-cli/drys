@@ -99,6 +99,7 @@ def cat(file):
     with open(file, "r", encoding="utf-8") as f:
         print(f.read(), sep="\n")
 
+
 def make_file_executable(path):
     """Equivalent to performing `chmod u+x` on ``path``."""
     os.chmod(path, os.stat(path).st_mode | 0o100)

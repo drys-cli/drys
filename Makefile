@@ -24,6 +24,7 @@ install-base:
 	python3 setup.py install --root="${DESTDIR}/" --prefix="${PREFIX}"
 	@# Restore tem/_meta.py to the version from git
 	@if which git >/dev/null 2>&1; then git restore -- tem/_meta.py; fi
+	@chown "$$(stat -c "%U:%G" tem/)" tem/_meta.py
 	@mkdir -p 	${SHARE_DIR}		\
   				${SHARE_DIR}/hooks	\
 			 	${SHARE_DIR}/env	\

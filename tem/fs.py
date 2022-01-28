@@ -1,18 +1,29 @@
 """The standard tem filesystem."""
 
-import os
 import glob
+import os
 import pathlib
+import subprocess
+from functools import cached_property
 from subprocess import run
+
 import tem
 from tem import __prefix__, util
-from tem.errors import NotADirError, NotATemDirError, FileNotFoundError, TemInitializedError
+from tem.errors import (
+    FileNotFoundError,
+    NotADirError,
+    NotATemDirError,
+    TemInitializedError,
+)
 
 
 class TemDir(type(pathlib.Path())):
-    """A directory that supports tem features.
+    """
+    A directory that supports tem features. Supports all ``pathlib.Path``
+    features.
 
     Always contains a `.tem/` subdirectory.
+
     Attributes
     ----------
     path : os.PathLike
@@ -25,10 +36,13 @@ class TemDir(type(pathlib.Path())):
         This variable exists only if a tem shell plugin is active.
     """
 
-    def __init__(self, path: os.PathLike):
+    def __new__(cls, path: os.PathLike):
+        path = os.path.abspath(path)
         if not os.path.exists(os.path.join(path, ".tem")):
             raise NotATemDirError(path)
+        return super(TemDir, cls).__new__(cls, path)
 
+    def __init__(self, *_):
         super().__init__()
         self.isolated = False
         self.autoenv = False
@@ -41,37 +55,48 @@ class TemDir(type(pathlib.Path())):
         """
         raise NotImplementedError
 
+    @cached_property
+    def vars(self):
+        """Get a module object containing defined variables for this temdir."""
+        raise NotImplementedError
+
     @property
     def dot_path(self):
-        return DotDir(os.path.join(self, ".tem/path"))
+        return DotDir(self / ".tem/path")
 
     @property
     def dot_env(self):
-        return DotDir(os.path.join(self, ".tem/env"))
+        return DotDir(self / ".tem/env")
 
     @property
     def dot_hooks(self):
-        return DotDir(os.path.join(self, ".tem/hooks"))
+        return DotDir(self / ".tem/hooks")
+
+    @property
+    def parent(self):
+        """Parent directory. An instance of ``pathlib.Path``."""
+        return pathlib.Path(super().parent)
 
     @property
     def tem_parent(self):
         """Get the first parent of this temdir that is also a temdir."""
         # Traverse the fs tree upwards until a parent temdir is found
-        directory = self
+        directory = self.parent
         while str(directory) != "/":
             try:
-                directory = TemDir(directory.parent)
+                return TemDir(directory)
             except NotATemDirError:
+                directory = directory.parent
                 continue
         return None
 
     @staticmethod
-    def init(path: os.PathLike, force: bool=False):
+    def init(path: os.PathLike, force: bool = False):
         """Initialize a temdir at ``path``.
         Parameters
         ----------
-        force: bool
-            Re-initialize temdir from scratch.
+        path: Path to initialize at.
+        force: Re-initialize temdir from scratch.
         Returns
         -------
         temdir: TemDir
@@ -106,19 +131,20 @@ class TemDir(type(pathlib.Path())):
         # Copy system default files to .tem/
         files = [share_dir / file for file in ["config", "ignore"]]
         for i, file in enumerate(files):
-            dest = util.copy(file, ".tem" / file.relative_to(share_dir))
+            dest = util.copy(file, dot_tem / file.relative_to(share_dir))
             files[i] = dest
 
         return TemDir(path)
 
 
 class DotDir:
-
     def __init__(self, path: os.PathLike):
         self.path = path
 
     def exec(self, files: list[os.PathLike] = ["."], ignore_nonexistent=False):
-        """Execute the given file(s) as programs.
+        """
+        Execute the given file(s) as programs. Relative paths are relative to
+        the dotdir.
 
         ``files`` can also contain directories. Each file in those directories
         will be executed, recursively. If ``ignore_nonexistent`` is ``True``, no
@@ -141,24 +167,35 @@ class DotDir:
         ``exec(['program1', 'dir/subdir'])`` will run `program3` and `program4`.
         """
 
-        for file in files:
-            if not os.path.exists(file):
-                if not ignore_nonexistent:
-                    raise FileNotFoundError(file)
-            elif os.path.isdir(file):
-                DotDir.exec([file], ignore_nonexistent=ignore_nonexistent)
-            else:
-                run(file)
+        with util.chdir(self.path):
+            for file in files:
+                if not os.path.exists(file):
+                    if not ignore_nonexistent:
+                        raise FileNotFoundError(file)
+                elif os.path.isdir(directory := file):
+                    for _file in os.scandir(directory):
+                        if os.path.isfile(_file):
+                            subprocess.run(_file)
+                        elif os.path.isdir(_file):
+                            DotDir(directory).exec(
+                                ignore_nonexistent=ignore_nonexistent
+                            )
+                else:
+                    run(file)
 
     def executables(self):
         """Recursively iterate over all executable files in this dotdir."""
-        return (file for file in glob.iglob("**/*", recursive=True)
-                if os.path.isfile(file) and os.access(file, os.X_OK))
+        return (
+            file
+            for file in glob.iglob("**/*", recursive=True)
+            if os.path.isfile(file) and os.access(file, os.X_OK)
+        )
 
 
 class Environment:
     class Path(list[str]):
         """A convenient abstraction of the PATH environment variable."""
+
         _path = os.environ.get("PATH", "")
 
         @staticmethod

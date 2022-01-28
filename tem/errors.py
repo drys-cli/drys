@@ -2,15 +2,17 @@
 
 # pylint: disable=missing-class-docstring,missing-function-docstring
 
-import os
 import inspect
+import os
 
 from tem.util import abspath, print_err
 
 # pylint: disable=redefined-builtin
 
+
 class TemError(Exception):
     """Base class for all tem errors."""
+
     _brief = "an unknown error has occured"
 
     def __init__(self, *args, **kwargs):
@@ -125,5 +127,8 @@ class TemplateNotFoundError(TemError):
 
 
 #: Tuple of all tem error classes
-all_errors = tuple(obj for obj in globals().values()
-                   if inspect.isclass(obj) and issubclass(obj, TemError))
+all_errors = tuple(
+    obj
+    for obj in globals().values()
+    if inspect.isclass(obj) and issubclass(obj, TemError)
+)

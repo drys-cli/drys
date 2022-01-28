@@ -66,5 +66,7 @@ def cmd(args):
         except FileNotFoundError:
             print("tem: info: install 'tree' for more verbose output")
     if args.edit or args.editor:
-        files = [f for f in glob.iglob("**/*", recursive=True) if os.path.isfile(f)]
+        files = [
+            f for f in glob.iglob("**/*", recursive=True) if os.path.isfile(f)
+        ]
         p = cli.try_open_in_editor(files, override_editor=args.editor)

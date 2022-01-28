@@ -3,8 +3,8 @@ import os
 
 import tem
 from tem import util
-from tem.fs import TemDir, DotDir
 from tem.errors import NotADirError
+from tem.fs import DotDir, TemDir
 
 
 class Environment:
@@ -13,24 +13,25 @@ class Environment:
     An environment consists of a list of envdirs.
     Attributes
     ----------
-    current: Environment
-        The currently active environment, if any.
     """
-    current = None
 
-    """An environment for a given directory."""
+    # Simple properties
+    envdirs = property(lambda self: self._envdirs)
+    rootdir = property(lambda self: self.envdirs[-1])
+    basedir = property(lambda self: self.envdirs[0])
 
     def __init__(self, basedir: TemDir, recursive=True):
         basedir = TemDir(basedir)  # throws if basedir can't be cast
         #: All temdirs that take part in this environment
-        self.envdirs = [basedir]
+        self._envdirs = [basedir]
+        directory = basedir
 
         if recursive:
             while True:
                 directory = directory.tem_parent
                 if not directory:
                     break
-                self.envdirs.insert(0, directory)
+                self._envdirs.insert(0, directory)
 
         self._path = []
 
@@ -44,23 +45,27 @@ class Environment:
     @path.setter
     def path(self, path):
         self._path = path
-        if Environment.current == self:
+        global _current
+        if _current == self:
             path_prepend_unique(self._path)
 
     def activate(self):
-        Environment.current = self
+        global _current
+        _current = self
         for envdir in self.envdirs:
             envdir.dot_env.exec()
-        raise NotImplementedError
+        # FIXME not completely implemented
 
-    def deactivate(self):
-        # TODO
-        Environment.current = None
-        raise NotImplementedError
+    @classmethod
+    def deactivate(cls):
+        global _current
+        _current = None
 
-    @property
-    def auto_update(self):
-        return self._autoupdate
+
+def current() -> Environment:
+    """Get the currently active application-wide environment."""
+    global _current
+    return _current
 
 
 def path_prepend_unique(path):
@@ -73,3 +78,7 @@ def path_prepend_unique(path):
 def path_as_list():
     """Return `PATH` envvar as a list of paths."""
     return os.environ["PATH"].split(":")
+
+
+#: The currently active application-wide environment
+_current: Environment = None

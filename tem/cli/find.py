@@ -1,9 +1,11 @@
+"""Find various tem-related stuff"""
 import os
+import sys
 
 from tem import env, find, repo, util
 from tem.cli import common as cli
 
-from .common import print_cli_err, print_cli_warn
+from .common import print_err, print_cli_err, print_cli_warn
 
 # TODO DOCUMENT IN MANPAGE
 
@@ -11,61 +13,151 @@ from .common import print_cli_err, print_cli_warn
 def setup_parser(parser):
     cli.add_general_options(parser)
 
-    # TODO turn some of these into general options
-    # TODO change the purpose of --root
     # (make it the directory that we are looking from)
     # but specify temdirs using another option
     parser.add_argument(
-        "-r",  # TODO swap with "-R"
-        "--root",
-        action="append",
-        metavar="DIR",
-        help="find rootdir named DIR",
+        "--env",
+        action="store_true",
+        help="directories comprising the local environment (envdirs)",
     )
     parser.add_argument(
-        "-v", "--verbose", action="store_true", help="print more details"
+        "--baseenv",
+        "-b",
+        action="store_true",
+        help="find the root envdir",
+    )
+    parser.add_argument(
+        "--rootenv",
+        "-r",
+        action="store_true",
+        help="find the root envdir",
+    )
+    parser.add_argument(
+        "--base",
+        action="store_true",
+        help="find the base tem directory",
+    )
+    parser.add_argument(
+        "--root",
+        action="store_true",
+        help="find the root tem directory",
+    )
+    # TODO implement
+    parser.add_argument(
+        "--from",
+        "-f",
+        metavar="DIR",
+        help="search from DIR instead of PWD",
+    )
+
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="print more details",
     )
     cli.add_edit_options(parser)
-    parser.add_argument("templates", help="templates to find", nargs="*")
+    parser.add_argument("args", help="names to match against", nargs="*")
 
 
 @cli.subcommand
 def cmd(args):
     # TODO Add tests for this subcommand
     # TODO consider a way to make this work with coreutils 'find' or 'fd'
-    # TODO Option '--verbose' unimplemented
-    # TODO Rework: Do not use directory structure to obtain info, but
     # TODO Handle explicit paths differently
+    # TODO add coloring to verbose headings
     # use the TEM_ENV environment variable (this variable is not yet used by
     # any commands)
 
     result_paths = []
+    # FIXME just for testing
+    env.Environment(find.parent_temdirs(".")[0]).activate()
 
-    # No options given, print the closest tem rootdir (TODO document)
-    if not args.root and not args.templates:
+    # No options given, print all temdirs in the current hierarchy
+    if not args.root and not args.args:
         if args.verbose:
-            cli.print_err("Root directories:")  # TODO add coloring
-        result_paths += find.find_parents_with_subdir(os.getcwd(), ".tem/env")
+            cli.print_err("Tem directories:")
+        result_paths += find.parent_temdirs()
 
+    if args.env:
+        if args.verbose:
+            cli.print_err("Environment directories:")
+        print(*env.current().envdirs, sep="\n")
+
+    if args.base:  # --base option
+        _print_base(args)
     if args.root:  # --root option
-        if args.verbose:
-            cli.print_err("Root directories:")  # TODO add coloring
-        temdirs_with_env = find.find_parents_with_subdir(
-            os.getcwd(), ".tem/env"
-        )
-        # Print all directories with basenames that match those given to
-        # --root
-        args.root[:] = list(dict.fromkeys(args.root))
-        for directory in temdirs_with_env:
-            for searched_directory in args.root:
-                if os.path.basename(directory) == searched_directory:
-                    result_paths.append(directory)
+        _print_root(args)
+    if args.baseenv:  # --baseenv option
+        _print_baseenv(args)
+    if args.rootenv:
+        _print_rootenv(args)
 
-    if args.templates:  # templates specified as positional arguments
-        for template in args.templates:
+    # TODO rework this part
+    if args.args:  # templates specified as positional arguments
+        for template in args.args:
             result_paths += repo.find_template(template)
 
     if args.edit or args.editor:
         cli.try_open_in_editor(result_paths, args.editor)
 
-    print(*result_paths, sep="\n")
+
+def _print_base(args):
+    if args.verbose:
+        cli.print_err("Base directory:")
+
+    try:
+        print(
+            next(
+                d
+                for d in find.parent_temdirs()
+                if util.basename(d) in args.args or not args.args
+            )
+        )
+    except StopIteration:
+        cli.exit_code = 1
+
+
+def _print_root(args):
+    if args.verbose:
+        cli.print_err("Root tem directory:")
+    try:
+        print(
+            [
+                d
+                for d in find.parent_temdirs()
+                if util.basename(d) in args.args or not args.args
+            ][-1]
+        )
+    except IndexError:
+        cli.exit_code = 1
+
+
+def _print_baseenv(args):
+    if args.verbose:
+        cli.print_err("Base environment directory:")
+    try:
+        print(
+            [
+                d
+                for d in env.current().envdirs
+                if util.basename(d) in args.args or not args.args
+            ][0]
+        )
+    except StopIteration:
+        cli.exit_code = 1
+
+
+def _print_rootenv(args):
+    if args.verbose:
+        cli.print_err("Root environment directory:")
+    try:
+        print(
+            [
+                d
+                for d in env.current().envdirs
+                if util.basename(d) in args.args or not args.args
+            ][-1]
+        )
+    except IndexError:
+        cli.exit_code = 1

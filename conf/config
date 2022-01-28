@@ -2,6 +2,8 @@
 repo_path = ~/.local/share/tem/repo
 editor = vim
 
+[temdir]
+
 [ls]
 command = ls -1
 

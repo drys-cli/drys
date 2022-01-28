@@ -17,18 +17,18 @@ PIPENV_RUN = cd "${PROJECT_ROOT}" && HOME="${ACTUAL_HOME}" pipenv run
 BATS = "${TESTS}"/bats
 
 .PHONY: all cli py clean \
-	    put ls add repo config env var git \
+	    put ls add repo config env var find git \
 		_cli _py _protections
-
-all: _protections
-	@"${MAKE}" py
-	@"${MAKE}" cli
 
 docker-all:
 	@echo "\033[1;34mRunning docker...\033[0m"
 	@docker build -t tem "${PROJECT_ROOT}"
 	@docker build -t tem-tests "${TESTS}"
 	@docker run -a stdout -it tem-tests "${MAKE}" all
+
+all: _protections
+	@"${MAKE}" py
+	@"${MAKE}" cli
 
 cli: _protections
 	@${PIPENV_RUN} "${MAKE}" -C "${TESTS}" _cli
@@ -51,6 +51,8 @@ env: _protections
 	@${BATS} env
 var: _protections
 	@${BATS} var
+find: _protections
+	@${BATS} find
 git: _protections
 	@${BATS} git
 
@@ -67,6 +69,7 @@ _cli: _protections
 	@${BATS} config
 	@${BATS} env
 	@${BATS} var
+	@${BATS} find
 	@${BATS} git
 
 _py: _protections

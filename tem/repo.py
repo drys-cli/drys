@@ -318,4 +318,3 @@ def remove_from_path(remove_repos):
         for repo in lookup_path
         if repo.realpath() not in remove_repo_paths
     )
-
