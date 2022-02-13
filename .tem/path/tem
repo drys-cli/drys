@@ -1,1 +1,7 @@
-../../tem.py
+#!/usr/bin/env sh
+
+if [ -n "$TEM_PROJECTROOT" ]; then
+    "$TEM_PROJECTROOT"/tem.py "$@"
+else
+    /usr/bin/tem "$@"
+fi

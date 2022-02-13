@@ -16,29 +16,14 @@ def setup_parser(parser):
     # (make it the directory that we are looking from)
     # but specify temdirs using another option
     parser.add_argument(
-        "--env",
-        action="store_true",
-        help="directories comprising the local environment (envdirs)",
-    )
-    parser.add_argument(
-        "--baseenv",
-        "-b",
-        action="store_true",
-        help="find the root envdir",
-    )
-    parser.add_argument(
-        "--rootenv",
-        "-r",
-        action="store_true",
-        help="find the root envdir",
-    )
-    parser.add_argument(
         "--base",
+        "-b",
         action="store_true",
         help="find the base tem directory",
     )
     parser.add_argument(
         "--root",
+        "-r",
         action="store_true",
         help="find the root tem directory",
     )
@@ -70,28 +55,17 @@ def cmd(args):
     # any commands)
 
     result_paths = []
-    # FIXME just for testing
-    env.Environment(find.parent_temdirs(".")[0]).activate()
 
     # No options given, print all temdirs in the current hierarchy
     if not args.root and not args.args:
         if args.verbose:
             cli.print_err("Tem directories:")
-        result_paths += find.parent_temdirs()
-
-    if args.env:
-        if args.verbose:
-            cli.print_err("Environment directories:")
-        print(*env.current().envdirs, sep="\n")
+        result_paths += list(find.parent_temdirs())
 
     if args.base:  # --base option
         _print_base(args)
     if args.root:  # --root option
         _print_root(args)
-    if args.baseenv:  # --baseenv option
-        _print_baseenv(args)
-    if args.rootenv:
-        _print_rootenv(args)
 
     # TODO rework this part
     if args.args:  # templates specified as positional arguments
@@ -126,36 +100,6 @@ def _print_root(args):
             [
                 d
                 for d in find.parent_temdirs()
-                if util.basename(d) in args.args or not args.args
-            ][-1]
-        )
-    except IndexError:
-        cli.exit_code = 1
-
-
-def _print_baseenv(args):
-    if args.verbose:
-        cli.print_err("Base environment directory:")
-    try:
-        print(
-            [
-                d
-                for d in env.current().envdirs
-                if util.basename(d) in args.args or not args.args
-            ][0]
-        )
-    except StopIteration:
-        cli.exit_code = 1
-
-
-def _print_rootenv(args):
-    if args.verbose:
-        cli.print_err("Root environment directory:")
-    try:
-        print(
-            [
-                d
-                for d in env.current().envdirs
                 if util.basename(d) in args.args or not args.args
             ][-1]
         )

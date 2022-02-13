@@ -1,7 +1,8 @@
 """Find various tem-related stuff."""
+import functools
 import os
 
-from tem import env
+from tem import env, fs
 
 
 def _default_cwd(func):
@@ -10,6 +11,7 @@ def _default_cwd(func):
     if the caller left it empty.
     """
 
+    @functools.wraps(func)
     def wrapper(path=None):
         if path is None:
             path = os.getcwd()
@@ -18,34 +20,24 @@ def _default_cwd(func):
     return wrapper
 
 
-def parents_with_subdir(path: os.PathLike, subdir: str):
+def parents_with_subdir(path, subdir: str):
     """
-    Return parent directories of ``path`` that contain a subdirectory tree as in
-    ``subdir``, as absolute paths, from leaf to root.
+    Iterate over the directory hierarchy from ``path`` upwards, including only
+    directories  that contain a subdirectory tree as in ``subdir``. Output paths
+    are absolute.
     """
-
-    path = os.path.realpath(path)
-    result_paths = []
-
-    while True:
-        if os.path.isdir(path + "/" + subdir):
-            result_paths.append(path)
-        path = os.path.dirname(path)
-        if path == "/":
-            break
-
-    return result_paths
+    return (p for p in fs.iterate_hierarchy(path) if os.path.isdir(p / subdir))
 
 
-def parents_with_dotdir(path: os.PathLike, dotdir: str):
+def parents_with_dotdir(path, dotdir: str):
     """
-    Return parent directories of ``path`` that contain dotdir ``dotdir``.
+    Iterate over parent directories of ``path`` that contain ``dotdir``.
     """
-    return parents_with_subdir(f".tem/{dotdir}")
+    return parents_with_subdir(path, f".tem/{dotdir}")
 
 
 @_default_cwd
-def parent_temdirs(path: os.PathLike = None):
+def parent_temdirs(path=None):
     """
     Return temdirs that are parents of the directory at ``path``, from leaf to
     root, as absolute paths.
@@ -57,13 +49,13 @@ def parent_temdirs(path: os.PathLike = None):
 @_default_cwd
 def basedir(path: os.PathLike = None):
     """Return the base temdir in the hierarchy that ``path`` belongs to."""
-    return parent_temdirs(path)[0]
+    return next(parent_temdirs(path))
 
 
 @_default_cwd
-def rootdir(path: os.PathLike = None):
+def rootdir(path=None):
     """Return the root temdir in the hierarchy that ``path`` belongs to."""
-    return parent_temdirs(path)[0]
+    return next(parent_temdirs(path))
 
 
 def base_envdir():

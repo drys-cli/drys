@@ -20,7 +20,7 @@ class Environment:
     rootdir = property(lambda self: self.envdirs[-1])
     basedir = property(lambda self: self.envdirs[0])
 
-    def __init__(self, basedir: TemDir, recursive=True):
+    def __init__(self, basedir: TemDir = None, recursive=True):
         basedir = TemDir(basedir)  # throws if basedir can't be cast
         #: All temdirs that take part in this environment
         self._envdirs = [basedir]

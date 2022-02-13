@@ -28,20 +28,6 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
     popd; popd; popd; popd
 fi
 
-@test "tem find --env" {
-    cd ~/temdir1/dir2/temdir3/temdir4
-
-    run tem find --env
-
-    [ "$status" = 0 ]
-    expected="$(
-        echo ~/temdir1
-        echo ~/temdir1/dir2/temdir3
-        echo ~/temdir1/dir2/temdir3/temdir4
-    )"
-    compare_output_expected
-}
-
 @test "tem find --base" {
     cd ~/temdir1/dir2/temdir3/temdir4
 
