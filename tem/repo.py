@@ -46,7 +46,8 @@ class Repo:
     def named(name):
         """
         Return absolute path to the repository with the given name if it exists;
-        otherwise return `name` unmodified.
+        otherwise return `name` unmodified. To find the repo, `registered_repos`
+        is looked up.
         """
         # TODO decide how to handle ambiguity
         for repo in lookup_path:
@@ -264,7 +265,7 @@ def resolve(path_or_name):
         return Repo()
 
     if is_valid_name(path_or_name):
-        return named(path_or_name)
+        return Repo.named(path_or_name)
 
     return Repo(path_or_name)
 

@@ -29,11 +29,11 @@ install-base:
   				${SHARE_DIR}/hooks	\
 			 	${SHARE_DIR}/env	\
 			 	${DESTDIR}/${PREFIX}/share/tuterm/scripts
-	install -Dm644 conf/config  		${SHARE_DIR}/
-	install -Dm644 conf/ignore  		${SHARE_DIR}/
-	install -Dm644 conf/repo    		${SHARE_DIR}/
-	install -Dm744 conf/hooks/* 		${SHARE_DIR}/hooks/
-	install -Dm744 conf/env/* 			${SHARE_DIR}/env/
+	install -Dm644 share/config     ${SHARE_DIR}/
+	install -Dm644 share/ignore     ${SHARE_DIR}/
+	install -Dm644 share/repo       ${SHARE_DIR}/
+	install -Dm744 share/hooks/*    ${SHARE_DIR}/hooks/
+	install -Dm744 share/env/*      ${SHARE_DIR}/env/
 
 uninstall:
 	rm -rf ${SHARE_DIR} ${DOC_DIR} \

@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 import sys
+import functools
 
 import tem
 from tem import config, ext, repo, util, errors
@@ -24,7 +25,7 @@ def load_system_config():
     cannot be read, print an error and exit.
     """
     failed = config.load(config.SYSTEM_PATHS)
-    if failed:
+    if failed and tem._meta.__version__ != "develop":
         print_cli_err(
             "the following system configuration files could not be read:",
             *failed,
@@ -61,6 +62,7 @@ def load_config_from_args(args):
 def subcommand(cmd):
     """Decorator for tem subcommand functions."""
 
+    @functools.wraps(cmd)
     def wrapper(args):
         try:
             # Transform RepoSpecs into absolute paths

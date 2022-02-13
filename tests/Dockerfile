@@ -1,5 +1,4 @@
-# TODO change to an exact version when possible
-FROM tem:latest
+FROM tem:develop
 
 USER root
 

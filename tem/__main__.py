@@ -32,12 +32,9 @@ from tem.cli import common as cli
 
 def init_user():
     """Initialize a user config file in a location with the highest priority"""
-    try:
-        existing_cfg = next(
-            path for path in config.USER_PATHS if os.path.exists(path)
-        )
-    except StopIteration:
-        existing_cfg = None
+    existing_cfg = next(
+        (path for path in config.USER_PATHS if os.path.exists(path)), None
+    )
     os.makedirs(tem.default_repo, exist_ok=True)
     if existing_cfg:
         cli.print_cli_err("configuration already exists at " + existing_cfg)

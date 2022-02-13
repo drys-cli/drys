@@ -12,17 +12,17 @@ def print_err(*args, **kwargs):
 
 
 def abspath(path):
-    """Get absolute path with ~ expanded."""
+    """Get absolute path with `~` expanded."""
     return os.path.abspath(os.path.expanduser(path))
 
 
 def basename(path):
-    """Get basename. Paths containing ~ are valid."""
+    """Get basename. Paths containing `~` are valid."""
     return os.path.basename(os.path.abspath(path))
 
 
 def dirname(path):
-    """Get dirname. Paths containing ~ are valid."""
+    """Get dirname. Paths containing `~` are valid."""
     return os.path.dirname(os.path.abspath(path))
 
 
@@ -34,8 +34,8 @@ def shortpath(path):
 # TODO try to remember where I wanted to use this?
 def explicit_path(path):
     """
-    If the path is relative, prepend './'. If the path is a directory, append a
-    '/'. In all other cases `path` is returned unmodified
+    If the path is relative, prepend `./`. If the path is a directory, append a
+    `/`. In all other cases `path` is returned unmodified
     """
     if (
         path

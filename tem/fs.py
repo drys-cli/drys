@@ -9,12 +9,7 @@ from subprocess import run
 
 import tem
 from tem import __prefix__, util
-from tem.errors import (
-    FileNotFoundError,
-    NotADirError,
-    NotATemDirError,
-    TemInitializedError,
-)
+from tem.errors import FileNotFoundError, NotATemDirError, TemInitializedError
 
 
 class TemDir(type(pathlib.Path())):
@@ -36,7 +31,12 @@ class TemDir(type(pathlib.Path())):
         This variable exists only if a tem shell plugin is active.
     """
 
-    def __new__(cls, path: os.PathLike):
+    def __new__(cls, path=None):
+        if not path:
+            # Use first parent directory that contains '.tem'
+            path = next(
+                p for p in iterate_hierarchy(".") if os.path.isdir(p / ".tem")
+            )
         path = os.path.abspath(path)
         if not os.path.exists(os.path.join(path, ".tem")):
             raise NotATemDirError(path)
@@ -62,15 +62,23 @@ class TemDir(type(pathlib.Path())):
 
     @property
     def dot_path(self):
+        """Return a `DotDir` representing `.tem/path`."""
         return DotDir(self / ".tem/path")
 
     @property
     def dot_env(self):
+        """Return a `DotDir` representing `.tem/env`."""
         return DotDir(self / ".tem/env")
 
     @property
     def dot_hooks(self):
+        """Return a `DotDir` representing `.tem/hooks`."""
         return DotDir(self / ".tem/hooks")
+
+    @property
+    def dot_files(self):
+        """Return a `DotDir` representing `.tem/files`."""
+        return DotDir(self / ".tem/files")
 
     @property
     def parent(self):
@@ -135,6 +143,16 @@ class TemDir(type(pathlib.Path())):
             files[i] = dest
 
         return TemDir(path)
+
+    @property
+    def _internal(self):
+        """
+        Get the `.tem/.internal` directory for this temdir. Will be
+        automatically created if necessary.
+        """
+        path = self / ".tem/.internal"
+        os.makedirs(path, exist_ok=True)
+        return path
 
 
 class DotDir:
@@ -209,10 +227,27 @@ class Environment:
 
 
 class Runnable(type(pathlib.Path())):
-    """An abstraction for executables and shell (incl. python) scripts."""
+    """An abstraction for executables and shell (including python) scripts."""
 
     def __init__(self, path):
         super().__init__(path)
 
     def brief(self):
         """Extract the brief comment from the runnable."""
+        raise NotImplementedError
+
+
+def iterate_hierarchy(path):
+    """
+    Iterate directory hierarchy upwards from ``path``.
+    Output paths are absolute.
+    """
+    path = os.path.abspath(path)
+
+    yield pathlib.Path(path)
+
+    while True:
+        path = os.path.dirname(path)
+        yield pathlib.Path(path)
+        if path == "/":
+            break

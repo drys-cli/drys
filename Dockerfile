@@ -11,7 +11,7 @@ USER user
 
 COPY Makefile Pipfile Pipfile.lock setup.py pyproject.toml LICENSE README.md ./
 RUN pipenv sync
-COPY conf conf
+COPY share share
 COPY tem tem
 
 USER root

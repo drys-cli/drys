@@ -1,2 +1,2 @@
-__prefix__ = "/usr"
-__version__ = "development"
+__prefix__ = '/usr/local'
+__version__ = 'develop'

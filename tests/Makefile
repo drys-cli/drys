@@ -21,8 +21,9 @@ BATS = "${TESTS}"/bats
 		_cli _py _protections
 
 docker-all:
-	@echo "\033[1;34mRunning docker...\033[0m"
-	@docker build -t tem "${PROJECT_ROOT}"
+	@echo "\033[1;34mDocker: Building tem:develop image...\033[0m"
+	@docker build -t tem:develop "${PROJECT_ROOT}"
+	@echo "\033[1;34mDocker: Building tem-tests image...\033[0m"
 	@docker build -t tem-tests "${TESTS}"
 	@docker run -a stdout -it tem-tests "${MAKE}" all
 
@@ -34,6 +35,7 @@ cli: _protections
 	@${PIPENV_RUN} "${MAKE}" -C "${TESTS}" _cli
 
 py: _protections
+	${PIPENV_RUN} python --version
 	@${PIPENV_RUN} "${MAKE}" -C "${TESTS}" _py
 
 # Tests for individual subcommands
