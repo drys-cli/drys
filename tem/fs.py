@@ -4,11 +4,12 @@ import glob
 import os
 import pathlib
 import subprocess
+from contextlib import suppress
 from functools import cached_property
 from subprocess import run
 
 import tem
-from tem import __prefix__, util
+from tem import util
 from tem.errors import FileNotFoundError, NotATemDirError, TemInitializedError
 
 
@@ -83,7 +84,11 @@ class TemDir(type(pathlib.Path())):
     @property
     def parent(self):
         """Parent directory. An instance of ``pathlib.Path``."""
-        return pathlib.Path(super().parent)
+        parent = pathlib.Path(super().parent)
+        try:
+            return TemDir(parent)
+        except NotATemDirError:
+            return parent
 
     @property
     def tem_parent(self):
@@ -113,7 +118,7 @@ class TemDir(type(pathlib.Path())):
         path = pathlib.Path(path)
         dot_tem = path / ".tem"
         # If temdir already exists, act according to the value of ``force``
-        try:
+        with suppress(NotATemDirError):
             temdir = TemDir(path)
             # At this point, we know that .tem/ exists
             if force:
@@ -121,8 +126,6 @@ class TemDir(type(pathlib.Path())):
             else:
                 raise TemInitializedError(path)
             return temdir
-        except NotATemDirError:
-            pass
 
         # Create directories
         os.makedirs(dot_tem, exist_ok=True)
@@ -134,7 +137,11 @@ class TemDir(type(pathlib.Path())):
             os.makedirs(dot_tem / f"{shell}-env", exist_ok=True)
             os.makedirs(dot_tem / f"{shell}-hooks", exist_ok=True)
 
-        share_dir = pathlib.Path(__prefix__ + "/share/tem")
+        share_dir = (
+            pathlib.Path(tem.__prefix__ + "/share/tem")
+            if tem.__version__ != "develop"
+            else pathlib.Path(os.environ.get("TEM_PROJECTROOT")) / "share"
+        )
 
         # Copy system default files to .tem/
         files = [share_dir / file for file in ["config", "ignore"]]

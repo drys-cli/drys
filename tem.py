@@ -17,12 +17,15 @@ from tem import __main__ as main
 
 
 tem_projectroot = next(
-    x for x in (
+    x
+    for x in (
         os.environ.get("TEM_PROJECTROOT"),
-        os.path.dirname(os.path.abspath(__file__))
+        os.path.dirname(os.path.abspath(__file__)),
     )
     if x
 )
+
+os.environ["TEM_PROJECTROOT"] = tem_projectroot
 
 # Prepend PWD to the PATH so that local modules are used over the global ones
 sys.path.insert(0, tem_projectroot)

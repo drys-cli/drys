@@ -13,9 +13,7 @@ def _default_cwd(func):
 
     @functools.wraps(func)
     def wrapper(path=None):
-        if path is None:
-            path = os.getcwd()
-        return func(path=path)
+        return func(path=path or os.getcwd())
 
     return wrapper
 

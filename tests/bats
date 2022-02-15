@@ -6,5 +6,5 @@
 # Usage: ./bats testname
 # - Runs the test cli/testname.bats
 
-cd "$PROJECT_ROOT"
+cd "$TEM_PROJECTROOT"
 pipenv run sh -c "cd $TESTS/cli && bats --formatter pretty --timing $1.bats"

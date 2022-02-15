@@ -13,7 +13,7 @@ print_help() {
 
 print_help
 
-for cmd_raw in "$PROJECT_ROOT"/tem/cli/*.py; do
+for cmd_raw in "$TEM_PROJECTROOT"/tem/cli/*.py; do
     cmd="$(basename ${cmd_raw%%.py})"
     # Ignore files starting with _ and some other files
     if [ -z "$(echo "$cmd" | sed -n '/^_/p')" ]\

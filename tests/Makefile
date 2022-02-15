@@ -1,7 +1,8 @@
 
-export ACTUAL_HOME ?= $(shell echo $$HOME)
-export PROJECT_ROOT = $(shell realpath ../)
-export TESTS        = $(shell realpath ./)
+export ACTUAL_HOME    ?= $(shell echo $$HOME)
+export TEM_PROJECTROOT = $(shell realpath ../)
+export TESTS           = $(shell realpath ./)
+
 ifdef __TEM_TESTS_INSIDE_DOCKER_CONTAINER__
 	# We are currently inside a docker container
     export OUTDIR   = /t
@@ -13,7 +14,7 @@ export HOME         = ${OUTDIR}
 export PATH         = $(shell echo "${TESTS}/cli/path:$$PATH")
 export DEFAULT_REPO = ${HOME}/.local/share/tem/repo
 
-PIPENV_RUN = cd "${PROJECT_ROOT}" && HOME="${ACTUAL_HOME}" pipenv run
+PIPENV_RUN = cd "${TEM_PROJECTROOT}" && HOME="${ACTUAL_HOME}" pipenv run
 BATS = "${TESTS}"/bats
 
 .PHONY: all cli py clean \
@@ -22,7 +23,7 @@ BATS = "${TESTS}"/bats
 
 docker-all:
 	@echo "\033[1;34mDocker: Building tem:develop image...\033[0m"
-	@docker build -t tem:develop "${PROJECT_ROOT}"
+	@docker build -t tem:develop "${TEM_PROJECTROOT}"
 	@echo "\033[1;34mDocker: Building tem-tests image...\033[0m"
 	@docker build -t tem-tests "${TESTS}"
 	@docker run -a stdout -it tem-tests "${MAKE}" all
@@ -75,7 +76,7 @@ _cli: _protections
 	@${BATS} git
 
 _py: _protections
-	@export PYTHONPATH="${PROJECT_ROOT}" \
+	@export PYTHONPATH="${TEM_PROJECTROOT}" \
 		&& pytest "${TESTS}/py" -s
 
 # Some redundancy to avoid making a mess of your system

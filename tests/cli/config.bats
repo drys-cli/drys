@@ -32,14 +32,14 @@ fi
     compare_output_expected
 }
 
-@test "tem config -f PROJECT_ROOT/share/config" {
+@test "tem config -f \$TEM_PROJECTROOT/share/config" {
 
-    run tem config -f "$PROJECT_ROOT/share/config"
+    run tem config -f "$TEM_PROJECTROOT/share/config"
 
     expected="$(
-        echo -e "\033[1;4m$PROJECT_ROOT/share/config:\033[0m"
+        echo -e "\033[1;4m$TEM_PROJECTROOT/share/config:\033[0m"
         echo "    "
-        cat "$PROJECT_ROOT/share/config" | sed -e '/^#/d' -e 's/^/    /'
+        cat "$TEM_PROJECTROOT/share/config" | sed -e '/^#/d' -e 's/^/    /'
         echo "    "
     )"
     [ $status = 0 ]
