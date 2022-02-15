@@ -1,16 +1,19 @@
 """Variables defined per directory."""
 import functools
+import importlib.util
 import inspect
 import os
+import shelve
+import sys
+import types
 import typing
-from typing import Any, Callable, Iterable, Union, overload
+from pathlib import Path
+from typing import Any, Iterable, Union, overload
 
-from tem import find, util
+import tem
+from tem import util, env
+from tem.env import Environment
 from tem.fs import TemDir
-
-
-class V:
-    """A namespace containing all tem variables in the current Environment."""
 
 
 class Variable:
@@ -55,6 +58,7 @@ class Variable:
 
     def _function_with_init_params(exclude_args: list[str] = []):
         """Modifies a function signature so it has Variable init parameters."""
+
         # We define this so that we don't have to maintain this signature in 3
         # different places, and also because of a python behavior:
         # Consider what happens when a Variable(bool) is instantiated:
@@ -69,11 +73,11 @@ class Variable:
         def decorator(actual_function):
             @functools.wraps(actual_function)
             def wrapper(
-                    self,
-                    var_type: Union[type, Any, Iterable[Any]] = Any,
-                    default=None,
-                    from_env: str = None,
-                    to_env: str = None,
+                self,
+                var_type: Union[type, Any, Iterable[Any]] = Any,
+                default=None,
+                from_env: str = None,
+                to_env: str = None,
             ):
                 """This function determines the parameters of __init__."""
                 return actual_function(
@@ -194,9 +198,9 @@ class Variant(Variable):
 
     value.__doc__ = ""  # Do not repeat it in sphinx autodoc output
 
-    # A graph that keeps track of variants that are mutually exclusive.
-    # Implemented as a dict[Variant, list[Variant]]
-    # Maps each variant to a list of variants that exclude it.
+    # An undirected graph that keeps track of variants that are mutually
+    # exclusive. Implemented as a dict[Variant, list[Variant]] that maps each
+    # variant to a list of variants that exclude it.
     _mutually_exclusive = {}
 
 
@@ -251,32 +255,185 @@ def when(condition: str):
     return decorator
 
 
-def load(temdir: TemDir = None, recursive=True, only_env=False):
-    """Load tem variables into the current program.
+class VariableContainer:
+    """
+    An object that serves as a namespace for tem variables. Variable values are
+    accessed as attributes.
 
     Parameters
     ----------
-    temdir
-        Temdir from which to load variables.
-    recursive
-        Load variables from all directories in the hierarchy, from the top down
-        until variables for ``temdir`` are loadedin an
-    only_env
-        Load variables only if ``temdir`` is in an active environment.
+    variable_dict: default=dict()
+        A dictionary of variables to be wrapped by this container. The
+        dictionary will automatically be filtered to contain only instances of
+        :class:`Variable`.
     """
-    if temdir is None:
-        temdir = TemDir()
+
+    def __init__(self, variable_dict=None):
+        # Get all public variables (of type `Variable`) from `variable_dict`
+        variable_dict = variable_dict or dict()
+        __dict__ = _filter_variables(variable_dict)
+        object.__setattr__(self, "__dict__", __dict__)
+
+    def __getattribute__(self, attr):
+        __dict__ = object.__getattribute__(self, "__dict__")
+        if not (__dict__ and attr in __dict__):
+            return object.__getattribute__(self, attr)
+
+        attribute = __dict__[attr]
+        if isinstance(attribute, Variable):
+            return __dict__[attr].value
+
+        return attribute
+
+    def __setattr__(self, attr, value):
+        attribute = object.__getattribute__(self, attr)
+        if isinstance(attribute, Variable):
+            attribute.value = value
+        else:
+            object.__setattr__(self, attr, value)
+
+    def __getitem__(self, name: str) -> Variable:
+        """Return the variable wrapped by this container named ``name``."""
+        return self.__dict__[name]
+
+    def __setitem__(self, name, definition: Variable):
+        """
+        Change the definition of the variable named ``name`` wrapped by this
+        container. Note that the new variable will have its default value.
+        """
+        self.__dict__[name] = definition
+
+    def __len__(self):
+        return len(self.__dict__)
 
 
-def save():
-    pass
+def load(source, defaults=False):
+    """
+    Load variables for the given ``temdir``.
+
+    Parameters
+    ----------
+    source: TemDir or Environment, default=None
+        Temdir or environment whose variables to load. Loading from an
+        environment will just load from each temdir in the environment. Defaults
+        to `env.current()`.
+    defaults
+        Use default variable values instead of stored values.
+    Returns
+    -------
+    variable_container
+        Instance of :class:`VariableContainer` that contains the loaded
+        variables.
+    """
+    source = source or env.current()
+
+    if isinstance(source, TemDir):
+        return _load(source, defaults=defaults)
+
+    if not isinstance(source, Environment):
+        raise TypeError("Argument 'source' must be a 'TemDir' or 'Environment'")
+
+    container = VariableContainer()
+
+    for temdir in reversed(source.envdirs):
+        _container = _load(temdir, defaults=defaults)
+        container = VariableContainer(container.__dict__)
+
+    return container
 
 
-def _load_for_single_directory(dir: TemDir):
-    pass
+def _load(temdir: TemDir, defaults=False):
+    """
+    Helper function for :func:`load` that returns loads variables from
+    ``temdir``.
+    """
+    if not os.path.isfile(temdir / ".tem/vars.py"):
+        return VariableContainer()
+    saved_vars_path = str(temdir._internal / "vars")
+    definitions = __load_variable_definitions(temdir / ".tem/vars.py")
+
+    # Try to load variables from temdir's variable store
+    if not defaults and os.path.isfile(saved_vars_path):
+        return __load_from_shelf(saved_vars_path)
+
+    return VariableContainer(definitions.__dict__ if definitions else None)
 
 
-###############################################################################
+def save(variable_container: VariableContainer, temdir: TemDir = None):
+    """
+    Save the variables from ``variable_container`` to the variable store of
+    ``temdir``.
+
+    Parameters
+    ----------
+    variable_container
+        Instance of :class:`VariableContainer` containing the variable values to
+        save.
+    temdir
+        Temdir where to save variables. Determined based on CWD by default.
+    See Also
+    --------
+    load: Load variables that were previously saved using :func:`save`.
+    """
+    temdir = temdir or TemDir()
+    file = str(temdir._internal / "vars")
+    store = shelve.open(file)
+
+    store["tem_version"] = tem.__version__
+    store["container"] = variable_container
+    store.close()
+
+
+def __load_variable_definitions(path):
+    definitions = _import_path("__tem_var_definitions", path)
+    definitions = type(
+        "VariableDefinitions",
+        (object,),
+        _filter_variables(definitions.__dict__),
+    )
+    return definitions
+
+
+def __load_from_shelf(file):
+    """Load a variable namespace object from variable store ``file``."""
+    print("Opening", file)
+    shelf = shelve.open(file)
+    container = shelf.get("container", VariableContainer())
+    shelf.close()
+    return container
+
+
+def _filter_variables(dictionary: dict) -> dict[str, Variable]:
+    """
+    Filter ``dictionary`` so only public values of type ``Variable`` remain.
+    Note: Variables are considered public if they don't start with an
+    underscore.
+    """
+    return {
+        key: val
+        for key, val in dictionary.items()
+        if isinstance(val, Variable) and not key.startswith("_")
+    }
+
+
+def _import_path(
+    module_name: str, path: Path, add_to_sys=False
+) -> types.ModuleType:
+    """Import a python file from ``path``."""
+    if not os.path.exists(path):
+        raise FileNotFoundError
+    if os.path.isdir(path):
+        raise NotImplementedError
+
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    if add_to_sys:
+        sys.modules[module_name] = module
+    return module
+
+
+################################################################################
 
 
 def active_variants() -> list[str]:

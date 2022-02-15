@@ -1,10 +1,18 @@
 import pytest
-import tem.find
+
 from tem import var
-from common import *  # isort: skip
+from tem.fs import TemDir
+from common import *
+
+TEMDIR = OUTDIR / "var/temdir"
 
 
 class TestVar:
+    @classmethod
+    def setup_class(cls):
+        recreate_dir(TEMDIR)
+        cls.temdir = TemDir.init(TEMDIR)
+
     def test_variable_constructor(self):
         # Integer, take default value for that type
         v = var.Variable(int)
@@ -47,5 +55,49 @@ class TestVar:
             v.value = 4
         # Both default and from_env specified
 
-    def test_var_decorator(self):
-        pass
+    def test_variable_container(self):
+        v = var.VariableContainer()
+        assert len(v) == 0
+
+        v1 = var.VariableContainer(dict(a=var.Variant(), b=var.Variant()))
+        assert type(v1["a"]) == var.Variant and type(v1["b"]) == var.Variant
+
+        v2 = var.VariableContainer(dict(a=var.Variant(), b=1))
+        assert len(v2) == 1  # b is not a Variant so it's filtered out
+        assert type(v2["a"]) == var.Variant
+
+        v3 = var.VariableContainer(dict(a=var.Variant()))
+        assert type(v3.a) == bool and type(v3["a"]) == var.Variant
+        assert not v3.a  # default variant value is False
+
+        v3.a = True
+        assert v3.a is v3["a"].value
+        assert v3.a
+
+    def test_load_save(self):
+        # Prepare
+        shutil.copy(TESTDIR / "var/vars.py", self.temdir / ".tem")
+
+        # Test
+
+        v = var.load(self.temdir)
+        assert not v.production
+        assert v.build_type == "release"
+
+        v.production = True
+        v.build_type = "debug"
+        assert v.production and v.build_type == "debug"
+
+        var.save(v, self.temdir)
+        v1 = var.load(self.temdir)
+        assert v1.production and v1.build_type == "debug"
+
+        v2 = var.load(self.temdir, defaults=True)
+        assert not v2.production
+        assert v2.build_type == "release"
+
+        with pytest.raises(TypeError):
+            var.load(self.temdir.parent / "nonexistent_temdir")
+
+    def test_load_from_env(self):
+        """TODO"""
