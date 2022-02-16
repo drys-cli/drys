@@ -37,18 +37,20 @@ You can use **tem** to:
 It is useful to know the basic terminology of **tem**:
 
    #. A *template* is a file or directory that is meant to be reused.
-   #. A *tem repository* is a directory where templates are stored. Any
+   #. A *tem repository* is a directory where templates are usually stored. Any
       directory can be a repository - no special requirements.
    #. A *local environment* is an environment that is active only when you enter
-      a directory.
-   #. A *tem directory* or *temdir* is a directory containing a `.tem/`
-      subdirectory.
+      a directory, or one of its subdirectories.
+   #. A *tem directory* or *temdir* is a directory that supports tem features.
+      Always contains a `.tem/` subdirectory.
    #. An *environment directory* or *envdir* is a *temdir* that takes part in
-      the active environment.
-   #. The *root directory* or *rootdir* is the topmost *envdir* in the 
-      directory hierarchy.
-   #. The *base directory* or *basedir* is the lowest *envdir* in the directory
+      the active local environment.
+   #. The *base directory* or *basedir* is the lowest *temdir* in the directory
       hierarchy.
+   #. The *root directory* or *rootdir* is the topmost *temdir* in the
+      directory hierarchy.
+   #. The *base envdir* is the lowest *envdir* in the directory hierarchy.
+   #. The *root envdir* is the topmost *envdir* in the directory hierarchy.
    #. A *dot directory* or *dotdir* is a direct subdirectory of a `.tem/`
       directory.
 

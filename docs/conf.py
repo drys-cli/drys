@@ -2,6 +2,9 @@ import glob
 import os
 import sys
 
+from sphinx.application import Sphinx
+from sphinx.domains import std
+
 # ┏━━━━━━━━━━━━━━┓
 # ┃ Project info ┃
 # ┗━━━━━━━━━━━━━━┛
@@ -20,14 +23,17 @@ release = tem.__version__
 extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.autodoc",
+    "sphinx_codeautolink",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx_rtd_dark_mode",
+    "sphinx_copybutton",
+    "sphinx-prompt",
+    "sphinx_toolbox.source",
 ]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "man"]
 todo_include_todos = True
 
-smartquotes = False  # Always display '--' verbatim
 default_role = "envvar"  # Like :code: role, but the text is black
 
 sys.path.insert(0, os.path.abspath(".."))
@@ -59,9 +65,18 @@ rst_prolog = generate_description_substitutions(rst_prolog)
 # ┏━━━━━━━━━━━━┓
 # ┃ Python doc ┃
 # ┗━━━━━━━━━━━━┛
+autodoc_member_order = "bysource"
+autodoc_typehints_format = "short"
 add_module_names = False
 autosummary_generate = True
 napoleon_custom_sections = ["Constants", "Attributes", "Returns", "Methods"]
+
+# ┏━━━━━━━━━━━━━━━━┓
+# ┃ Sphinx toolbox ┃
+# ┗━━━━━━━━━━━━━━━━┛
+github_username = "tem-cli"
+github_repository = "tem"
+source_link_target = "GitHub"
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ Specific steps for ReadTheDocs ┃
@@ -101,3 +116,30 @@ if os.environ.get("READTHEDOCS", False):
     def setup(app):
         app.connect('build-finished', build_finished_handler)
     """
+
+# ┏━━━━━━━━━━━━━━━━━━┓
+# ┃ Hacks and tricks ┃
+# ┗━━━━━━━━━━━━━━━━━━┛
+
+# Remove first two lines of docstring for `tem.var`
+def remove_module_docstring(app, what, name, obj, options, lines):
+    if what == "module" and name == "tem.var":
+        del lines[0]
+
+
+# TODO override so as to provide a way to automatically add :term: to all
+# occurrences of glossary words
+class GlossaryDirective(std.Glossary):
+    def run(self):
+        super().run()
+
+
+def setup(app: Sphinx):
+    app.connect("autodoc-process-docstring", remove_module_docstring)
+    app.connect("source-read", on_source_read)
+    app.add_directive("glossary", GlossaryDirective, override=True)
+
+
+def on_source_read(app, docname, source):
+    # TODO
+    pass

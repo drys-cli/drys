@@ -7,4 +7,4 @@
 # - Runs the test cli/testname.bats
 
 cd "$TEM_PROJECTROOT"
-pipenv run sh -c "cd $TESTS/cli && bats --formatter pretty --timing $1.bats"
+pipenv run sh -c "cd $TESTDIR/cli && bats --formatter pretty --timing $1.bats"

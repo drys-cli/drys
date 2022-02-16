@@ -26,7 +26,7 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
     git checkout -b tem-nvim            2>/dev/null
     git add **/nvimrc
     git commit -m "Add nvimrc files"    1>/dev/null
-    cd "$TESTS/cli"
+    cd "$TESTDIR/cli"
 fi
 
 @test "tem git --branch tem-vim" {

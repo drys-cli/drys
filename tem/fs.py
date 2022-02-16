@@ -106,10 +106,13 @@ class TemDir(type(pathlib.Path())):
     @staticmethod
     def init(path: os.PathLike, force: bool = False):
         """Initialize a temdir at ``path``.
+
         Parameters
         ----------
-        path: Path to initialize at.
-        force: Re-initialize temdir from scratch.
+        path
+            Path to initialize at.
+        force:
+            Re-initialize temdir from scratch.
         Returns
         -------
         temdir: TemDir

@@ -1,15 +1,36 @@
 #!/usr/bin/env tuterm
 
-# Setup
-tem --init-user
-mkdir proj
+cat_greetme_script() {
+    cat <<EOF
+#!/usr/bin/env sh
 
-run() {
-    m 'Welcome to tem tutorial'
-    c cd proj
-    c mkdir hello
-    c cd hello
-    c tem put cpp/main.cpp cpp/CMakeLists.txt
-    c ls
+# This file was created for you
+echo "Welcome to 'project'"
+
+EOF
 }
 
+run() {
+    # Setup
+    tem --init-user
+    mkdir project
+
+    m "Welcome to tem's tutorial!"
+    c cd project
+    M "Let's enable tem for this directory"
+    c tem init
+    M "Let's create a script that you can run any time you are in this directory"
+    e tem path --new --edit greetme
+    cat_greetme_script | tem path --new --edit greetme
+    M "The greetme script is now in tem's local PATH for this directory. Run it."
+    if mode tutorial; then
+        color 1 # Bold
+        echo "Next steps:"
+        echo "1. Run 'tem --help' to see a list of available commands"
+        echo "2. Run 'tuterm tem-<command>' (for example 'tuterm tem-add')"
+        echo " or"
+        echo "View the manual pages like 'man tem-<command>'"
+    fi
+}
+
+# vim: filetype=sh

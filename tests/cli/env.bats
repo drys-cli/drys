@@ -90,13 +90,13 @@ fi
 @test "tem env --add --force [MULTIPLE FILES]" {
     cd ~
     rm -f .tem/env/*
-    cp "$TESTS/cli/tem/env/unexecutable.sh" .tem/env/
+    cp "$TESTDIR/cli/tem/env/unexecutable.sh" .tem/env/
 
-    run tem env --add --force "$TESTS"/cli/tem/env/*
+    run tem env --add --force "$TESTDIR"/cli/tem/env/*
 
     expected=''
     compare_output_expected
-    [ "$(ls .tem/env)" = "$(ls "$TESTS/cli/tem/env")" ]
+    [ "$(ls .tem/env)" = "$(ls "$TESTDIR/cli/tem/env")" ]
 }
 
 @test "tem env --add [NONEXISTENT FILE]" {

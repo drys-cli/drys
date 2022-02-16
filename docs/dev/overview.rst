@@ -32,3 +32,19 @@ use, there is a ``tem.cli`` module that provides this.
 The module ``tem.util`` contains common functions that are used throughout the
 project. The idea is to place everything that can exist independently from the
 CLI here.
+
+Internal environment variables
+------------------------------
+
+.. glossary::
+
+   `__TEM_SHELL_SOURCE__`
+      Path to a file (preferably a FIFO) to which tem will echo shell commands,
+      which the shell wrapper is supposed to source. A more detailed explanation
+      can be found in :ref:`Shell<dev_shell>`.
+
+   `__TEM_SESSION_ID__`
+      TODO use this at all?
+      The id of the current tem session (TODO a long random string that
+      guarantees no collisions). It's used so that different shell sessions can
+      have separate environments.
