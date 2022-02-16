@@ -8,7 +8,7 @@ import sys
 import types
 import typing
 from pathlib import Path
-from typing import Any, Iterable, Union, overload
+from typing import Any, Dict, Iterable, List, Union
 
 import tem
 from tem import util, env
@@ -56,7 +56,7 @@ class Variable:
         if self._to_env:
             os.environ[self._to_env] = str(value)
 
-    def _function_with_init_params(exclude_args: list[str] = []):
+    def _function_with_init_params(exclude_args: List[str] = []):
         """Modifies a function signature so it has Variable init parameters."""
 
         # We define this so that we don't have to maintain this signature in 3
@@ -403,7 +403,7 @@ def __load_from_shelf(file):
     return container
 
 
-def _filter_variables(dictionary: dict) -> dict[str, Variable]:
+def _filter_variables(dictionary: dict) -> Dict[str, Variable]:
     """
     Filter ``dictionary`` so only public values of type ``Variable`` remain.
     Note: Variables are considered public if they don't start with an
@@ -436,24 +436,24 @@ def _import_path(
 ################################################################################
 
 
-def active_variants() -> list[str]:
+def active_variants() -> List[str]:
     return _read_variants()
 
 
-def activate(variants: list[str]):
+def activate(variants: List[str]):
     _write_variants(util.unique(active_variants() + variants))
 
 
-def deactivate(variants: list[str]):
+def deactivate(variants: List[str]):
     new = [var for var in active_variants() if var not in variants]
     _write_variants(new)
 
 
-def set_active_variants(variants: list[str]):
+def set_active_variants(variants: List[str]):
     _write_variants(util.unique(variants))
 
 
-def _read_variants() -> list[str]:
+def _read_variants() -> List[str]:
     """Read the active variants for the current."""
     if not os.path.exists(".tem/.internal/variants"):
         return []
@@ -461,7 +461,7 @@ def _read_variants() -> list[str]:
         return f.read().split("\n")
 
 
-def _write_variants(variants: list[str]):
+def _write_variants(variants: List[str]):
     if not os.path.exists(".tem/.internal"):
         os.mkdir(".tem/.internal")
     with open(".tem/.internal/variants", "w", encoding="utf-8") as f:

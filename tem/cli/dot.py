@@ -3,6 +3,7 @@ import os
 import select
 import subprocess
 import sys
+from typing import List
 
 from tem import ext, repo, util, env, errors
 from tem.errors import TemError
@@ -204,7 +205,7 @@ def create_new_files(dotdir, file_names, force):
 
 
 def add_existing_files(
-    dotdir: str, files: list[str], force: bool, create_symlinks: bool
+    dotdir: str, files: List[str], force: bool, create_symlinks: bool
 ):
     """Copy existing `files` into `dotdir`.
 
@@ -216,7 +217,7 @@ def add_existing_files(
         If True, symlinks will be created instead of hard copies.
     Returns
     -------
-    dest_files : list[str]
+    dest_files: List[str]
         Relative paths to the newly created files.
     """
     dest_files = []
@@ -256,7 +257,7 @@ def execute_files(files, verbose):
             sys.exit(1)
 
 
-def list_files(dotdir: str, file_names: list[str]):
+def list_files(dotdir: str, file_names: List[str]):
     """
     Parameters
     ----------
@@ -272,7 +273,7 @@ def list_files(dotdir: str, file_names: list[str]):
         sys.exit(p.returncode)
 
 
-def delete_files(dotdir: str, file_names: list[str]):
+def delete_files(dotdir: str, file_names: List[str]):
     any_problems = False
     for file in file_names:
         target_file = dotdir + "/" + file

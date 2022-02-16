@@ -277,14 +277,14 @@ def find_template(template: str, repos=None, at_most=-1):
     ----------
     template : str
         Path to template relative to the containing repo.
-    repos : list[int]
+    repos : List[int]
         Repositories to look up. A None value will use :data:`path`.
     at_most : int
         Return no more than this number of repositories.
 
     Returns
     -------
-    template_paths : list[str]
+    template_paths : List[str]
         List of absolute paths to templates under the given repos.
 
     Notes

@@ -7,6 +7,7 @@ import subprocess
 from contextlib import suppress
 from functools import cached_property
 from subprocess import run
+from typing import List
 
 import tem
 from tem import util
@@ -169,7 +170,7 @@ class DotDir:
     def __init__(self, path: os.PathLike):
         self.path = path
 
-    def exec(self, files: list[os.PathLike] = ["."], ignore_nonexistent=False):
+    def exec(self, files: List[os.PathLike] = ["."], ignore_nonexistent=False):
         """
         Execute the given file(s) as programs. Relative paths are relative to
         the dotdir.
@@ -221,7 +222,7 @@ class DotDir:
 
 
 class Environment:
-    class Path(list[str]):
+    class Path(List[str]):
         """A convenient abstraction of the PATH environment variable."""
 
         _path = os.environ.get("PATH", "")
