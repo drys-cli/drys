@@ -2,89 +2,225 @@
 
 if [ -z "$___WAS_RUN_BEFORE" ]; then
     begin_test 'var'
-    rm -rf ~/var
-    mkdir -p ~/var/.tem
+    for i in $(seq 1 7); do
+        rm -rf ~/var"$i"
+        mkdir -p ~/var"$i"/.tem
+        cp "$TESTDIR/var/vars.py" ~/var"$i"/.tem/vars.py
+    done
 fi
 
-@test "tem var -> default [INITIAL]" {
-    # Test if initially only the default variant is active
-    cd ~/var
+print_all_defaults() {
+    printf "%s\n" \
+        "str1 = 'val1'" \
+        "str2 = 'val3'" \
+        "bool1 = False" \
+        "bool2 = True"
+}
+
+print_all_variable_names() {
+    print_all_defaults | sed 's/\([^[:space:]]\) =.*/\1/'
+}
+
+@test "tem var <SINGLE ARG> [DEFAULT]" {
+    cd ~/var1
+
+    run tem var str1
+
+    expected="$(print_all_defaults | grep str1)"
+    compare_output_expected
+}
+
+@test "tem var [ALL, DEFAULTS]" {
+    cd ~/var1
 
     run tem var
 
     [ "$status" = 0 ]
-    expected="default"
+    expect print_all_defaults
     compare_output_expected
 }
 
-@test "tem var a b" {
-    # Activate variants 'a' and 'b'
-    cd ~/var
+@test "tem var -q [VARIANTS, DEFAULTS]" {
+    cd ~/var1
 
-    tem var a b
+    run tem var -q bool1
+    [ "$status" = 1 ]
 
-    output="$(cat .tem/.internal/variants)"
-    expected=a$'\n'b
+    run tem var -q bool2
+    [ "$status" = 0 ]
+
+    run tem var -q bool1 bool2
+    [ "$status" = 1 ]
+}
+
+@test "tem var -q [STRINGS, DEFAULTS]" {
+    cd ~/var1
+
+    run tem var -q str1:val1
+    [ "$status" = 0 ]
+
+    run tem var -q str1:nonexistent
+    [ "$status" = 1 ]
+
+    run tem var -q str1:val1 str2:val3
+    [ "$status" = 0 ]
+
+    run tem var -q str1:val1 str2:nonexistent
+    [ "$status" = 1 ]
+}
+
+# Tests that modify the state
+
+# NOTE: TOGGLE test depends on this
+@test "tem var [ASSIGNMENT]" {
+    cd ~/var2
+
+    run tem var str1=val2
+
+    [ "$status" = 0 ]
+    expect printf "%s\n" "str1 = 'val2'"
+    compare_output_expected
+
+    run tem var bool1=true
+
+    [ "$status" = 0 ]
+    expect printf "%s\n" "bool1 = True"
     compare_output_expected
 }
 
-@test "tem var" {
-    # List variants. NOTE: depends on previous test.
-    cd ~/var
+# NOTE: Depends on ASSIGNMENT test
+@test "tem var bool1! [TOGGLE]" {
+    cd ~/var3
+
+    run tem var bool1!
+
+    [ "$status" = 0 ]
+    expect printf "%s\n" "bool1 = True"
+    compare_output_expected
+}
+
+# Miscellaneous tests
+
+@test "tem var [EDITED BEFOREHAND]" {
+    cd ~/var4
+    tem var str1=val2 bool1=True bool2=False
 
     run tem var
 
     [ "$status" = 0 ]
-    expected=a$'\n'b
+    expect printf "%s\n" "str1 = 'val2'" "str2 = 'val3'" "bool1 = True" "bool2 = False"
     compare_output_expected
 }
 
-@test "tem var c --verbose" {
-    # Activate 'c' and list all active variants. NOTE: depends on previous tests
-    cd ~/var
+@test "tem var -q <MISCELLANEOUS> [EDITED BEFOREHAND]" {
+    cd ~/var5
+    tem var str1=val2 bool1=True bool2=False
 
-    run tem var c --verbose
-
-    echo "$output"
-    [ "$status" = 0 ]
-    expected=a$'\n'b$'\n'c
-    compare_output_expected
-}
-
-@test "tem var --exclusive e ee" {
-    # Make 'e' the only active variant.
-    cd ~/var
-
-    run tem var --exclusive e ee --verbose
-
-    expected=e$'\n'ee
-    compare_output_expected
-}
-
-@test "tem var --deactivate d" {
-    # Activate 'd' and deactivate it.
-    cd ~/var
-    initial_state="$(tem var --exclusive a b c --verbose)"
-    tem var --activate d
-
-    run tem var --deactivate d --verbose
+    run tem var -q str:val2 bool1 bool2:false
 
     [ "$status" = 0 ]
-    expected="$initial_state"
+}
+
+@test "tem var <MISCELLANEOUS>" {
+    cd ~/var6
+
+    run tem var str1 bool1! str2=val4 bool2=false
+
+    [ "$status" = 0 ]
+    expect printf "%s\n" \
+        "str1 = 'val1'" \
+        "bool1 = True" \
+        "str2 = 'val4'" \
+        "bool2 = False"
     compare_output_expected
 }
 
-@test "tem var --query [VARIOUS]" {
-    # NOTE: depends on previous test.
-    cd ~/var
+# Errors
 
-    tem var --query a
-    tem var --query b
-    tem var --query a b c
-    run tem var --query d
-
-    [ "$status" != 0 ]
+warning() {
+    echo "tem var: warning:" "$@"
 }
+
+warn_undefined() {
+    warning "variable '$1' is not defined"
+}
+
+warn_bad_value() {
+    warning "value '$2' does not match type for variable '$1'"
+}
+
+warn_toggle_only_variant() {
+    warning "invalid expression: $1 (only variants can be toggled)"
+}
+
+warn_query_only_variant() {
+    warning "invalid expression: $1 (only variants can be queried this way)"
+}
+
+err_invalid_expressions() {
+    echo "tem var: error: none of the specified expressions are valid"
+}
+
+@test "tem var <nonexistent>" {
+    cd ~/var7
+
+    run tem var nonexistent=1 2>&1
+
+    [ "$status" = 1 ]
+    expected="$(
+        warn_undefined nonexistent
+        err_invalid_expressions
+    )"
+    compare_output_expected
+
+    run tem var nonexistent=1 str1=val2 2>&1
+
+    [ "$status" = 0 ]
+    expected="$(
+        warn_undefined nonexistent
+        echo "str1 = 'val2'"
+    )"
+    compare_output_expected
+}
+
+@test "tem var str1=<bad_value>" {
+    cd ~/var7
+
+    run tem var str1=bad_value 2>&1
+
+    [ "$status" = 1 ]
+    expected="$(
+        warn_bad_value str1 bad_value
+        err_invalid_expressions
+    )"
+    compare_output_expected
+}
+
+@test "tem var str1! [TOGGLE NON-VARIANT]" {
+    cd ~/var7
+
+    run tem var str1! 2>&1
+    [ "$status" = 1 ]
+    expected="$(
+        warn_toggle_only_variant str1!
+        err_invalid_expressions
+    )"
+    compare_output_expected
+}
+
+# TODO
+@test "tem var -q str1" {
+    return
+    cd ~/var7
+    run tem var -q str1 str2:val3 2>&1
+    [ "$status" = 1 ]
+    expected="$(warn_query_only_variant str1; warn_)"
+    compare_output_expected
+}
+
+#@test "tem var "
+
+#@test "tem var -q "
 
 export ___WAS_RUN_BEFORE=true
 

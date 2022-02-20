@@ -2,3 +2,5 @@ docs
 tests
 tem.py
 Dockerfile
+
+.tem/

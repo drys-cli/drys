@@ -7,10 +7,12 @@ begin_test() {
 }
 expect()    { expected="$("$@")"; }
 compare_output_expected() {
-    echo        "Unexpected output."
-    echo -e     "### Output:\n$output"
-    echo -e     "### Expected:\n$expected"
-    [ "$output" = "$expected" ]
+    if [ "$output" != "$expected" ]; then
+        echo        "Unexpected output."
+        echo -e     "### Output:\n$output"
+        echo -e     "### Expected:\n$expected"
+        false
+    fi
 }
 
 # Compare the contents of the directory at $1 with the files specified in the

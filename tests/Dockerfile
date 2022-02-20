@@ -21,11 +21,10 @@ WORKDIR tests
 USER root
 # For easier manual inspection of the directory structure created by tests
 RUN mkdir /t && chown -R user /t
-RUN mkdir -p cli \
-    && chown -R user .
 # Flag for make
 ENV __TEM_TESTS_INSIDE_DOCKER_CONTAINER__ true
-COPY . .
+VOLUME /home/user/tem/tests
+RUN chown -R user .
 
 USER user
 CMD make all; cd /t && exec sh
