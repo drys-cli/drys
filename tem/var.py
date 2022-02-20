@@ -8,11 +8,12 @@ import sys
 import types
 import typing
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Union
+from typing import Any, Dict, Iterable, List, Tuple, Union
 
 import tem
-from tem import util, env
+from tem import env, util
 from tem.env import Environment
+from tem.errors import TemVariableValueError
 from tem.fs import TemDir
 
 
@@ -51,7 +52,7 @@ class Variable:
     def value(self, value):
         """Set the variable value."""
         if not self._matches_type(value, self.var_type):
-            raise ValueError("'value' must match 'var_type'")
+            raise TemVariableValueError(value=value)
         self._value = value
         if self._to_env:
             os.environ[self._to_env] = str(value)
@@ -111,17 +112,17 @@ class Variable:
         to_env = kwargs["to_env"]
         if var_type == Any:
             var_type = None
-        if (
-            var_type and not isinstance(var_type, (type, Iterable))
-        ) or isinstance(var_type, (str, bytes)):
+        if var_type and not isinstance(var_type, (type, list)):
             raise TypeError(
-                "'var_type' must be a type or an iterable containing allowed"
+                "'var_type' must be a type or a list containing allowed"
                 "values"
             )
         if default is not None and from_env is not None:
             raise ValueError("You can use only one of: 'default', 'from_env'")
         if default is not None and not self._matches_type(default, var_type):
-            raise ValueError("The type of 'default' must match 'var_type'")
+            raise TemVariableValueError(
+                "The type of 'default' must match 'var_type'"
+            )
 
         self.var_type = var_type
         self._to_env = to_env
@@ -306,8 +307,11 @@ class VariableContainer:
     def __len__(self):
         return len(self.__dict__)
 
+    def __iter__(self):
+        return (variable for variable in self.__dict__)
 
-def load(source, defaults=False):
+
+def load(source=None, defaults=False):
     """
     Load variables for the given ``temdir``.
 
@@ -325,38 +329,45 @@ def load(source, defaults=False):
         Instance of :class:`VariableContainer` that contains the loaded
         variables.
     """
-    source = source or env.current()
+    source = source or env.current() or Environment()
 
     if isinstance(source, TemDir):
-        return _load(source, defaults=defaults)
+        return VariableContainer(_load(source, defaults=defaults)[0])
 
     if not isinstance(source, Environment):
-        raise TypeError("Argument 'source' must be a 'TemDir' or 'Environment'")
+        raise TypeError(
+            "Argument 'source' must be a 'TemDir' or 'Environment'"
+        )
 
+    # Container of variable definitions and loaded values
     container = VariableContainer()
+    # Variable definitions, along with default values
+    definitions = dict()
 
     for temdir in reversed(source.envdirs):
-        _container = _load(temdir, defaults=defaults)
-        container = VariableContainer(container.__dict__)
+        _container, _definitions = _load(temdir, defaults=defaults)
+        definitions = {**definitions, **_definitions}
+        container = VariableContainer({**container.__dict__, **_container})
+
+    container = VariableContainer({**definitions, **container.__dict__})
 
     return container
 
 
-def _load(temdir: TemDir, defaults=False):
+def _load(temdir: TemDir, defaults=False) -> Tuple[Dict, Dict]:
     """
     Helper function for :func:`load` that returns loads variables from
     ``temdir``.
     """
     if not os.path.isfile(temdir / ".tem/vars.py"):
-        return VariableContainer()
+        return dict(), dict()
     saved_vars_path = str(temdir._internal / "vars")
     definitions = __load_variable_definitions(temdir / ".tem/vars.py")
-
     # Try to load variables from temdir's variable store
     if not defaults and os.path.isfile(saved_vars_path):
-        return __load_from_shelf(saved_vars_path)
+        return __load_from_shelf(saved_vars_path), definitions
 
-    return VariableContainer(definitions.__dict__ if definitions else None)
+    return definitions, definitions
 
 
 def save(variable_container: VariableContainer, temdir: TemDir = None):
@@ -380,27 +391,21 @@ def save(variable_container: VariableContainer, temdir: TemDir = None):
     store = shelve.open(file)
 
     store["tem_version"] = tem.__version__
-    store["container"] = variable_container
+    store["container"] = variable_container.__dict__
     store.close()
 
 
-def __load_variable_definitions(path):
+def __load_variable_definitions(path) -> Dict[str, Variable]:
     definitions = _import_path("__tem_var_definitions", path)
-    definitions = type(
-        "VariableDefinitions",
-        (object,),
-        _filter_variables(definitions.__dict__),
-    )
-    return definitions
+    return _filter_variables(definitions.__dict__)
 
 
-def __load_from_shelf(file):
+def __load_from_shelf(file) -> Dict[str, Variable]:
     """Load a variable namespace object from variable store ``file``."""
-    print("Opening", file)
     shelf = shelve.open(file)
-    container = shelf.get("container", VariableContainer())
+    variables = shelf.get("container", dict())
     shelf.close()
-    return container
+    return variables
 
 
 def _filter_variables(dictionary: dict) -> Dict[str, Variable]:

@@ -9,7 +9,7 @@ import sys
 import functools
 
 import tem
-from tem import config, ext, repo, util, errors
+from tem import config, ext, repo, util, errors, env
 
 from ..repo import RepoSpec
 from ..util import print_err

@@ -11,7 +11,12 @@ from typing import List
 
 import tem
 from tem import util
-from tem.errors import FileNotFoundError, NotATemDirError, TemInitializedError
+from tem.errors import (
+    FileNotFoundError,
+    NotATemDirError,
+    NoTemDirInHierarchy,
+    TemInitializedError,
+)
 
 
 class TemDir(type(pathlib.Path())):
@@ -37,8 +42,15 @@ class TemDir(type(pathlib.Path())):
         if not path:
             # Use first parent directory that contains '.tem'
             path = next(
-                p for p in iterate_hierarchy(".") if os.path.isdir(p / ".tem")
+                (
+                    p
+                    for p in iterate_hierarchy(".")
+                    if os.path.isdir(p / ".tem")
+                ),
+                None,
             )
+            if not path:
+                raise NoTemDirInHierarchy(os.getcwd())
         path = os.path.abspath(path)
         if not os.path.exists(os.path.join(path, ".tem")):
             raise NotATemDirError(path)

@@ -1,6 +1,7 @@
 import pytest
 
 from tem import var
+from tem import errors
 from tem.fs import TemDir
 from common import *
 
@@ -43,17 +44,20 @@ class TestVar:
         with pytest.raises(TypeError):
             var.Variable("type")
         # Unmatched variable type and default value
-        with pytest.raises(ValueError):
+        with pytest.raises(errors.TemVariableValueError):
             var.Variable(bool, 1)
         v = var.Variable(bool)
         # Calling setter with unmatched var_type (type is a python type)
-        with pytest.raises(ValueError):
+        with pytest.raises(errors.TemVariableValueError):
             v.value = 1
         # Calling setter with unmatched type (type is a list of values)
         v = var.Variable([1, "2", 3.0])
-        with pytest.raises(ValueError):
+        with pytest.raises(errors.TemVariableValueError):
             v.value = 4
         # Both default and from_env specified
+
+    def test_variable_container_utility_functions(self):
+        """TODO"""
 
     def test_variable_container(self):
         v = var.VariableContainer()
@@ -75,26 +79,23 @@ class TestVar:
         assert v3.a
 
     def test_load_save(self):
-        # Prepare
         shutil.copy(TESTDIR / "var/vars.py", self.temdir / ".tem")
 
-        # Test
-
         v = var.load(self.temdir)
-        assert not v.production
-        assert v.build_type == "release"
+        assert not v.bool1
+        assert v.str1 == "val1"
 
-        v.production = True
-        v.build_type = "debug"
-        assert v.production and v.build_type == "debug"
+        v.bool1 = True
+        v.str1 = "val2"
+        assert v.bool1 and v.str1 == "val2"
 
         var.save(v, self.temdir)
         v1 = var.load(self.temdir)
-        assert v1.production and v1.build_type == "debug"
+        assert v1.bool1 and v1.str1 == "val2"
 
         v2 = var.load(self.temdir, defaults=True)
-        assert not v2.production
-        assert v2.build_type == "release"
+        assert not v2.bool1
+        assert v2.str1 == "val1"
 
         with pytest.raises(TypeError):
             var.load(self.temdir.parent / "nonexistent_temdir")

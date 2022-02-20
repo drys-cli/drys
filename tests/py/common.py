@@ -11,8 +11,10 @@ if not OUTDIR:
     )
 # Python test output goes to py/ subdirectory of generic test output directory
 OUTDIR = pathlib.Path(OUTDIR) / "py"
-#: Directory containing python test modules
-TESTDIR = pathlib.Path(__file__).parent
+#: Absolute path to directory containing python test modules
+PY_TESTDIR = pathlib.Path(__file__).parent
+#: Absolute path to tests/ directory
+TESTDIR = PY_TESTDIR.parent
 
 
 def recreate_dir(path):

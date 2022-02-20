@@ -18,7 +18,9 @@ class TemError(Exception):
     def __init__(self, *args, **kwargs):
         super().__init__(self, *args, **kwargs)
         self._additional_text = ""
-        if isinstance(args[0], str):
+        if not args:
+            self._brief = __class__._brief
+        elif isinstance(args[0], str):
             self._brief = args[0]
 
     def cli(self):
@@ -83,7 +85,15 @@ class NotADirError(PathError):
 
 class NotATemDirError(PathError):
     def cli(self):
-        return f"'{abspath(self.path)}' is not a temdir"
+        return (
+            f"'{abspath(self.path)}' is not a temdir\n"
+            f"Try running `tem init` first."
+        )
+
+
+class NoTemDirInHierarchy(PathError):
+    def cli(self):
+        return f"no temdir in filesystem hierarchy of '{abspath(self.path)}'"
 
 
 class TemInitializedError(PathError):
@@ -124,6 +134,21 @@ class TemplateNotFoundError(TemError):
             f"template '{self.template_name}' could not be found in the "
             "available repositories"
         )
+
+
+# tem.var
+
+
+class TemVariableValueError(TemError, ValueError):
+    def __init__(self, *args, name=None, value=None):
+        if name is not None:
+            self.name = name
+        if value is not None:
+            self.value = value
+        super().__init__(*args)
+
+    def cli(self):
+        return "variable value must match variable type"
 
 
 #: Tuple of all tem error classes

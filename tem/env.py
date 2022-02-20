@@ -2,7 +2,7 @@
 import os
 
 import tem
-from tem import util
+from tem import find, fs, util
 from tem.errors import NotADirError
 from tem.fs import DotDir, TemDir
 
@@ -23,48 +23,46 @@ class Environment:
     def __init__(self, basedir: TemDir = None, recursive=True):
         basedir = TemDir(basedir)  # throws if basedir can't be cast
         #: All temdirs that take part in this environment
-        self._envdirs = [basedir]
-        directory = basedir
-
         if recursive:
-            while True:
-                directory = directory.tem_parent
-                if not directory:
-                    break
-                self._envdirs.insert(0, directory)
+            self._envdirs = list(find.parent_temdirs(basedir))
+        else:
+            self._envdirs = [basedir]
 
         self._path = []
 
     @property
-    def path(self, path):
+    def execpath(self):
         """Return the list of `PATH` entries injected by this environment."""
         # TODO need to think if I want to take the PATH from environ, or store
         # it somehow
         return self._path
 
-    @path.setter
-    def path(self, path):
+    @execpath.setter
+    def execpath(self, path):
         self._path = path
-        global _current
         if _current == self:
             path_prepend_unique(self._path)
 
-    def activate(self):
+    def deactivate(self):
+        """Deactivate this environment."""
         global _current
-        _current = self
-        for envdir in self.envdirs:
-            envdir.dot_env.exec()
-        # FIXME not completely implemented
+        if _current is self:
+            _current = None
 
-    @classmethod
-    def deactivate(cls):
-        global _current
-        _current = None
+
+def activate(environment: Environment = None):
+    """
+    Set ``environment`` as the currently active one (as in
+    :func:`current`). If ``environment`` is omitted, the one based on the CWD
+    will be activated.
+    """
+    environment = environment or Environment()
+    global _current
+    _current = environment
 
 
 def current() -> Environment:
     """Get the currently active application-wide environment."""
-    global _current
     return _current
 
 

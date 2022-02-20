@@ -1,8 +1,11 @@
 """Find various tem-related stuff."""
 import functools
 import os
+from typing import Iterator
 
-from tem import env, fs
+from tem import fs
+from tem.errors import NotATemDirError
+from tem.fs import TemDir
 
 
 def _default_cwd(func):
@@ -35,13 +38,17 @@ def parents_with_dotdir(path, dotdir: str):
 
 
 @_default_cwd
-def parent_temdirs(path=None):
+def parent_temdirs(path=None) -> Iterator[TemDir]:
     """
     Return temdirs that are parents of the directory at ``path``, from leaf to
-    root, as absolute paths.
+    root, as absolute paths. ``path`` is included in the output.
     """
 
-    return parents_with_subdir(path, ".tem")
+    for directory in fs.iterate_hierarchy(path):
+        try:
+            yield TemDir(directory)
+        except NotATemDirError:
+            continue
 
 
 @_default_cwd
@@ -54,13 +61,3 @@ def basedir(path: os.PathLike = None):
 def rootdir(path=None):
     """Return the root temdir in the hierarchy that ``path`` belongs to."""
     return next(parent_temdirs(path))
-
-
-def base_envdir():
-    """Return the base envdir in the hierarchy that ``path`` belongs to."""
-    return env.current()
-
-
-def root_envdir():
-    """Return the root envdir in the hierarchy that ``path`` belongs to."""
-    return env.current().rootdir
