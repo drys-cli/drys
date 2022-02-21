@@ -21,6 +21,10 @@ print_all_variable_names() {
     print_all_defaults | sed 's/\([^[:space:]]\) =.*/\1/'
 }
 
+# ┏━━━━━━━┓
+# ┃ Tests ┃
+# ┗━━━━━━━┛
+
 @test "tem var <SINGLE ARG> [DEFAULT]" {
     cd ~/var1
 
@@ -116,7 +120,7 @@ print_all_variable_names() {
     cd ~/var5
     tem var str1=val2 bool1=True bool2=False
 
-    run tem var -q str:val2 bool1 bool2:false
+    run tem var -q str1:val2 bool1 bool2:false
 
     [ "$status" = 0 ]
 }
@@ -135,10 +139,16 @@ print_all_variable_names() {
     compare_output_expected
 }
 
-# Errors
+# ┏━━━━━━━━━━━━━┓
+# ┃ Error tests ┃
+# ┗━━━━━━━━━━━━━┛
 
 warning() {
     echo "tem var: warning:" "$@"
+}
+
+err() {
+    echo "tem var: error:" "$@"
 }
 
 warn_undefined() {
@@ -149,16 +159,24 @@ warn_bad_value() {
     warning "value '$2' does not match type for variable '$1'"
 }
 
+warn_invalid_expression() {
+    warning "invalid expression: $1"
+}
+
 warn_toggle_only_variant() {
     warning "invalid expression: $1 (only variants can be toggled)"
 }
 
-warn_query_only_variant() {
-    warning "invalid expression: $1 (only variants can be queried this way)"
+err_query_only_variant() {
+    err "invalid expression: $1 (only variants can be queried this way)"
+}
+
+err_invalid_expression() {
+    err "invalid expression: $1"
 }
 
 err_invalid_expressions() {
-    echo "tem var: error: none of the specified expressions are valid"
+    err "none of the specified expressions are valid"
 }
 
 @test "tem var <nonexistent>" {
@@ -179,6 +197,19 @@ err_invalid_expressions() {
     expected="$(
         warn_undefined nonexistent
         echo "str1 = 'val2'"
+    )"
+    compare_output_expected
+}
+
+@test "tem var str1!- [BAD SYNTAX]" {
+    cd ~/var7
+
+    run tem var str1!-
+
+    [ "$status" = 1 ]
+    expected="$(
+        warn_invalid_expression str1!-
+        err_invalid_expressions
     )"
     compare_output_expected
 }
@@ -208,19 +239,25 @@ err_invalid_expressions() {
     compare_output_expected
 }
 
-# TODO
-@test "tem var -q str1" {
-    return
+@test "tem var -q str1 [QUERY NON-VARIANT AS VARIANT]" {
     cd ~/var7
+
     run tem var -q str1 str2:val3 2>&1
+
     [ "$status" = 1 ]
-    expected="$(warn_query_only_variant str1; warn_)"
+    expect err_query_only_variant str1
     compare_output_expected
 }
 
-#@test "tem var "
+@test "tem var -q bool1! [BAD SYNTAX]" {
+    cd ~/var7
 
-#@test "tem var -q "
+    run tem var -q bool1! 2>&1
+
+    [ "$status" = 1 ]
+    expect err_invalid_expression bool1!
+    compare_output_expected
+}
 
 export ___WAS_RUN_BEFORE=true
 

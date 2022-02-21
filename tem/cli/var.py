@@ -43,17 +43,14 @@ def setup_parser(p):
         help="restore variables to their default values",
     )
     actions.add_argument(
-        "-l",
-        "--list",
-        action="store_true",
-        help="list all defined variables"
+        "-l", "--list", action="store_true", help="list all defined variables"
     )
 
     modifiers.add_argument(
         "-d",
         "--defaults",
         action="store_true",
-        help="do not read stored values, only defaults"
+        help="do not read stored values, only defaults",
     )
     modifiers.add_argument(
         "-v",
@@ -97,10 +94,19 @@ def print_name_value(var_name, verbosity=None):
 
 
 class Expression:
+    """
+    Represents any expression supported by the `tem var` command. Subclasses
+    must raise a `SyntaxError` on any error, with an optional error message as
+    its argument.
+    """
+
     @classmethod
     def _ast_parse(cls, expr: str) -> ast.stmt:
-        parsed = ast.parse(expr)
-        if len(parsed.body) != 1:
+        try:
+            parsed = ast.parse(expr)
+            if len(parsed.body) != 1:
+                raise SyntaxError
+        except SyntaxError:
             raise SyntaxError
         return parsed.body[0]
 
@@ -130,15 +136,17 @@ class Expression:
         """
         if variable.var_type == str:
             return expr
-        elif isinstance(variable.var_type, list) and all(isinstance(t, str) for t in variable.var_type):
+        elif isinstance(variable.var_type, list) and all(
+            isinstance(t, str) for t in variable.var_type
+        ):
             # Variable type is a list of string values
             return expr
         try:
             return cls._ast_constant(expr).value
         except SyntaxError:
             if variable.var_type in (bool, None) and expr in (
-                    "true",
-                    "false",
+                "true",
+                "false",
             ):
                 return expr == "true"
             elif variable.var_type is None:
@@ -161,10 +169,11 @@ class SimpleExpression(Expression, ABC):
                 return Assign(expr)
             elif expr.endswith("!"):
                 return Toggle(expr)
+            else:
+                return Get(expr)
         except SyntaxError as e:
-            text = expr + (f" ({e})" if str(e) else "")
+            text = expr + (f" ({e})" if str(e) != "None" else "")
             raise SyntaxError(text)
-        return Get(expr)
 
 
 class Assign(SimpleExpression):
@@ -209,22 +218,20 @@ class Get(SimpleExpression):
 
 class Query(Expression):
     def __init__(self, expr: str):
-        if ":" not in expr:
-            try:
+        try:
+            if ":" not in expr:
                 self.var_name = self._ast_name(expr).id
-            except SyntaxError:
-                cli.exit_code = 1
-                raise SyntaxError
-            self.rhs = None
-        else:
-            _left, _right = expr.split(":", maxsplit=1)
-            left = self._ast_name(_left).id
-            self.var_name = left
-            self.rhs = self._parse_rhs(_right, variable=var_container[left])
+            else:
+                _left, _right = expr.split(":", maxsplit=1)
+                left = self._ast_name(_left).id
+                self.var_name = left
+                self.rhs = self._parse_rhs(_right, variable=var_container[left])
+        except SyntaxError:
+            raise SyntaxError(expr)
 
     def execute(self):
         variable = var_container[self.var_name]
-        if self.rhs is None:
+        if not hasattr(self, "rhs"):
             # The expression is a name of a variable (must be a variant)
             if not isinstance(variable, Variant):
                 raise SyntaxError(
@@ -240,7 +247,10 @@ class Query(Expression):
 
 
 class handle_expression_exceptions:
-    """A reusable try block for printing errors from exceptions."""
+    """
+    A reusable try block for raising SyntaxErrors with descriptions from various
+    exceptions.
+    """
 
     def __enter__(self):
         pass
@@ -249,26 +259,26 @@ class handle_expression_exceptions:
         if exc_type is None:
             return
         if issubclass(exc_type, SyntaxError):
-            cli.print_cli_warn("invalid expression:", exc)
-            return True
+            raise SyntaxError(f"invalid expression: {exc}")
         elif issubclass(exc_type, KeyError):
-            cli.print_cli_warn(f"variable {exc} is not defined")
-            return True
+            raise SyntaxError(f"variable {exc} is not defined")
         elif issubclass(exc_type, TemVariableValueError):
             val = repr(exc.value)
-            cli.print_cli_warn(
+            raise SyntaxError(
                 f"value {val} does not match type for variable '{exc.name}'"
             )
-            return True
 
 
 def process_default_expressions():
     any_successful = False
     all_variable_names = args.expressions or var_container
     for expr in all_variable_names:
-        with handle_expression_exceptions():
-            SimpleExpression(expr).execute()
-            any_successful = all_variable_names
+        try:
+            with handle_expression_exceptions():
+                SimpleExpression(expr).execute()
+                any_successful = all_variable_names
+        except SyntaxError as e:
+            cli.print_cli_warn(e)
 
     if not any_successful and all_variable_names:
         cli.print_cli_err("none of the specified expressions are valid")
@@ -276,14 +286,16 @@ def process_default_expressions():
 
 
 def process_query_expressions():
-    any_successful = False
+    any_failed = False
     for expr in args.expressions:
-        with handle_expression_exceptions():
-            Query(expr).execute()
-            any_successful = True
+        try:
+            with handle_expression_exceptions():
+                Query(expr).execute()
+        except SyntaxError as e:
+            cli.print_cli_err(e)
+            any_failed = True
 
-    if args.expressions and not any_successful:
-        cli.print_cli_err("none of the specified expressions are valid")
+    if any_failed:
         cli.exit_code = 1
 
 
@@ -300,9 +312,3 @@ def cmd(args):
     elif args.query:
         process_query_expressions()
     var.save(var_container)
-
-    return
-    # This will run either when the --verbose option is given, or when
-    # this command is run simply as `tem var`
-    if args.verbosity:
-        raise NotImplementedError

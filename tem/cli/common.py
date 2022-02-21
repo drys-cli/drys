@@ -81,7 +81,7 @@ def subcommand(cmd):
             sys.exit(exit_code)
         except errors.all_errors as e:
             print_cli_err(e.cli())
-            sys.exit(1)
+            sys.exit(exit_code)
 
     return wrapper
 
