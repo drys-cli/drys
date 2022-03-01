@@ -50,3 +50,7 @@ clean:
 	rm -rf __pycache__ */__pycache__
 	cd docs;  ${MAKE} clean
 	cd tests; ${MAKE} clean
+
+# Build official docker images for various distros
+docker:
+	base=archlinux shdocker -o docker/archlinux

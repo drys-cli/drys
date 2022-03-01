@@ -1,0 +1,120 @@
+# Setup environment variables
+# ---------------------------
+
+default_base="python"
+
+# Base image
+[ -z "$base" ] && base="$default_base"
+
+if [ "$base" = "python" ]; then
+    default_base_ver="3.8.12-alpine"
+else
+    default_base_ver="latest"
+fi
+
+# Version of the base image
+[ -z "$base_ver" ] && base_ver="$default_base_ver"
+# Version tag of the built image
+[ -z "$ver" ] && ver="develop"
+# Image name
+[ -z "$name" ] && name="tem"
+
+# Helper functions
+# ----------------
+
+adduser_() {
+    if [ "$base" = "archlinux" ]; then
+        RUN useradd --password "''" "$@"
+    else
+        RUN adduser -D "$@"
+    fi
+}
+
+# Setup
+# -----
+
+FROM "$base:$base_ver"
+adduser_ user
+
+## Prepare system-level dependencies
+#  ---------------------------------
+
+[ "$base" = "alpine" ] && deps=(python3 py3-pip)
+[ "$base" = "archlinux" ] && deps=(python python-pip)
+
+build_deps=(make curl bash git)
+
+if [ "$base" = "python" ]; then
+    RUN apk add --no-cache "${deps[@]}" "${build_deps[@]}"
+    # Install dependencies for tests
+    if [ "$ver" = "develop" ]; then
+        RUN apk add --no-cache bats git
+        # Required in order to run BATS under make
+        RUN apk add --no-cache ncurses
+        # Required by some tests that use the 'unbuffer' command
+        RUN apk add --no-cache expect
+    fi
+elif [ "$base" = "archlinux" ]; then
+    pacman="pacman --noconfirm"
+    RUN $pacman -Syu
+    RUN $pacman -S "${deps[@]}" "${build_deps[@]}"
+    [ "$ver" = "develop" ] && RUN $pacman -S bash-bats expect
+fi
+
+RUN pip install --no-cache-dir pipenv setuptools
+
+## Install dependencies from Pipfile
+#  ---------------------------------
+
+USER user
+WORKDIR /home/user/tem
+COPY Pipfile Pipfile.lock ./
+
+if [ "$ver" = "develop" ]; then
+    RUN pipenv sync --dev
+else
+    RUN pipenv sync
+fi
+
+## Copy remaining files from host
+#  ------------------------------
+
+USER root
+COPY . .
+RUN chown -R user .
+
+## Install tem system-wide
+#  -----------------------
+
+RUN make install-base
+
+## Prepare tests directory
+#  -----------------------
+
+USER root
+# Output directory for tests
+RUN mkdir /t '&&' chown -R user /t
+# Flag for tests/Makefile
+ENV __TEM_TESTS_INSIDE_DOCKER_CONTAINER__ true
+
+WORKDIR tests
+USER user
+
+CMD pipenv run sh
+
+# Generate tag based on variables
+# -------------------------------
+
+dash="-"
+underscore="_"
+if [ "$base" = "$default_base" ]; then
+    if [ "$base_ver" = "$default_base_ver" ]; then
+        base_ver=""
+        underscore=""
+    fi
+    base=""
+    dash=""
+fi
+TAG "$name:$ver$dash$base$underscore$base_ver"
+
+# vim: filetype=dockerfile

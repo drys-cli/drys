@@ -30,7 +30,7 @@ BATS = "${TESTDIR}"/bats
 docker-all: _docker
 	docker rm -f tem-tests || true
 	docker run --volume "${TESTDIR}:/home/user/tem/tests:ro" --detach -t --name \
-		tem-tests tem-tests sh
+		tem-tests tem:develop sh
 	docker exec -t tem-tests "${MAKE}" all
 
 all: _protections
@@ -91,9 +91,7 @@ _py: _protections
 # Build images necessary to run tests in  docker container
 _docker:
 	@echo "\033[1;34mDocker: Building tem:develop image...\033[0m"
-	@docker build -t tem:develop "${TEM_PROJECTROOT}"
-	@echo "\033[1;34mDocker: Building tem-tests image...\033[0m"
-	@docker build -t tem-tests "${TESTDIR}"
+	@shdocker --shdockerfile ../shDockerfile -- "${TEM_PROJECTROOT}"
 
 # Some redundancy to avoid making a mess of your system
 # If you make any changes to this target, verify that they work inside the
