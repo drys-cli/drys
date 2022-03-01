@@ -86,7 +86,7 @@ def write_config(config_file):
         try:
             config.cfg.write(file_object)
         except Exception as e:
-            cli.print_error_from_exception(e)
+            cli.print_exception_message(e)
             sys.exit(1)
 
 
@@ -96,8 +96,8 @@ def cmd(args):
     files = determine_config_files_from_args(args)
 
     if args.edit or args.editor:
-        p = cli.try_open_in_editor(files, override_editor=args.editor)
-        sys.exit(p.returncode)
+        p = cli.edit_files(files, override_editor=args.editor)
+        sys.exit(p.process_data.returncode)
     elif args.option:  # A config option was specified
         # Form value by concatenating arguments
         value = " ".join(args.value) if args.value else ""

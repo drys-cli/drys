@@ -312,6 +312,10 @@ def cmd_common(args, subdir=None):
     dest_files = []
 
     if args.new:  # --new
+        if not args.files:
+            cli.print_cli_err(
+                "FILES must not be empty with the '--new' option"
+            )
         dest_files += create_new_files(dotdir, args.files, args.force)
     elif args.add or args.symlink:  # --add or --symlink
         add_existing_files(dotdir, args.files, args.force, args.symlink)
@@ -333,7 +337,7 @@ def cmd_common(args, subdir=None):
             execute_files([dotdir + "/" + f for f in file_names], args.verbose)
 
     if dest_files and (args.edit or args.editor):  # --edit, --editor
-        cli.try_open_in_editor(dest_files, args.editor)
+        cli.edit_files(dest_files, args.editor)
 
     if args.list:  # --list
         # With --new or --add, all files should be displayed.

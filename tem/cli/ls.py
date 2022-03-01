@@ -164,4 +164,4 @@ def cmd(args):
     os.chdir(original_cwd)
 
     if edit_files:
-        cli.try_open_in_editor(edit_files)
+        cli.edit_files(edit_files)

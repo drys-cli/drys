@@ -69,4 +69,4 @@ def cmd(args):
         files = [
             f for f in glob.iglob("**/*", recursive=True) if os.path.isfile(f)
         ]
-        p = cli.try_open_in_editor(files, override_editor=args.editor)
+        cli.edit_files(files, override_editor=args.editor)

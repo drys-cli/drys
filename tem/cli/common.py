@@ -1,5 +1,6 @@
 """Common functions for most CLI subcommands."""
 import argparse
+import contextlib
 import glob
 import os
 import re
@@ -7,9 +8,12 @@ import shutil
 import subprocess
 import sys
 import functools
+import tempfile
+from typing import List
 
 import tem
-from tem import config, ext, repo, util, errors, env
+from tem import config, ext, repo, util, errors
+from tem.cli.context import as_warnings
 
 from ..repo import RepoSpec
 from ..util import print_err
@@ -79,9 +83,9 @@ def subcommand(cmd):
                     raise errors.RepoDoesNotExistError(repo.abspath())
             cmd(args)
             sys.exit(exit_code)
-        except errors.all_errors as e:
-            print_cli_err(e.cli())
-            sys.exit(exit_code)
+        except tem.errors.all_errors as e:
+            print_exception_message(e)
+            sys.exit(1)
 
     return wrapper
 
@@ -133,6 +137,12 @@ def add_general_options(parser, dummy=False):
         default=[],
         help="use configuration from FILE",
     )
+    group.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        help="answer yes to all prompts",
+    )
 
 
 def add_edit_options(parser):
@@ -171,13 +181,37 @@ def get_editor(override=None, default="vim"):
     return next(ed for ed in editors if ed)
 
 
-def try_open_in_editor(files, override_editor=None):
+def edit_files(
+    files: List[str] = None,
+    initial_content: str = None,
+    override_editor: str = None,
+) -> subprocess.CompletedProcess:
     """
-    Open `files` in editor. If `override_editor` is specified then that is
-    used. Otherwise, the editor is looked up in the configuration. The editor
-    can be any string that the shell can parse into a list of arguments (e.g.
-    'vim -o' is valid). If the editor cannot be found, print an error and exit.
+    Open `files` in the user-configured editor.
+
+    Parameters
+    ----------
+    files
+        Files to open with editor.
+    initial_content
+        Initial content of the opened files. If unspecified, files will be
+        opened with their original content intact.
+    override_editor
+        If specified, overrides the otherwise configured editor. It can be any
+        string that the POSIX shell can parse into a list of arguments (e.g.
+        `vim -o` is valid). If the editor cannot be found, print an error and
+        exit.
+
+    Returns
+    -------
+    process
+        Completed process object returned by `subprocess.run`.
     """
+    if initial_content is not None:
+        for file in files:
+            with open(file, mode="w") as f:
+                f.write(initial_content)
+
     call_args = ext.parse_args(get_editor(override_editor)) + files
 
     if not shutil.which(call_args[0]):
@@ -186,12 +220,36 @@ def try_open_in_editor(files, override_editor=None):
             file=sys.stderr,
         )
         sys.exit(1)
+
     try:
-        p = subprocess.run(call_args, check=False)
-        return p
+        return subprocess.run(call_args, check=False)
     except Exception as e:
-        print_error_from_exception(e)
+        print_exception_message(e)
         sys.exit(1)
+
+
+@contextlib.contextmanager
+def edit_tmp_file(suffix=None, **kwargs):
+    """**[Context manager]**
+    Create a temporary file, open it in the configured editor, then close it.
+
+    Parameters
+    ----------
+    suffix
+        Optional suffix for the file.
+    kwargs
+        Additianal arguments that are passed to :func:`edit_files`.
+    Returns
+    -------
+    (process, path): (subprocess.CompletedProcess, str)
+        Completed process object and file path after editing was done.
+    See Also
+    --------
+    edit_files: This function is used to open the file for editing.
+    """
+    with tempfile.NamedTemporaryFile(mode="r", suffix=suffix) as file:
+        p = edit_files([file.name], **kwargs)
+        yield p, file.name
 
 
 def run_hooks(trigger, src_dir, dest_dir=".", environment=None):
@@ -282,12 +340,16 @@ def print_cli_info(*args, sep=" ", **kwargs):
     print_err(*args, sep=sep, **kwargs)
 
 
-def print_error_from_exception(exception):
+def print_exception_message(exception: Exception):
     """
-    Take the python exception ``e``, strip it of unnecessary text and print it
-    as a CLI error.
+    Take ``exception``, strip it of unnecessary text and print it
+    as a CLI message. Works just as well if ``exception`` is a ``TemError``.
     """
-    print_cli_err(re.sub(r"^\[Errno [0-9]*\] ", "", str(exception)))
+    print_func = print_cli_err if as_warnings([exception]) else print_cli_warn
+    if isinstance(exception, tem.errors.TemError):
+        print_func(exception.cli())
+    else:
+        print_func(re.sub(r"^\[Errno [0-9]*\] ", "", str(exception)))
 
 
 def copy(*args, ignore_nonexistent=False, **kwargs):
@@ -301,7 +363,7 @@ def copy(*args, ignore_nonexistent=False, **kwargs):
     except Exception as exception:
         # TODO use more specific error
         if not ignore_nonexistent:
-            print_error_from_exception(exception)
+            print_exception_message(exception)
             sys.exit(1)
 
 
@@ -316,7 +378,7 @@ def move(*args, ignore_nonexistent=False, **kwargs):
     except Exception as exception:
         # TODO use more specific error
         if not ignore_nonexistent:
-            print_error_from_exception(exception)
+            print_exception_message(exception)
             sys.exit(1)
 
 
@@ -326,5 +388,5 @@ def remove(path):
         util.remove(path)
     except Exception as exception:
         # TODO use more specific error
-        print_error_from_exception(exception)
+        print_exception_message(exception)
         sys.exit(1)

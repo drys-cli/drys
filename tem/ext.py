@@ -48,7 +48,7 @@ def run(command, *args, override=None, **kwargs):
         # TODO create front end in cli
         from .cli import common as cli
 
-        cli.print_error_from_exception(e)
+        cli.print_exception_message(e)
         sys.exit(1)
 
 

@@ -1,9 +1,14 @@
 """Utility functions and classes"""
 import contextlib
+import importlib
 import os
+import pathlib
 import re
 import shutil
 import sys
+import types
+
+import tem
 
 
 def print_err(*args, **kwargs):
@@ -121,3 +126,36 @@ def chdir(new_dir):
 def unique(iterable):
     """Remove duplicates from `iterable`."""
     return type(iterable)(x for x in dict.fromkeys(iterable))
+
+
+def import_path(
+    module_name: str, path: pathlib.Path, add_to_sys=False
+) -> types.ModuleType:
+    """Import a python file from ``path``."""
+    if not os.path.exists(path):
+        raise FileNotFoundError
+    if os.path.isdir(path):
+        raise NotImplementedError
+
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    if add_to_sys:
+        sys.modules[module_name] = module
+    return module
+
+
+def raise_or_warn(exception: Exception):
+    """
+    Raise ``exception`` or print an ``exception``-derived CLI warning if
+    :func:`tem.cli.context.as_warning` is set for the given exception, in the
+    current context.
+    """
+    if tem.context() in (tem.Context.CLI, tem.Context.SHELL):
+        from tem.cli.context import as_warnings
+        from tem.cli import common as cli
+
+        if as_warnings([exception]):
+            cli.print_exception_message(exception)
+    else:
+        raise exception

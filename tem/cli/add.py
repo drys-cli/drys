@@ -89,4 +89,4 @@ def cmd(args):
                 edit_files.append(dest_file)
 
     if edit_files:
-        cli.try_open_in_editor(edit_files, override_editor=args.editor)
+        cli.edit_files(edit_files, override_editor=args.editor)

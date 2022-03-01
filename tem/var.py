@@ -1,14 +1,10 @@
 """Variables defined per directory."""
 import functools
-import importlib.util
 import inspect
 import os
 import shelve
-import sys
-import types
 import typing
-from pathlib import Path
-from typing import Any, Dict, Iterable, List, Tuple, Union
+from typing import Any, Dict, Iterable, List, Union
 
 import tem
 from tem import env, util
@@ -58,7 +54,10 @@ class Variable:
             os.environ[self._to_env] = str(value)
 
     def _function_with_init_params(exclude_args: List[str] = []):
-        """Modifies a function signature so it has Variable init parameters."""
+        """
+        Modifies a function signature so it has those parameters that
+        :meth:`Variable.__init__` takes.
+        """
 
         # We define this so that we don't have to maintain this signature in 3
         # different places, and also because of a python behavior:
@@ -124,8 +123,8 @@ class Variable:
                 "The type of 'default' must match 'var_type'"
             )
 
-        self.var_type = var_type
         self._to_env = to_env
+        self.var_type = var_type
         self.value = default or self._default_value_for_type(var_type)
 
     @_function_with_init_params()
@@ -311,7 +310,7 @@ class VariableContainer:
         return (variable for variable in self.__dict__)
 
 
-def load(source=None, defaults=False):
+def load(source=None, defaults=False) -> VariableContainer:
     """
     Load variables for the given ``temdir``.
 
@@ -332,42 +331,37 @@ def load(source=None, defaults=False):
     source = source or env.current() or Environment()
 
     if isinstance(source, TemDir):
-        return VariableContainer(_load(source, defaults=defaults)[0])
+        return VariableContainer(_load(source, defaults=defaults))
 
     if not isinstance(source, Environment):
         raise TypeError(
             "Argument 'source' must be a 'TemDir' or 'Environment'"
         )
 
-    # Container of variable definitions and loaded values
-    container = VariableContainer()
-    # Variable definitions, along with default values
-    definitions = dict()
+    # Dict of variable names and loaded variable definitions
+    definitions: Dict[str, Variable] = dict()
 
     for temdir in reversed(source.envdirs):
-        _container, _definitions = _load(temdir, defaults=defaults)
+        _definitions = _load(temdir, defaults=defaults)
         definitions = {**definitions, **_definitions}
-        container = VariableContainer({**container.__dict__, **_container})
 
-    container = VariableContainer({**definitions, **container.__dict__})
-
-    return container
+    return VariableContainer(definitions)
 
 
-def _load(temdir: TemDir, defaults=False) -> Tuple[Dict, Dict]:
+def _load(temdir: TemDir, defaults=False) -> Dict[str, Variable]:
     """
-    Helper function for :func:`load` that returns loads variables from
-    ``temdir``.
+    Helper function for :func:`load` that loads variables from ``temdir`` and
+    returns them.
     """
     if not os.path.isfile(temdir / ".tem/vars.py"):
-        return dict(), dict()
+        return dict()
     saved_vars_path = str(temdir._internal / "vars")
-    definitions = __load_variable_definitions(temdir / ".tem/vars.py")
+    definitions = _load_variable_definitions(temdir / ".tem/vars.py")
     # Try to load variables from temdir's variable store
     if not defaults and os.path.isfile(saved_vars_path):
-        return __load_from_shelf(saved_vars_path), definitions
-
-    return definitions, definitions
+        for var_name, value in _load_from_shelf(saved_vars_path).items():
+            definitions[var_name].value = value
+    return definitions
 
 
 def save(variable_container: VariableContainer, temdir: TemDir = None):
@@ -391,19 +385,21 @@ def save(variable_container: VariableContainer, temdir: TemDir = None):
     store = shelve.open(file)
 
     store["tem_version"] = tem.__version__
-    store["container"] = variable_container.__dict__
+    store["values"] = {
+        k: v.value for k, v in variable_container.__dict__.items()
+    }
     store.close()
 
 
-def __load_variable_definitions(path) -> Dict[str, Variable]:
-    definitions = _import_path("__tem_var_definitions", path)
+def _load_variable_definitions(path) -> Dict[str, Variable]:
+    definitions = util.import_path("__tem_var_definitions", path)
     return _filter_variables(definitions.__dict__)
 
 
-def __load_from_shelf(file) -> Dict[str, Variable]:
+def _load_from_shelf(file) -> Dict[str, Variable]:
     """Load a variable namespace object from variable store ``file``."""
     shelf = shelve.open(file)
-    variables = shelf.get("container", dict())
+    variables = shelf.get("values", dict())
     shelf.close()
     return variables
 
@@ -417,57 +413,6 @@ def _filter_variables(dictionary: dict) -> Dict[str, Variable]:
     return {
         key: val
         for key, val in dictionary.items()
-        if isinstance(val, Variable) and not key.startswith("_")
+        if isinstance(val, Variable)
+        and not (key.startswith("_") and key.endswith("_"))
     }
-
-
-def _import_path(
-    module_name: str, path: Path, add_to_sys=False
-) -> types.ModuleType:
-    """Import a python file from ``path``."""
-    if not os.path.exists(path):
-        raise FileNotFoundError
-    if os.path.isdir(path):
-        raise NotImplementedError
-
-    spec = importlib.util.spec_from_file_location(module_name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    if add_to_sys:
-        sys.modules[module_name] = module
-    return module
-
-
-################################################################################
-
-
-def active_variants() -> List[str]:
-    return _read_variants()
-
-
-def activate(variants: List[str]):
-    _write_variants(util.unique(active_variants() + variants))
-
-
-def deactivate(variants: List[str]):
-    new = [var for var in active_variants() if var not in variants]
-    _write_variants(new)
-
-
-def set_active_variants(variants: List[str]):
-    _write_variants(util.unique(variants))
-
-
-def _read_variants() -> List[str]:
-    """Read the active variants for the current."""
-    if not os.path.exists(".tem/.internal/variants"):
-        return []
-    with open(".tem/.internal/variants", encoding="utf-8") as f:
-        return f.read().split("\n")
-
-
-def _write_variants(variants: List[str]):
-    if not os.path.exists(".tem/.internal"):
-        os.mkdir(".tem/.internal")
-    with open(".tem/.internal/variants", "w", encoding="utf-8") as f:
-        f.write("\n".join(variants))

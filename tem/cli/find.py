@@ -73,7 +73,7 @@ def cmd(args):
             result_paths += repo.find_template(template)
 
     if args.edit or args.editor:
-        cli.try_open_in_editor(result_paths, args.editor)
+        cli.edit_files(result_paths, args.editor)
 
 
 def _print_base(args):

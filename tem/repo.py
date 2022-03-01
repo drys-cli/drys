@@ -1,7 +1,7 @@
 """Repository operations"""
 import os
 
-from tem import config, util
+from tem import util
 
 
 class Repo:
@@ -30,6 +30,7 @@ class Repo:
         is used. This works even if the repository does not exist on the
         filesystem.
         """
+        from tem import config
 
         # TODO put this entry in the local config file
         cfg = config.Parser(self.path + "/.tem/repo")
