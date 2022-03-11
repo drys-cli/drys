@@ -1,4 +1,5 @@
-/_*/
+_*
+!docs/_static/
 _build
 .tem/
 *.bak

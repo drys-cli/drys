@@ -151,6 +151,19 @@ class TemVariableValueError(TemError, ValueError):
         return "variable value must match variable type"
 
 
+class TemVariableNotDefinedError(TemError):
+    def __init__(self, name=None):
+        if name is not None:
+            self.name = name
+        super().__init__()
+
+    def cli(self):
+        if self.name:
+            return f"variable '{self.name}' is not defined"
+        else:
+            return "variable is not defined"
+
+
 #: Tuple of all tem error classes
 all_errors = tuple(
     obj

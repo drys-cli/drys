@@ -1,6 +1,7 @@
 """Common functions for most CLI subcommands."""
 import argparse
 import contextlib
+import contextvars
 import glob
 import os
 import re
@@ -12,7 +13,7 @@ import tempfile
 from typing import List
 
 import tem
-from tem import config, ext, repo, util, errors
+from tem import config, ext, util, errors, repo
 from tem.cli.context import as_warnings
 
 from ..repo import RepoSpec
@@ -69,25 +70,36 @@ def subcommand(cmd):
     @functools.wraps(cmd)
     def wrapper(args):
         try:
-            # Transform RepoSpecs into absolute paths
-            global repo, exit_code
-            repo.lookup_path = args.repo.repos()
-            # Convert the RepoSpec into a list of repos
-            args.repo = args.repo.repos()
-            for repo in args.repo:
-                abspath = repo.abspath()
-                if not os.path.isdir(abspath) and (
-                    os.path.realpath(abspath)
-                    != os.path.realpath(tem.default_repo)
-                ):
-                    raise errors.RepoDoesNotExistError(repo.abspath())
-            cmd(args)
-            sys.exit(exit_code)
+            with tem.Context.CLI:
+                # Transform RepoSpecs into absolute paths
+                global repo, exit_code
+                repo.lookup_path = args.repo.repos()
+                # Convert the RepoSpec into a list of repos
+                args.repo = args.repo.repos()
+                for repo in args.repo:
+                    abspath = repo.abspath()
+                    if not os.path.isdir(abspath) and (
+                        os.path.realpath(abspath)
+                        != os.path.realpath(tem.default_repo)
+                    ):
+                        raise errors.RepoDoesNotExistError(repo.abspath())
+
+                with util.contextvar_as(_args, args):
+                    cmd(args)
+                sys.exit(exit_code)
         except tem.errors.all_errors as e:
             print_exception_message(e)
             sys.exit(1)
 
     return wrapper
+
+
+_args = contextvars.ContextVar("__tem_cli_args", default=None)
+
+
+def args():
+    """Get CLI arguments of the subcommand in the current context"""
+    return _args.get()
 
 
 def add_general_options(parser, dummy=False):
@@ -345,7 +357,7 @@ def print_exception_message(exception: Exception):
     Take ``exception``, strip it of unnecessary text and print it
     as a CLI message. Works just as well if ``exception`` is a ``TemError``.
     """
-    print_func = print_cli_err if as_warnings([exception]) else print_cli_warn
+    print_func = print_cli_warn if as_warnings([exception]) else print_cli_err
     if isinstance(exception, tem.errors.TemError):
         print_func(exception.cli())
     else:

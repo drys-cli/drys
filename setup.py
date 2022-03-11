@@ -12,6 +12,6 @@ setup(
     author="Haris Gušić",
     author_email="harisgusic.dev@gmail.com",
     classifiers=["Programming Language :: Python :: 3.9"],
-    packages=["tem", "tem.cli", "tem.util"],
+    packages=["tem", "tem.util", "tem.cli", "tem.cli.var"],
     entry_points={"console_scripts": ["tem=tem.__main__:main"]},
 )

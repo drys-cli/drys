@@ -4,12 +4,13 @@ import inspect
 import os
 import shelve
 import typing
+from contextlib import ExitStack
 from typing import Any, Dict, Iterable, List, Union
 
 import tem
 from tem import env, util
 from tem.env import Environment
-from tem.errors import TemVariableValueError
+from tem.errors import TemVariableNotDefinedError, TemVariableValueError
 from tem.fs import TemDir
 
 
@@ -364,7 +365,7 @@ def _load(temdir: TemDir, defaults=False) -> Dict[str, Variable]:
     return definitions
 
 
-def save(variable_container: VariableContainer, temdir: TemDir = None):
+def save(variable_container: VariableContainer, target=None):
     """
     Save the variables from ``variable_container`` to the variable store of
     ``temdir``.
@@ -374,25 +375,58 @@ def save(variable_container: VariableContainer, temdir: TemDir = None):
     variable_container
         Instance of :class:`VariableContainer` containing the variable values to
         save.
-    temdir
-        Temdir where to save variables. Determined based on CWD by default.
+    target: TemDir or Environment
+        Temdir or environment where to save variables. If unspecified, the
+        currently active environment is used.
+    Raises
+    ------
+    TemVariableNotDefinedError
+        If a variable is not defined anywhere in the ``target``.
     See Also
     --------
     load: Load variables that were previously saved using :func:`save`.
     """
-    temdir = temdir or TemDir()
-    file = str(temdir._internal / "vars")
-    store = shelve.open(file)
+    target = target or env.current()
 
-    store["tem_version"] = tem.__version__
-    store["values"] = {
-        k: v.value for k, v in variable_container.__dict__.items()
+    if isinstance(target, TemDir):
+        temdirs = [target]
+    else:
+        temdirs = list(reversed(target.envdirs))
+
+    # Maps each variable name with the lowest temdir that defines it
+    var_definition_sources = {
+        var_name: None for var_name in variable_container
     }
-    store.close()
+    for temdir in temdirs:
+        definitions = _load_variable_definitions(temdir / ".tem/vars.py")
+        for variable in definitions:
+            var_definition_sources[variable] = temdir
+
+    if None in var_definition_sources.values():
+        raise TemVariableNotDefinedError()
+
+    with ExitStack() as stack:
+        for temdir in temdirs:
+            store = stack.enter_context(
+                shelve.open(str(temdir._internal / "vars"), writeback=True)
+            )
+            # We store only those variables that are in `variable_container`.
+            # Even then, the new value is stored inside `temdir` only if it is
+            # the lowest directory that defines the variable. Otherwise, the
+            # directory retains the old value for the variable.
+            values = store["values"] if "values" in store else dict()
+            for vname in variable_container:
+                if var_definition_sources[vname] == temdir:
+                    values[vname] = variable_container[vname].value
+            store["values"] = values
+            store["tem_version"] = tem.__version__
 
 
 def _load_variable_definitions(path) -> Dict[str, Variable]:
-    definitions = util.import_path("__tem_var_definitions", path)
+    try:
+        definitions = util.import_path("__tem_var_definitions", path)
+    except FileNotFoundError:
+        return dict()
     return _filter_variables(definitions.__dict__)
 
 

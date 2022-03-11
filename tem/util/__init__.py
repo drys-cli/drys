@@ -1,5 +1,6 @@
 """Utility functions and classes"""
 import contextlib
+import contextvars
 import importlib
 import os
 import pathlib
@@ -7,6 +8,7 @@ import re
 import shutil
 import sys
 import types
+from typing import Any
 
 import tem
 
@@ -157,5 +159,15 @@ def raise_or_warn(exception: Exception):
 
         if as_warnings([exception]):
             cli.print_exception_message(exception)
+        else:
+            raise exception
     else:
         raise exception
+
+
+@contextlib.contextmanager
+def contextvar_as(variable: contextvars.ContextVar, value: Any):
+    """**[Context manager]** Set context ``variable`` value to ``value``."""
+    token = variable.set(value)
+    yield variable
+    variable.reset(token)

@@ -23,7 +23,7 @@ class Context(enum.Enum):
         token = _context.set(self)
         self._token = token
 
-    def __exit__(self):
+    def __exit__(self, _1, _2, _3):
         global _context
         _context.reset(self._token)
 

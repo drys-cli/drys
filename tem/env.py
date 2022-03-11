@@ -1,4 +1,5 @@
 """Work with tem environments."""
+import contextvars
 import os
 
 import tem
@@ -40,30 +41,25 @@ class Environment:
     @execpath.setter
     def execpath(self, path):
         self._path = path
-        if _current == self:
+        if _current.get() == self:
             path_prepend_unique(self._path)
 
-    def deactivate(self):
-        """Deactivate this environment."""
-        global _current
-        if _current is self:
-            _current = None
+    def __enter__(self):
+        self._env_restore_token = _current.set(self)
+
+    def __exit__(self, _1, _2, _3):
+        _current.reset(self._env_restore_token)
 
 
-def activate(environment: Environment = None):
-    """
-    Set ``environment`` as the currently active one (as in
-    :func:`current`). If ``environment`` is omitted, the one based on the CWD
-    will be activated.
-    """
-    environment = environment or Environment()
-    global _current
-    _current = environment
+_current = contextvars.ContextVar[Environment](
+    "__tem_current_env", default=None
+)
 
 
 def current() -> Environment:
     """Get the currently active application-wide environment."""
-    return _current
+    global _current
+    return _current.get()
 
 
 def path_prepend_unique(path):
@@ -76,7 +72,3 @@ def path_prepend_unique(path):
 def path_as_list():
     """Return `PATH` envvar as a list of paths."""
     return os.environ["PATH"].split(":")
-
-
-#: The currently active application-wide environment
-_current: Environment = None
