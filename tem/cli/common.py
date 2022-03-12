@@ -30,7 +30,7 @@ def load_system_config():
     cannot be read, print an error and exit.
     """
     failed = config.load(config.SYSTEM_PATHS)
-    if failed and tem._meta.__version__ != "develop":
+    if failed and tem.__version__ != "develop":
         print_cli_err(
             "the following system configuration files could not be read:",
             *failed,

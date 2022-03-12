@@ -29,8 +29,10 @@ BATS = "${TESTDIR}"/bats
 # running in case you want to inspect test output.
 docker-all: _docker
 	docker rm -f tem-tests || true
-	docker run --volume "${TESTDIR}:/home/user/tem/tests:ro" --detach -t --name \
-		tem-tests tem:develop sh
+	docker run --detach -t --name tem-tests \
+		--volume "${TEM_PROJECTROOT}/tem:/home/user/tem/tem:ro" \
+		--volume "${TESTDIR}:/home/user/tem/tests:ro" \
+		tem:develop sh
 	docker exec -t tem-tests "${MAKE}" all
 
 all: _protections

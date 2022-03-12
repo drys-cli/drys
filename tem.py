@@ -13,8 +13,11 @@ the user has in their `PATH`).
 import os
 import sys
 import shutil as sh
+import tem
 from tem import __main__ as main
 
+
+tem.__version__ = "develop"
 
 tem_projectroot = next(
     x
