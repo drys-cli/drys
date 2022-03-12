@@ -221,16 +221,6 @@ def var(on_change):
     variable._on_change = on_change
 
 
-def activate_(variant: Variant):
-    """Activate a variant (set it to ``True``)."""
-    variant.value = True
-
-
-def deactivate_(variant: Variant):
-    """Deactivate a variant (set it to ``False``)."""
-    variant.value = False
-
-
 def when(condition: str):
     """Decorator that allows the decorated object to be created only when the
     condition is met."""
@@ -349,22 +339,6 @@ def load(source=None, defaults=False) -> VariableContainer:
     return VariableContainer(definitions)
 
 
-def _load(temdir: TemDir, defaults=False) -> Dict[str, Variable]:
-    """
-    Helper function for :func:`load` that loads variables from ``temdir`` and
-    returns them.
-    """
-    if not os.path.isfile(temdir / ".tem/vars.py"):
-        return dict()
-    saved_vars_path = str(temdir._internal / "vars")
-    definitions = _load_variable_definitions(temdir / ".tem/vars.py")
-    # Try to load variables from temdir's variable store
-    if not defaults and os.path.isfile(saved_vars_path):
-        for var_name, value in _load_from_shelf(saved_vars_path).items():
-            definitions[var_name].value = value
-    return definitions
-
-
 def save(variable_container: VariableContainer, target=None):
     """
     Save the variables from ``variable_container`` to the variable store of
@@ -420,6 +394,22 @@ def save(variable_container: VariableContainer, target=None):
                     values[vname] = variable_container[vname].value
             store["values"] = values
             store["tem_version"] = tem.__version__
+
+
+def _load(temdir: TemDir, defaults=False) -> Dict[str, Variable]:
+    """
+    Helper function for :func:`load` that loads variables from ``temdir`` and
+    returns them.
+    """
+    if not os.path.isfile(temdir / ".tem/vars.py"):
+        return dict()
+    saved_vars_path = str(temdir._internal / "vars")
+    definitions = _load_variable_definitions(temdir / ".tem/vars.py")
+    # Try to load variables from temdir's variable store
+    if not defaults and os.path.isfile(saved_vars_path):
+        for var_name, value in _load_from_shelf(saved_vars_path).items():
+            definitions[var_name].value = value
+    return definitions
 
 
 def _load_variable_definitions(path) -> Dict[str, Variable]:

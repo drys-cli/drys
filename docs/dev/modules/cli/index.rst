@@ -18,6 +18,7 @@ additional modules that provide common functionality for multiple subcommands.
    init.rst
    env.rst
    path.rst
+   var.rst
    git.rst
    hook.rst
 

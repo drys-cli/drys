@@ -3,5 +3,4 @@
 
 .. automodule:: tem.cli.common
    :members:
-   :undoc-members:
 
