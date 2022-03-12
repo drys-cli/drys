@@ -11,6 +11,7 @@ from typing import List
 
 import tem
 from tem import util
+from tem.shell import shell
 from tem.errors import (
     FileNotFoundError,
     NotATemDirError,
@@ -148,10 +149,9 @@ class TemDir(type(pathlib.Path())):
         os.makedirs(dot_tem / "path", exist_ok=True)
         os.makedirs(dot_tem / "hooks", exist_ok=True)
         os.makedirs(dot_tem / "env", exist_ok=True)
-        shell = tem.shell()
-        if shell:
-            os.makedirs(dot_tem / f"{shell}-env", exist_ok=True)
-            os.makedirs(dot_tem / f"{shell}-hooks", exist_ok=True)
+        if sh := shell():
+            os.makedirs(dot_tem / f"{sh}-env", exist_ok=True)
+            os.makedirs(dot_tem / f"{sh}-hooks", exist_ok=True)
 
         share_dir = (
             pathlib.Path(tem.__prefix__ + "/share/tem")

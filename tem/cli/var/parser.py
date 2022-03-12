@@ -1,5 +1,6 @@
 """Manipulate tem variants."""
 import os
+from argparse import ArgumentParser
 from typing import Iterable, List
 
 from tem import env, var
@@ -14,7 +15,7 @@ from .util import edit_values, print_default_and_old_value, print_name_value
 var_container: var.VariableContainer
 
 
-def setup_parser(p):
+def setup_parser(p: ArgumentParser):
     p.add_argument(
         "expressions", nargs="*", help="variable names or assignments"
     )

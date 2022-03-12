@@ -38,7 +38,7 @@ Internal environment variables
 
 .. glossary::
 
-   `__TEM_SHELL_SOURCE__`
+   `__TEM_SHELL_SOURCE`
       Path to a file (preferably a FIFO) to which tem will echo shell commands,
       which the shell wrapper is supposed to source. A more detailed explanation
       can be found in :ref:`Shell<dev_shell>`.

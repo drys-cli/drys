@@ -34,10 +34,3 @@ _context = ContextVar("_context", default=Context.PYTHON)
 def context() -> Context:
     """Get the current context `tem` is running in."""
     return _context.get()
-
-
-def shell():
-    sh = os.environ.get("TEM_SHELL", None)
-    if sh not in ("fish", "bash", "zsh"):
-        return None
-    return sh

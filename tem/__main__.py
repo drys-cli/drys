@@ -80,7 +80,7 @@ def main():
         argparse.ArgumentParser(
             add_help=False, formatter_class=argparse.RawTextHelpFormatter
         )
-        for i in range(2)
+        for _ in range(2)
     ]
 
     # Set up options for the main command -- `tem`
@@ -114,7 +114,6 @@ def main():
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     parsers = dict()
     # fmt: off
-    # pylint: disable=line-too-long
     minimum_parser_setup(subparsers, parsers, "add",
                          help="add templates to a repository")
     minimum_parser_setup(subparsers, parsers, "rm",
@@ -141,7 +140,6 @@ def main():
     minimum_parser_setup(subparsers, parsers, "var",
                          help="manipulate tem variants")
     minimum_parser_setup(subparsers, parsers, "dot")
-    # pylint: enable=line-too-long
     # fmt: on
     for plug in plugin.load_all():
         description = plug.__doc__.split("\n", maxsplit=1)[0]
