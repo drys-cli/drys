@@ -245,10 +245,7 @@ err_invalid_expressions() {
     run tem var -q str1 str2:val3 2>&1
 
     [ "$status" = 1 ]
-    expected="$(
-        err_query_only_variant str1
-        echo "str2 = 'val3'"
-    )"
+    expect err_query_only_variant str1
     compare_output_expected
 }
 
