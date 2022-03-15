@@ -5,6 +5,7 @@ import subprocess
 import sys
 from typing import List
 
+import tem
 from tem import ext, repo, util, env, errors
 from tem.errors import TemError
 
@@ -242,7 +243,7 @@ def add_existing_files(
 
 
 def execute_files(files, verbose):
-    env.path_prepend_unique(".tem/path")
+    env.ExecPath().prepend(".tem/path").export()
     for file in files:
         if os.path.isdir(file):
             continue

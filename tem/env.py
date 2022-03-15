@@ -1,17 +1,81 @@
 """Work with tem environments."""
-import contextvars
 import os
 
 import tem
 from tem import find, fs, util
-from tem.errors import NotADirError
 from tem.fs import DotDir, TemDir
+
+
+class ExecPath(list):
+    """
+    Wrapper for the `PATH` environment variable with handy functionality.
+
+    Parameters
+    ----------
+    source: optional, List[str], str
+        Represents the `PATH` environment variable, as a list of paths or a
+        string of colon-separated paths. If unspecified, `os.environ["PATH"]` is
+        used.
+    """
+    #: Special value for parameter index in method :meth:`lookup`.
+    SYSTEM = type("_", (), dict())
+
+    def __init__(self, source=None):
+        if source is None:
+            source = os.environ["PATH"]
+
+        if isinstance(source, str):
+            paths = source.split(":")
+        elif isinstance(source, list):
+            paths = source
+        else:
+            raise TypeError("optional 'source' must be of type list or str")
+
+        super().__init__(paths)
+
+    def __str__(self):
+        """Convert to string representation suitable for os.environ."""
+        return ":".join(self)
+
+    def __repr__(self):
+        return f"ExecPath({super().__repr__()})"
+
+    def lookup(self, executable: str, index: int = None):
+        """
+        Lookup an executable named ``executable`` in this ExecPath.  If
+        ``index`` is unspecified, returns the same path as the OS would after
+        searching through the `PATH` env variable.
+
+        Parameters
+        ----------
+        index
+            Of all possible matches, return the one at ``index``. A negative
+            value works the same as negative indexing of a python list.
+        """
+        pass
+
+    def prepend(self, path):
+        return ExecPath([os.path.abspath(path)] + list(self))
+
+    def dedupe(self):
+        return ExecPath(list(dict.fromkeys(self).keys()))
+
+    def export(self):
+        """
+        Export to `os.environ["PATH"]`. If the current context is
+        :data:`~tem.Context.SHELL`, the environment variable will be exported to
+        the shell also.
+        """
+        value = str(self)
+        os.environ["PATH"] = value
+        if tem.context() == tem.Context.SHELL:
+            from tem.shell.commands import export
+            export("PATH", value)
 
 
 class Environment:
     """A tem environment.
 
-    An environment consists of a list of envdirs.
     Attributes
     ----------
     """
@@ -32,7 +96,7 @@ class Environment:
         self._path = []
 
     @property
-    def execpath(self):
+    def execpath(self) -> ExecPath:
         """Return the list of `PATH` entries injected by this environment."""
         # TODO need to think if I want to take the PATH from environ, or store
         # it somehow
@@ -41,34 +105,13 @@ class Environment:
     @execpath.setter
     def execpath(self, path):
         self._path = path
-        if _current.get() == self:
-            path_prepend_unique(self._path)
+        # TODO
 
     def __enter__(self):
-        self._env_restore_token = _current.set(self)
+        import tem
+        self._context_reset_token = tem.context._env.set(self)
 
     def __exit__(self, _1, _2, _3):
-        _current.reset(self._env_restore_token)
+        import tem
+        tem.context._env.reset(self._context_reset_token)
 
-
-_current = contextvars.ContextVar[Environment](
-    "__tem_current_env", default=None
-)
-
-
-def current() -> Environment:
-    """Get the currently active application-wide environment."""
-    global _current
-    return _current.get()
-
-
-def path_prepend_unique(path):
-    """Prepend `path` to the `PATH` envvar such that it only appears once."""
-    path = os.path.realpath(path)
-    path_list = [p for p in path_as_list() if os.path.realpath(p) != path]
-    os.environ["PATH"] = ":".join([path, *path_list])
-
-
-def path_as_list():
-    """Return `PATH` envvar as a list of paths."""
-    return os.environ["PATH"].split(":")

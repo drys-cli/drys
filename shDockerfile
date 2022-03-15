@@ -86,6 +86,7 @@ RUN chown -R user .
 ## Install tem system-wide
 #  -----------------------
 
+RUN make build-base
 RUN make install-base
 
 ## Prepare tests directory

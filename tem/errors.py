@@ -39,6 +39,9 @@ class TemError(Exception):
         print_cli_err(self.cli())
         print_err(self._additional_text)
 
+    def __str__(self):
+        return self._brief
+
 
 class PathError(TemError):
     """An error that has a path as an argument."""
@@ -134,6 +137,11 @@ class TemplateNotFoundError(TemError):
             f"template '{self.template_name}' could not be found in the "
             "available repositories"
         )
+
+
+class NotARunnable(TemError):
+    def __init__(self, path):
+        super().__init__(path)
 
 
 # tem.var

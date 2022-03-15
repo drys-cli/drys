@@ -1,9 +1,17 @@
-"""Template and Environment Manager API"""
+"""
+Template and Environment Manager API
+
+The top level module provides some global defaults and ways to retrieve values
+from the current context. The current context is
+"""
 import enum
 import os
 from contextvars import ContextVar
 
 from tem._meta import __prefix__, __version__
+
+from .fs import TemDir
+from .env import Environment
 
 default_repo = os.path.expanduser("~/.local/share/tem/repo")
 
@@ -21,16 +29,33 @@ class Context(enum.Enum):
     def __enter__(self):
         global _context
         token = _context.set(self)
-        self._token = token
+        self._context_reset_token = token
 
     def __exit__(self, _1, _2, _3):
         global _context
-        _context.reset(self._token)
+        _context.reset(self._context_reset_token)
 
 
 _context = ContextVar("_context", default=Context.PYTHON)
 
 
-def context() -> Context:
-    """Get the current context `tem` is running in."""
-    return _context.get()
+class __Context:
+    _temdir = ContextVar("_context_temdir", default=None)
+    _env = ContextVar("_context_env", default=None)
+
+    @classmethod
+    def __call__(cls):
+        return _context.get()
+
+    @property
+    def temdir(self):
+        """Get the temdir of the current context."""
+        return self._temdir.get() or TemDir()
+
+    @property
+    def env(self):
+        """Get the environment of the current context."""
+        return self._env.get() or Environment()
+
+
+context = __Context()

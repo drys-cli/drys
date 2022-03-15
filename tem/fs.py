@@ -1,5 +1,5 @@
 """The standard tem filesystem."""
-
+import contextvars
 import glob
 import os
 import pathlib
@@ -9,7 +9,6 @@ from functools import cached_property
 from subprocess import run
 from typing import List
 
-import tem
 from tem import util
 from tem.shell import shell
 from tem.errors import (
@@ -153,9 +152,10 @@ class TemDir(type(pathlib.Path())):
             os.makedirs(dot_tem / f"{sh}-env", exist_ok=True)
             os.makedirs(dot_tem / f"{sh}-hooks", exist_ok=True)
 
+        from tem import __prefix__, __version__
         share_dir = (
-            pathlib.Path(tem.__prefix__ + "/share/tem")
-            if tem.__version__ != "develop"
+            pathlib.Path(__prefix__ + "/share/tem")
+            if __version__ not in ("develop", "0.0.0")
             else pathlib.Path(os.environ.get("TEM_PROJECTROOT")) / "share"
         )
 
@@ -176,6 +176,14 @@ class TemDir(type(pathlib.Path())):
         path = self / ".tem/.internal"
         os.makedirs(path, exist_ok=True)
         return path
+
+    def __enter__(self):
+        import tem
+        self._context_reset_token = tem.context._temdir.set(self)
+
+    def __exit__(self, _1, _2, _3):
+        from tem import context
+        context._temdir.reset(self._context_reset_token)
 
 
 class DotDir:
@@ -253,6 +261,8 @@ class Runnable(type(pathlib.Path())):
     """An abstraction for executables and shell (including python) scripts."""
 
     def __init__(self, path):
+        if not util.is_executable(path):
+            raise
         super().__init__(path)
 
     def brief(self):

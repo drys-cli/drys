@@ -307,10 +307,10 @@ def load(source=None, defaults=False) -> VariableContainer:
 
     Parameters
     ----------
-    source: TemDir or Environment, default=None
+    source: optional, TemDir, Environment
         Temdir or environment whose variables to load. Loading from an
         environment will just load from each temdir in the environment. Defaults
-        to `env.current()`.
+        to :data:`tem.context.env`.
     defaults
         Use default variable values instead of stored values.
     Returns
@@ -319,7 +319,7 @@ def load(source=None, defaults=False) -> VariableContainer:
         Instance of :class:`VariableContainer` that contains the loaded
         variables.
     """
-    source = source or env.current() or Environment()
+    source = source or tem.context.env
 
     if isinstance(source, TemDir):
         return VariableContainer(_load(source, defaults=defaults))
@@ -360,7 +360,7 @@ def save(variable_container: VariableContainer, target=None):
     --------
     load: Load variables that were previously saved using :func:`save`.
     """
-    target = target or env.current()
+    target = target or tem.context.env
 
     if isinstance(target, TemDir):
         temdirs = [target]

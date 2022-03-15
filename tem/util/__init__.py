@@ -8,7 +8,7 @@ import re
 import shutil
 import sys
 import types
-from typing import Any
+from typing import Any, Union
 
 import tem
 
@@ -153,7 +153,7 @@ def raise_or_warn(exception: Exception):
     :func:`tem.cli.context.as_warning` is set for the given exception, in the
     current context.
     """
-    if tem.context() in (tem.Context.CLI, tem.Context.SHELL):
+    if tem.context in (tem.Context.CLI, tem.Context.SHELL):
         from tem.cli.context import as_warnings
         from tem.cli import common as cli
 
@@ -171,3 +171,10 @@ def contextvar_as(variable: contextvars.ContextVar, value: Any):
     token = variable.set(value)
     yield variable
     variable.reset(token)
+
+
+def is_executable(path):
+    """
+    Test if file at ``path`` is executable. ``path`` cannot be a directory.
+    """
+    return os.path.isfile(path) and os.access(path, os.X_OK)
