@@ -14,6 +14,7 @@ from typing import List
 
 import tem
 from tem import config, ext, util, errors, repo
+from tem.context import Context
 from tem.cli.context import as_warnings
 
 from ..repo import RepoSpec
@@ -70,7 +71,7 @@ def subcommand(cmd):
     @functools.wraps(cmd)
     def wrapper(args):
         try:
-            with tem.Context.CLI:
+            with Context.CLI:
                 # Transform RepoSpecs into absolute paths
                 global repo, exit_code
                 repo.lookup_path = args.repo.repos()

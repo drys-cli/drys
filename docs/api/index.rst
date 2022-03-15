@@ -8,6 +8,7 @@ Python API
    fs.rst
    var.rst
    env.rst
+   context.rst
    repo.rst
    config.rst
    find.rst

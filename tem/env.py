@@ -1,9 +1,9 @@
 """Work with tem environments."""
 import os
 
-import tem
-from tem import find, fs, util
-from tem.fs import DotDir, TemDir
+from tem import find, context
+from tem.context import Context
+from tem.fs import TemDir
 
 
 class ExecPath(list):
@@ -63,12 +63,12 @@ class ExecPath(list):
     def export(self):
         """
         Export to `os.environ["PATH"]`. If the current context is
-        :data:`~tem.Context.SHELL`, the environment variable will be exported to
-        the shell also.
+        :data:`~tem.context.Context.SHELL`, the environment variable will be
+        exported to the shell also.
         """
         value = str(self)
         os.environ["PATH"] = value
-        if tem.context() == tem.Context.SHELL:
+        if context() == Context.SHELL:
             from tem.shell.commands import export
             export("PATH", value)
 
@@ -108,10 +108,10 @@ class Environment:
         # TODO
 
     def __enter__(self):
-        import tem
-        self._context_reset_token = tem.context._env.set(self)
+        from tem import context
+        self._context_reset_token = context._env.set(self)
 
     def __exit__(self, _1, _2, _3):
-        import tem
-        tem.context._env.reset(self._context_reset_token)
+        from tem import context
+        context._env.reset(self._context_reset_token)
 
