@@ -20,11 +20,13 @@ class Verbosity(enum.Enum):
 
 def print_doc(variable: Variable):
     """Print documentation for ``variable``, indented for readability."""
-    if variable.__doc__:
+    if variable.doc:
         print(
             textwrap.TextWrapper(
-                initial_indent="    ", subsequent_indent="    "
-            ).fill(variable.__doc__)
+                initial_indent="  ",
+                subsequent_indent="  ",
+                replace_whitespace=False,
+            ).fill(str(variable.doc))
         )
 
 

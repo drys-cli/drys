@@ -5,10 +5,11 @@ import os
 import shelve
 import typing
 from contextlib import ExitStack
+from textwrap import TextWrapper
 from typing import Any, Dict, Iterable, List, Union
 
 import tem
-from tem import env, util
+from tem import util
 from tem.env import Environment
 from tem.errors import TemVariableNotDefinedError, TemVariableValueError
 from tem.fs import TemDir
@@ -110,6 +111,7 @@ class Variable:
         default = kwargs["default"]
         from_env = kwargs["from_env"]
         to_env = kwargs["to_env"]
+
         if var_type == Any:
             var_type = None
         if var_type and not isinstance(var_type, (type, list)):
@@ -117,8 +119,6 @@ class Variable:
                 "'var_type' must be a type or a list containing allowed"
                 "values"
             )
-        if default is not None and from_env is not None:
-            raise ValueError("You can use only one of: 'default', 'from_env'")
         if default is not None and not self._matches_type(default, var_type):
             raise TemVariableValueError(
                 "The type of 'default' must match 'var_type'"
@@ -127,6 +127,7 @@ class Variable:
         self._to_env = to_env
         self.var_type = var_type
         self.value = default or self._default_value_for_type(var_type)
+        super().__setattr__("doc", VariableDoc(self))
 
     @_function_with_init_params()
     def __new__(cls, *args, **kwargs):
@@ -136,6 +137,12 @@ class Variable:
             kwargs.pop("var_type")
             return Variant(*args, **kwargs)
         return super().__new__(cls)
+
+    def __setattr__(self, key, value):
+        if key == "doc":
+            self.doc.description = value
+        else:
+            super().__setattr__(key, value)
 
     @staticmethod
     def _matches_type(value, var_type):
@@ -158,6 +165,95 @@ class Variable:
     @staticmethod
     def _parse_from_env(self):
         raise NotImplementedError
+
+
+class VariableDoc(str):
+    def __init__(self, variable: Variable):
+        self._value_docs: Dict[Any, str] = {}
+        self._variable = variable
+        self.description = ""
+        super().__init__()
+
+    def __setitem__(self, value, doc):
+        """Document variable ``value`` as ``doc``."""
+        if not Variable._matches_type(value, self._variable.var_type):
+            raise TemVariableValueError(value=value)
+        self._value_docs[value] = doc
+
+    def __getitem__(self, value):
+        return self._value_docs[value]
+
+    def __delitem__(self, value):
+        del self._value_docs[value]
+
+    def __iter__(self):
+        return iter(self._value_docs)
+
+    def __setattr__(self, key, value):
+        if key == "description":
+            self.__str__.cache_clear()
+        super().__setattr__(key, value)
+
+    @functools.lru_cache(maxsize=1)
+    def __str__(self):
+        doc = self.description
+
+        # If variable has a regular type
+        if self._variable.var_type is None or isinstance(
+            self._variable.var_type, type
+        ):
+            if doc:
+                doc += "\n\n"
+            doc += f"Type: {self._variable.var_type.__name__ if self._variable.var_type else 'Any'}"
+            # If at least one value is documented
+            if self._value_docs:
+                doc += "\n"
+                doc += "Notable values:\n"
+                doc += self._document_values()
+        else:
+            if doc:
+                doc += "\n\n"
+            # If all values are documented
+            if len(self._value_docs) == len(self._variable.var_type):
+                doc += "Values:\n"
+                doc += self._document_values()
+            else:
+                # If some values are documented
+                if self._value_docs:
+                    doc += "Notable values:\n"
+                    doc += self._document_values()
+                    doc += "\nOther values:\n"
+                    undoc_values = set(self._variable.var_type) - set(
+                        self._value_docs
+                    )
+                    doc += ", ".join([repr(v) for v in undoc_values])
+                # If no values are documented
+                else:
+                    doc += "Values: "
+                    doc += ", ".join(
+                        [repr(v) for v in self._variable.var_type]
+                    )
+
+        return doc
+
+    def __repr__(self):
+        return repr(str(self))
+
+    def __bool__(self):
+        return bool(str(self))
+
+    def _document_values(self):
+        doc = ""
+        doc += "\n".join(
+            [
+                f"  {repr(value)}\n"
+                + TextWrapper(
+                    initial_indent="    ", subsequent_indent="    "
+                ).fill(self._value_docs[value])
+                for value in self._value_docs
+            ]
+        )
+        return doc
 
 
 class Variant(Variable):
