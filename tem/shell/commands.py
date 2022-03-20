@@ -16,7 +16,8 @@ class _Util:
         path = os.environ.get("__TEM_SHELL_SOURCE")
         if not path:
             raise EnvironmentError(
-                "No '__TEM_SHELL_SOURCE' environment variable")
+                "No '__TEM_SHELL_SOURCE' environment variable"
+            )
 
         with open(path, "a") as file:
             print(text, file=file)
@@ -24,3 +25,7 @@ class _Util:
 
 def export(variable, value):
     _Util.eval(f"export {variable}={shlex.quote(value)}")
+
+
+def command(cmd, *args):
+    _Util.eval(" ".join([shlex.quote(token) for token in [cmd] + list(args)]))

@@ -26,6 +26,7 @@ import sys
 import types
 from contextvars import ContextVar
 
+
 class Context(enum.Enum):
     """The runtime context of `tem`."""
 
@@ -62,6 +63,7 @@ class __ContextModule(types.ModuleType):
     def env(self):
         """Get the environment of the active context."""
         from tem.env import Environment
+
         return self._env.get() or Environment()
 
 

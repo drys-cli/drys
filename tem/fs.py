@@ -1,5 +1,4 @@
 """The standard tem filesystem."""
-import contextvars
 import glob
 import os
 import pathlib
@@ -10,13 +9,13 @@ from subprocess import run
 from typing import List
 
 from tem import util
-from tem.shell import shell
 from tem.errors import (
     FileNotFoundError,
     NotATemDirError,
     NoTemDirInHierarchy,
     TemInitializedError,
 )
+from tem.shell import shell
 
 
 class TemDir(type(pathlib.Path())):
@@ -61,6 +60,9 @@ class TemDir(type(pathlib.Path())):
         self.isolated = False
         self.autoenv = False
 
+    def __getitem__(self, dotdir: str) -> "DotDir":
+        return DotDir(self / f".tem/{dotdir}")
+
     @property
     def name(self):
         """The name of this temdir, taken from `.tem/config`.
@@ -73,26 +75,6 @@ class TemDir(type(pathlib.Path())):
     def vars(self):
         """Get a module object containing defined variables for this temdir."""
         raise NotImplementedError
-
-    @property
-    def dot_path(self):
-        """Return a `DotDir` representing `.tem/path`."""
-        return DotDir(self / ".tem/path")
-
-    @property
-    def dot_env(self):
-        """Return a `DotDir` representing `.tem/env`."""
-        return DotDir(self / ".tem/env")
-
-    @property
-    def dot_hooks(self):
-        """Return a `DotDir` representing `.tem/hooks`."""
-        return DotDir(self / ".tem/hooks")
-
-    @property
-    def dot_files(self):
-        """Return a `DotDir` representing `.tem/files`."""
-        return DotDir(self / ".tem/files")
 
     @property
     def parent(self):
@@ -153,6 +135,7 @@ class TemDir(type(pathlib.Path())):
             os.makedirs(dot_tem / f"{sh}-hooks", exist_ok=True)
 
         from tem import __prefix__, __version__
+
         share_dir = (
             pathlib.Path(__prefix__ + "/share/tem")
             if __version__ not in ("develop", "0.0.0")
@@ -179,18 +162,23 @@ class TemDir(type(pathlib.Path())):
 
     def __enter__(self):
         import tem
+
         self._context_reset_token = tem.context._temdir.set(self)
 
     def __exit__(self, _1, _2, _3):
         from tem import context
+
         context._temdir.reset(self._context_reset_token)
 
 
-class DotDir:
-    def __init__(self, path: os.PathLike):
-        self.path = path
+class DotDir(type(pathlib.Path())):
+    def __new__(cls, path: os.PathLike):
+        return super(DotDir, cls).__new__(cls, str(path))
 
-    def exec(self, files: List[os.PathLike] = ["."], ignore_nonexistent=False):
+    def __init__(self, *_):
+        super().__init__()
+
+    def exec(self, files: List = ["."], ignore_nonexistent=False):
         """
         Execute the given file(s) as programs. Relative paths are relative to
         the dotdir.
@@ -215,8 +203,8 @@ class DotDir:
         ``exec(['dir/subdir'])`` will run `program3` and `program4`.
         ``exec(['program1', 'dir/subdir'])`` will run `program3` and `program4`.
         """
-
-        with util.chdir(self.path):
+        files = sorted(files)
+        with util.chdir(self):
             for file in files:
                 if not os.path.exists(file):
                     if not ignore_nonexistent:

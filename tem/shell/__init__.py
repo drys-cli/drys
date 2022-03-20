@@ -17,4 +17,5 @@ class Shell(enum.Enum):
 
 
 def shell() -> Shell:
+    """Get the active shell plugin."""
     return Shell(os.environ.get("TEM_SHELL"))
