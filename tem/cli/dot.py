@@ -148,18 +148,12 @@ def validate_and_get_dotdir(subdir, rootdir=None, recursive=False):
     dotdir = rootdir + "/.tem/" + subdir
 
     # Validation
-    if not os.path.isdir(dotdir):
-        if os.path.exists(dotdir):
-            # TODO
-            raise errors.DirNotFoundError(dotdir).append(
-                "\nTry running `tem init --force`. "
-                "Please read the manual before doing that."
-            )
-        else:
-            raise errors.DirNotFoundError(dotdir).append(
-                "\nTry running `tem init` first."
-            )
-        # TODO if args.exec or not args.force: sys.exit(1)
+    if os.path.exists(dotdir) and not os.path.isdir(dotdir):
+        # TODO
+        raise errors.DirNotFoundError(dotdir).append(
+            "\nTry running `tem init --force`. "
+            "Please read the manual before doing that."
+        )
 
     return rootdir, subdir
 
@@ -311,6 +305,12 @@ def cmd_common(args, subdir=None):
         args.exec = True
 
     dest_files = []
+
+    if not os.path.exists(dotdir):
+        if args.new or args.add or args.symlink:
+            os.makedirs(dotdir)
+        else:
+            return
 
     if args.new:  # --new
         if not args.files:
