@@ -8,7 +8,7 @@ from tem.cli import common as cli
 from tem.errors import TemError, TemVariableValueError
 from tem.fs import TemDir
 
-from .expr import Expression, Get, Query, SimpleExpression
+from .expr import Expression, Get, Query, SimpleExpression, Assign, Toggle
 from .util import edit_values, print_default_and_old_value, print_name_value
 
 #: Variable container to which most operations in this module are applied.
@@ -109,29 +109,53 @@ class handle_expression_exceptions:
 def process_simple_expressions():
     # An empty expressions CLI argument means get the values of all variables
     args = cli.args()
-    all_expressions = args.expressions or var_container
-    expressions = parse_simple_expressions(all_expressions)
+    expressions = parse_simple_expressions(args.expressions or var_container)
     any_succeeded = False
+
+    if args.edit or args.editor:
+        values = {}
+        for expr in expressions:
+            value = None
+            if isinstance(expr, Assign):
+                value = expr.rhs
+            elif isinstance(expr, Toggle):
+                expr.execute()
+                value = expr.variable.value
+            elif isinstance(expr, Get):
+                value = expr.variable.value
+            values[expr.var_name] = value
+
+        values = edit_values(
+            {expr.var_name: expr.value for expr in expressions},
+            var_container,
+        )
+        for i, expr in enumerate(expressions):
+            var_name = expr.var_name
+            expr = Assign.from_pair(var_name, values[var_name], var_container)
+            expr.execute()
+
+    # Execute each expression
     for expr in expressions:
         try:
             with handle_expression_exceptions():
                 expr.execute()
                 any_succeeded = True
-                print_name_value(
-                    expr.var_name, expr.variable, verbosity=args.verbosity
-                )
         except SyntaxError as e:
             cli.print_cli_warn(e)
 
-    if all_expressions and not any_succeeded:
+    if expressions and not any_succeeded:
         # All expressions failed
         cli.print_cli_err("none of the specified expressions are valid")
         cli.exit_code = 1
+    else:
+        for expr in expressions:
+            print_name_value(
+                expr.var_name, expr.variable, verbosity=args.verbosity
+            )
 
 
 def process_query_expressions():
     args = cli.args()
-    any_failed = False
     for expr in args.expressions:
         try:
             with handle_expression_exceptions():
@@ -142,22 +166,19 @@ def process_query_expressions():
                 )
         except SyntaxError as e:
             cli.print_cli_err(e)
-            any_failed = True
-
-    if any_failed:
-        cli.exit_code = 1
+            cli.exit_code = 1
 
 
 def reset_to_defaults():
+    args = cli.args()
     global var_container
-    if not cli.args().expressions and not (
-        cli.args().edit or cli.args().editor
-    ):
+    # No positional args => delete the variable store
+    if not args.expressions and not (args.edit or args.editor):
         try:
             os.remove(TemDir()._internal / "vars")
         except FileNotFoundError:
             pass
-        if cli.args().verbosity:
+        if args.verbosity:
             for var_name, default in var.load(defaults=True).__dict__.items():
                 old_value = var_container[var_name].value
                 var_container[var_name].value = default.value
@@ -165,8 +186,7 @@ def reset_to_defaults():
                     var_name, var_container[var_name], default.value, old_value
                 )
         return
-    var_container = var.load()
-    expressions = cli.args().expressions or var_container
+    expressions = args.expressions or var_container
     # Validate that args.expressions contains only expressions of type `Get`
     for expr in expressions:
         try:
@@ -186,16 +206,17 @@ def reset_to_defaults():
         if k in expressions
     }
     # Possibly intercept (edit) the default values before committing them
-    if cli.args().edit or cli.args().editor:
-        defaults = edit_values(defaults)
+    if args.edit or args.editor:
+        defaults = edit_values(defaults, var_container)
 
-    # Commit the changes
+    # Commit the changes and print
     for var_name, default in defaults.items():
         old_value = var_container[var_name].value
         var_container[var_name].value = default
         print_default_and_old_value(
             var_name, var_container[var_name], default, old_value
         )
+    var.save(var_container)
 
 
 @cli.subcommand
@@ -204,10 +225,15 @@ def cmd(args):
     with env.Environment():
 
         global var_container
-        if args.defaults:
-            pass
-        else:
-            var_container = var.load(defaults=args.defaults)
+        var_container = var.load(defaults=(args.defaults and not args.reset))
+
+        # Print warnings
+        if args.query and (args.edit or args.editor):
+            cli.print_cli_warn(
+                "--edit and --editor have no effect with --query"
+            )
+        if args.defaults and args.reset:
+            cli.print_cli_warn("--default has not effect with --reset")
 
         if args.query:
             process_query_expressions()

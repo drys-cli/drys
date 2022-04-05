@@ -259,6 +259,18 @@ err_invalid_expressions() {
     compare_output_expected
 }
 
+@test "tem var -d" {
+    : # TODO
+}
+
+@test "tem var -e bool1 str2=val4" {
+    : # TODO
+}
+
+@test "tem var -ze bool1 str2" {
+    : # TODO
+}
+
 export ___WAS_RUN_BEFORE=true
 
 # vim: ft=sh sw=4

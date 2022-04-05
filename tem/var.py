@@ -3,7 +3,6 @@ import functools
 import inspect
 import os
 import shelve
-import typing
 from contextlib import ExitStack
 from textwrap import TextWrapper
 from typing import Any, Dict, Iterable, List, Union
@@ -76,7 +75,7 @@ class Variable:
             @functools.wraps(actual_function)
             def wrapper(
                 self,
-                var_type: Union[type, Any, Iterable[Any]] = Any,
+                var_type: Union[type, Any, list] = Any,
                 default=None,
                 from_env: str = None,
                 to_env: str = None,
@@ -112,9 +111,9 @@ class Variable:
         from_env = kwargs["from_env"]
         to_env = kwargs["to_env"]
 
-        if var_type == Any:
-            var_type = None
-        if var_type and not isinstance(var_type, (type, list)):
+        if var_type is None:
+            var_type = Any
+        if var_type != Any and not isinstance(var_type, (type, list)):
             raise TypeError(
                 "'var_type' must be a type or a list containing allowed"
                 "values"
@@ -146,7 +145,7 @@ class Variable:
 
     @staticmethod
     def _matches_type(value, var_type):
-        if value is None or var_type is None:
+        if var_type == Any:
             return True
         elif isinstance(var_type, type):
             return isinstance(value, var_type)
@@ -299,22 +298,6 @@ class Variant(Variable):
     # exclusive. Implemented as a dict[Variant, list[Variant]] that maps each
     # variant to a list of variants that exclude it.
     _mutually_exclusive = {}
-
-
-def var(on_change):
-    """
-    Decorator that creates a Variable and uses the decorated function as an
-    on_change listener.
-
-    Parameters
-    ----------
-    on_change:
-        The on_change listener receives the value that is about to be set for
-        the variable, and its return value will be used as an override value.
-    """
-    var_type = typing.get_type_hints(on_change).get("return")
-    variable = Variable(var_type)
-    variable._on_change = on_change
 
 
 def when(condition: str):

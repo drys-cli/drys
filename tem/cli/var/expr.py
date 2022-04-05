@@ -1,7 +1,6 @@
 import ast
 from abc import ABC
 
-from .util import print_name_value
 from tem.errors import TemVariableValueError
 from tem.var import Variable, VariableContainer, Variant
 from tem.cli import common as cli
@@ -113,6 +112,14 @@ class Assign(SimpleExpression):
         except TemVariableValueError as e:
             e.name = self.var_name
             raise e
+
+    @classmethod
+    def from_pair(cls, var_name, value, var_container):
+        expr = Assign("dummy=1", VariableContainer({"dummy": Variable(int)}))
+        expr.var_name = var_name
+        expr.rhs = value
+        expr.variable = var_container[expr.var_name]
+        return expr
 
 
 class Toggle(SimpleExpression):

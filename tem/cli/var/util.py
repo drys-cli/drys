@@ -3,7 +3,7 @@ import textwrap
 from typing import Dict, Any
 
 from tem import util
-from tem.var import Variable
+from tem.var import Variable, VariableContainer
 from tem.cli import common as cli
 
 
@@ -62,13 +62,38 @@ def print_default_and_old_value(var_name, variable, default, old_value):
         print_name_value(var_name, variable, *additional_args, verbosity=0)
 
 
-def edit_values(value_dict: Dict[str, Any]):
+def edit_values(value_dict: Dict[str, Any], var_container: VariableContainer):
     """Return the `value_dict` after being edited in a text editor."""
     result_dict = dict()
+    # Contains an assignment text for each variable
+    lines = []
+    longest_line_length = 0
+
+    # Populate `lines`
+    for k, value in value_dict.items():
+        var = var_container[k]
+        line = f"{k} = {repr(value)}"
+        if len(line) > longest_line_length:
+            longest_line_length = len(line)
+        lines.append(line)
+
+    # Append "possible types" hint at the end of each line
+    for i, (k, value) in enumerate(value_dict.items()):
+        var = var_container[k]
+        if isinstance(var.var_type, list):
+            possible_values = "One of: " + ", ".join(
+                [repr(val) for val in var.var_type]
+            )
+        else:
+            possible_values = "Type: " + var.var_type.__name__
+        lines[i] = (
+            lines[i].ljust(longest_line_length) + "  # " + possible_values
+        )
+
     initial_content = (
         "# Change the variable values to your liking and save this file.\n"
         "# NOTE: This file uses python syntax\n\n"
-    ) + "\n".join([f"{k} = {repr(value)}" for k, value in value_dict.items()])
+    ) + "\n".join(lines)
     with cli.edit_tmp_file(suffix=".py", initial_content=initial_content) as (
         _,
         path,

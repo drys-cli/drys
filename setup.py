@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 import tem
 
@@ -12,6 +12,6 @@ setup(
     author="Haris Gušić",
     author_email="harisgusic.dev@gmail.com",
     classifiers=["Programming Language :: Python :: 3.9"],
-    packages=["tem", "tem.util", "tem.cli", "tem.cli.var", "tem.shell"],
+    packages=find_packages(include=["tem"]),
     entry_points={"console_scripts": ["tem=tem.__main__:main"]},
 )
