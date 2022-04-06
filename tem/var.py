@@ -5,7 +5,7 @@ import os
 import shelve
 from contextlib import ExitStack
 from textwrap import TextWrapper
-from typing import Any, Dict, Iterable, List, Union
+from typing import Any, Dict, Iterable, List, Mapping, Union
 
 import tem
 from tem import util
@@ -198,7 +198,7 @@ class VariableDoc(str):
         doc = self.description
 
         # If variable has a regular type
-        if self._variable.var_type is None or isinstance(
+        if self._variable.var_type == Any or isinstance(
             self._variable.var_type, type
         ):
             if doc:
@@ -325,7 +325,7 @@ def when(condition: str):
     return decorator
 
 
-class VariableContainer:
+class VariableContainer(Mapping):
     """
     An object that serves as a namespace for tem variables. Variable values are
     accessed as attributes.

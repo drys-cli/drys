@@ -1,15 +1,21 @@
 """Manipulate tem variants."""
 import os
+import sys
 from argparse import ArgumentParser
 from typing import Iterable, List
 
-from tem import env, var
+from tem import env, var, context
 from tem.cli import common as cli
 from tem.errors import TemError, TemVariableValueError
 from tem.fs import TemDir
 
 from .expr import Expression, Get, Query, SimpleExpression, Assign, Toggle
-from .util import edit_values, print_default_and_old_value, print_name_value
+from .util import (
+    edit_values,
+    print_default_and_old_value,
+    print_name_value,
+    print_all_values,
+)
 
 #: Variable container to which most operations in this module are applied.
 var_container: var.VariableContainer
@@ -219,6 +225,25 @@ def reset_to_defaults():
     var.save(var_container)
 
 
+def edit_defaults():
+    args = cli.args()
+    if args.expressions:
+        cli.print_cli_err(
+            "'tem --default --edit/--editor' accepts no arguments"
+        )
+        sys.exit(1)
+    cli.edit_files(
+        [
+            temdir / ".tem/vars.py"
+            for temdir in context.env.envdirs
+            if (temdir / ".tem/vars.py").is_file()
+        ],
+        override_editor=args.editor,
+    )
+    if args.verbosity:
+        print_all_values(var.load(defaults=True), verbosity=args.verbosity)
+
+
 @cli.subcommand
 def cmd(args):
     """Execute this subcommand."""
@@ -227,13 +252,24 @@ def cmd(args):
         global var_container
         var_container = var.load(defaults=(args.defaults and not args.reset))
 
-        # Print warnings
+        # Handle conflicting/ineffectual option combinations
         if args.query and (args.edit or args.editor):
             cli.print_cli_warn(
                 "--edit and --editor have no effect with --query"
             )
+            args.edit = args.editor = None
         if args.defaults and args.reset:
-            cli.print_cli_warn("--default has not effect with --reset")
+            cli.print_cli_warn("--default has no effect with --reset")
+
+        # Special case: tem var -de
+        if (
+            (args.edit or args.editor)
+            and args.defaults
+            and not args.query
+            and not args.reset
+        ):
+            edit_defaults()
+            return
 
         if args.query:
             process_query_expressions()

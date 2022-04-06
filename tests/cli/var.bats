@@ -271,6 +271,10 @@ err_invalid_expressions() {
     : # TODO
 }
 
+@test "tem var -de" {
+    : # TODO
+}
+
 export ___WAS_RUN_BEFORE=true
 
 # vim: ft=sh sw=4
