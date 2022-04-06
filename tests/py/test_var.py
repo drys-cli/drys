@@ -32,12 +32,15 @@ class TestVar:
         # Variable with Any type, with explicit default
         v = var.Variable(default=10)
         assert v.value == 10
-        # Variant initialized directly
-        v = var.Variant()
-        assert not v.value and v.var_type == bool
         # Variant instantiated from Variable.__new__
         v = var.Variable(bool)
         assert isinstance(v, var.Variant)
+        # Variant initialized directly
+        v = var.Variant()
+        assert not v.value and v.var_type == bool
+        # Variant initialized with value as positional arg
+        v = var.Variant(True)
+        assert v.value
 
     def test_errors(self):
         # Variable type is not a type or list of values

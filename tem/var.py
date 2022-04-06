@@ -14,7 +14,14 @@ from tem.errors import TemVariableNotDefinedError, TemVariableValueError
 from tem.fs import TemDir
 
 
-class Variable:
+class __NoInit(type):
+    """Prevents __new__ from calling __init__ automatically."""
+
+    def __call__(cls, *args, **kwargs):
+        return cls.__new__(cls, *args, **kwargs)
+
+
+class Variable(metaclass=__NoInit):
     """A tem variable.
 
     Parameters
@@ -54,63 +61,14 @@ class Variable:
         if self._to_env:
             os.environ[self._to_env] = str(value)
 
-    def _function_with_init_params(exclude_args: List[str] = []):
-        """
-        Modifies a function signature so it has those parameters that
-        :meth:`Variable.__init__` takes.
-        """
-
-        # We define this so that we don't have to maintain this signature in 3
-        # different places, and also because of a python behavior:
-        # Consider what happens when a Variable(bool) is instantiated:
-        #   Variable.__new__(cls, bool)
-        #     return Variant(bool)
-        #       Variant.__init__(bool)
-        # Although var_type is a kwarg, Variable was instantiated by specifying
-        # it as a positional argument, and it is passed as such to
-        # Variant.__init__. But the problem is that the first argument of
-        # Variant.__init__ is default instead of var_type.
-        # I'm not sure why, but this decorator fixes the behavior.
-        def decorator(actual_function):
-            @functools.wraps(actual_function)
-            def wrapper(
-                self,
-                var_type: Union[type, Any, list] = Any,
-                default=None,
-                from_env: str = None,
-                to_env: str = None,
-            ):
-                """This function determines the parameters of __init__."""
-                return actual_function(
-                    self,
-                    var_type=var_type,
-                    default=default,
-                    from_env=from_env,
-                    to_env=to_env,
-                )
-
-            sig = inspect.signature(wrapper)
-            sig.replace(
-                parameters=tuple(
-                    param
-                    for param in sig.parameters.values()
-                    if param.name not in exclude_args
-                )
-            )
-            wrapper.__signature__ = sig
-
-            return wrapper
-
-        return decorator
-
-    @_function_with_init_params()
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        var_type: Union[type, Any, list] = Any,
+        default=None,
+        from_env: str = None,
+        to_env: str = None,
+    ):
         # A type of 'Any' is converted to None for uniformity
-        var_type = kwargs["var_type"]
-        default = kwargs["default"]
-        from_env = kwargs["from_env"]
-        to_env = kwargs["to_env"]
-
         if var_type is None:
             var_type = Any
         if var_type != Any and not isinstance(var_type, (type, list)):
@@ -128,14 +86,24 @@ class Variable:
         self.value = default or self._default_value_for_type(var_type)
         super().__setattr__("doc", VariableDoc(self))
 
-    @_function_with_init_params()
-    def __new__(cls, *args, **kwargs):
+    def __new__(
+        cls,
+        var_type: Union[type, Any, list] = Any,
+        default=None,
+        from_env: str = None,
+        to_env: str = None,
+    ):
         """Always instantiate a bool variable as a Variant."""
-        var_type = kwargs.get("var_type")
         if var_type == bool:
-            kwargs.pop("var_type")
-            return Variant(*args, **kwargs)
-        return super().__new__(cls)
+            return Variant(default=default, from_env=from_env, to_env=to_env)
+        variable = super().__new__(cls)
+        variable.__init__(
+            var_type=var_type,
+            default=default,
+            from_env=from_env,
+            to_env=to_env,
+        )
+        return variable
 
     def __setattr__(self, key, value):
         if key == "doc":
@@ -258,10 +226,20 @@ class VariableDoc(str):
 class Variant(Variable):
     """A tem variable with a type of ``bool``."""
 
-    @Variable._function_with_init_params(exclude_args=["var_type"])
-    def __init__(self, *args, **kwargs):
-        kwargs["var_type"] = bool
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        default=None,
+        from_env: str = None,
+        to_env: str = None,
+    ):
+        super().__init__(
+            var_type=bool, default=default, from_env=from_env, to_env=to_env
+        )
+
+    def __new__(cls, *args, **kwargs):
+        variant = super(Variable, cls).__new__(cls)
+        variant.__init__(*args, **kwargs)
+        return variant
 
     @classmethod
     def mutex(cls, variants):
