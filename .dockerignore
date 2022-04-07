@@ -3,4 +3,6 @@ tests
 tem.py
 Dockerfile
 
-.tem/
+.tem
+.git
+build

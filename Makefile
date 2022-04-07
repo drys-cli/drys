@@ -9,8 +9,8 @@ build: build-base
 	"${MAKE}" -C docs
 
 build-base:
-	python setup.py build
-	@echo "__version__ = '${VERSION}'"               >> build/lib/tem/_meta.py
+	mkdir -p build/lib/tem
+	@echo "__version__ = '${VERSION}'"               > build/lib/tem/_meta.py
 
 install: install-base
 	@# Man page and other documentation
@@ -27,7 +27,9 @@ install: install-base
 install-base:
 	@echo "__prefix__ = '/${PREFIX}'" | sed 's://:/:' >> build/lib/tem/_meta.py
 	pip install --root="${DESTDIR}/" --prefix="${PREFIX}" .
-	@chown "$$(stat -c "%U:%G" tem/)" tem/_meta.py
+	@# Set the current user and group as owners of build/
+	@chown -R "$$(stat -c '%U' .)" build tem.egg-info tem/__pycache__ || true
+	@chgrp -R "$$(stat -c '%G' .)" build tem.egg-info tem/__pycache__ || true
 	@mkdir -p 	${SHARE_DIR}		\
   				${SHARE_DIR}/hooks	\
 			 	${SHARE_DIR}/env	\
