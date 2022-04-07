@@ -303,7 +303,7 @@ def when(condition: str):
     return decorator
 
 
-class VariableContainer(Mapping):
+class VariableContainer:
     """
     An object that serves as a namespace for tem variables. Variable values are
     accessed as attributes.

@@ -185,7 +185,7 @@ def reset_to_defaults():
         except FileNotFoundError:
             pass
         if args.verbosity:
-            for var_name, default in {**var.load(defaults=True)}.items():
+            for var_name, default in var.load(defaults=True).__dict__.items():
                 old_value = var_container[var_name].value
                 var_container[var_name].value = default.value
                 print_default_and_old_value(
@@ -208,7 +208,7 @@ def reset_to_defaults():
     # Maps variable names to their default values
     defaults = {
         k: v.value
-        for k, v in {**var.load(defaults=True)}.items()
+        for k, v in var.load(defaults=True).__dict__.items()
         if k in expressions
     }
     # Possibly intercept (edit) the default values before committing them

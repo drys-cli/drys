@@ -43,13 +43,11 @@ def print_name_value(var_name, variable, *args_, verbosity=0, **kwargs):
     print(var_name, "=", repr(variable.value), *args_, **kwargs)
 
     if verbosity > 0:
-        if var_name != "use_pipenv":
-            return  # TODO
         print_doc(variable)
 
 
 def print_all_values(var_container, verbosity=0):
-    for name, variable in {**var_container}.items():
+    for name, variable in var_container.__dict__.items():
         print_name_value(name, variable, verbosity=verbosity)
 
 
