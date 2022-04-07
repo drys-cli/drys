@@ -83,20 +83,19 @@ USER root
 COPY . .
 RUN chown -R user .
 
+## Prepare tests directory
+#  -----------------------
+
+# Output directory for tests
+RUN mkdir /t '&&' chown -R user /t
+# Flag for tests/Makefile
+ENV __TEM_TESTS_INSIDE_DOCKER_CONTAINER__ true
+
 ## Install tem system-wide
 #  -----------------------
 
 RUN make build-base
 RUN make install-base
-
-## Prepare tests directory
-#  -----------------------
-
-USER root
-# Output directory for tests
-RUN mkdir /t '&&' chown -R user /t
-# Flag for tests/Makefile
-ENV __TEM_TESTS_INSIDE_DOCKER_CONTAINER__ true
 
 WORKDIR tests
 USER user
@@ -116,6 +115,7 @@ if [ "$base" = "$default_base" ]; then
     base=""
     dash=""
 fi
+
 TAG "$name:$ver$dash$base$underscore$base_ver"
 
 # vim: filetype=dockerfile

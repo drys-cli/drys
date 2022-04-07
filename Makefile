@@ -26,7 +26,7 @@ install: install-base
 # Install without documentation files
 install-base:
 	@echo "__prefix__ = '/${PREFIX}'" | sed 's://:/:' >> build/lib/tem/_meta.py
-	python3 setup.py install --root="${DESTDIR}/" --prefix="${PREFIX}" --skip-build
+	pip install --root="${DESTDIR}/" --prefix="${PREFIX}" .
 	@chown "$$(stat -c "%U:%G" tem/)" tem/_meta.py
 	@mkdir -p 	${SHARE_DIR}		\
   				${SHARE_DIR}/hooks	\

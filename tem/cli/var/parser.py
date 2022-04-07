@@ -149,7 +149,7 @@ def process_simple_expressions():
         except SyntaxError as e:
             cli.print_cli_warn(e)
 
-    if expressions and not any_succeeded:
+    if args.expressions and not any_succeeded:
         # All expressions failed
         cli.print_cli_err("none of the specified expressions are valid")
         cli.exit_code = 1

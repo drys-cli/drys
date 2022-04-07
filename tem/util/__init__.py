@@ -1,7 +1,7 @@
 """Utility functions and classes"""
 import contextlib
 import contextvars
-import importlib
+import importlib.util
 import os
 import pathlib
 import re
