@@ -1,4 +1,5 @@
 import ast
+from itertools import dropwhile, cycle
 from abc import ABC
 
 from tem.errors import TemVariableValueError
@@ -89,7 +90,7 @@ class SimpleExpression(Expression, ABC):
             if "=" in expr:
                 return Assign(expr, var_container)
             elif expr.endswith("!"):
-                return Toggle(expr, var_container)
+                return Cycle(expr, var_container)
             else:
                 return Get(expr, var_container)
         except SyntaxError as e:
@@ -122,18 +123,30 @@ class Assign(SimpleExpression):
         return expr
 
 
-class Toggle(SimpleExpression):
+class Cycle(SimpleExpression):
     def __init__(self, expr: str, var_container: VariableContainer):
         if not expr.endswith("!"):
             raise SyntaxError(expr)
         name = self._ast_name(expr[:-1]).id
         self.var_name = name
         self.variable = var_container[name]
-        if not isinstance(self.variable, Variant):
-            raise SyntaxError("only variants can be toggled")
+        if not isinstance(self.variable, Variant) and not isinstance(
+            self.variable.var_type, list
+        ):
+            raise SyntaxError(
+                "only variables with a finite set of values can be cycled"
+            )
 
     def execute(self, no_echo=False):
-        self.variable.value = not self.variable.value
+        if self.variable.var_type == bool:
+            self.variable.value = not self.variable.value
+        else:
+            values = cycle(self.variable.var_type)
+            iter_values = dropwhile(
+                lambda x: not x == self.variable.value, values
+            )
+            next(iter_values)
+            self.variable.value = next(iter_values)
 
 
 class Get(SimpleExpression):

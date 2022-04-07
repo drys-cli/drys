@@ -9,7 +9,7 @@ from tem.cli import common as cli
 from tem.errors import TemError, TemVariableValueError
 from tem.fs import TemDir
 
-from .expr import Expression, Get, Query, SimpleExpression, Assign, Toggle
+from .expr import Expression, Get, Query, SimpleExpression, Assign, Cycle
 from .util import (
     edit_values,
     print_default_and_old_value,
@@ -124,7 +124,7 @@ def process_simple_expressions():
             value = None
             if isinstance(expr, Assign):
                 value = expr.rhs
-            elif isinstance(expr, Toggle):
+            elif isinstance(expr, Cycle):
                 expr.execute()
                 value = expr.variable.value
             elif isinstance(expr, Get):

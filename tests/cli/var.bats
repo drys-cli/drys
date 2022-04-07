@@ -163,8 +163,8 @@ warn_invalid_expression() {
     warning "invalid expression: $1"
 }
 
-warn_toggle_only_variant() {
-    warning "invalid expression: $1 (only variants can be toggled)"
+warn_cycle_only_variant() {
+    warning "invalid expression: $1 (only variables with a finite set of values can be cycled)"
 }
 
 err_query_only_variant() {
@@ -227,13 +227,13 @@ err_invalid_expressions() {
     compare_output_expected
 }
 
-@test "tem var str1! [TOGGLE NON-VARIANT]" {
+@test "tem var str2! [TOGGLE NON-(VARIANT OR FINITE-VALUED)]" {
     cd ~/var7
 
-    run tem var str1! 2>&1
+    run tem var str2! 2>&1
     [ "$status" = 1 ]
     expected="$(
-        warn_toggle_only_variant str1!
+        warn_cycle_only_variant str2!
         err_invalid_expressions
     )"
     compare_output_expected
