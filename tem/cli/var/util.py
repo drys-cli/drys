@@ -36,13 +36,18 @@ def print_name_value(var_name, variable, *args_, verbosity=0, **kwargs):
         Additional args that are passed to ``print``.
     kwargs
         Additional kwargs that are passed to ``print``.
+    verbosity
+        - 0: Print just the variable value
+        - 1: Print <variable name> = <value>
+        - 2: Print text from 1 and variable documentation
     """
     if verbosity < 0:
         return
-
-    print(var_name, "=", repr(variable.value), *args_, **kwargs)
-
-    if verbosity > 0:
+    if verbosity == 0:
+        print(str(variable.value))
+    if verbosity >= 1:
+        print(var_name, "=", repr(variable.value), *args_, **kwargs)
+    if verbosity >= 2:
         print_doc(variable)
 
 

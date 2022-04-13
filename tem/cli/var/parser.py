@@ -154,9 +154,12 @@ def process_simple_expressions():
         cli.print_cli_err("none of the specified expressions are valid")
         cli.exit_code = 1
     else:
+        verbosity = args.verbosity
+        if not args.expressions and args.verbosity == 0:
+            verbosity += 1
         for expr in expressions:
             print_name_value(
-                expr.var_name, expr.variable, verbosity=args.verbosity
+                expr.var_name, expr.variable, verbosity=verbosity
             )
 
 

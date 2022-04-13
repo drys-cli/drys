@@ -9,12 +9,20 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
     done
 fi
 
+print_all_default_names_and_values() {
+    printf "%s\n" \
+       "str1 = 'val1'" \
+       "str2 = 'val3'" \
+       "bool1 = False" \
+       "bool2 = True"
+}
+
 print_all_defaults() {
     printf "%s\n" \
-        "str1 = 'val1'" \
-        "str2 = 'val3'" \
-        "bool1 = False" \
-        "bool2 = True"
+        "val1" \
+        "val3" \
+        "False" \
+        "True"
 }
 
 print_all_variable_names() {
@@ -30,7 +38,7 @@ print_all_variable_names() {
 
     run tem var str1
 
-    expected="$(print_all_defaults | grep str1)"
+    expected="val1"
     compare_output_expected
 }
 
@@ -40,7 +48,7 @@ print_all_variable_names() {
     run tem var
 
     [ "$status" = 0 ]
-    expect print_all_defaults
+    expect print_all_default_names_and_values
     compare_output_expected
 }
 
@@ -82,13 +90,13 @@ print_all_variable_names() {
     run tem var str1=val2
 
     [ "$status" = 0 ]
-    expect printf "%s\n" "str1 = 'val2'"
+    expect printf "%s\n" "val2"
     compare_output_expected
 
     run tem var bool1=true
 
     [ "$status" = 0 ]
-    expect printf "%s\n" "bool1 = True"
+    expect printf "%s\n" "True"
     compare_output_expected
 }
 
@@ -99,7 +107,7 @@ print_all_variable_names() {
     run tem var bool1!
 
     [ "$status" = 0 ]
-    expect printf "%s\n" "bool1 = True"
+    expect printf "%s\n" "True"
     compare_output_expected
 }
 
@@ -132,10 +140,10 @@ print_all_variable_names() {
 
     [ "$status" = 0 ]
     expect printf "%s\n" \
-        "str1 = 'val1'" \
-        "bool1 = True" \
-        "str2 = 'val4'" \
-        "bool2 = False"
+        "val1" \
+        "True" \
+        "val4" \
+        "False"
     compare_output_expected
 }
 
@@ -196,7 +204,7 @@ err_invalid_expressions() {
     [ "$status" = 0 ]
     expected="$(
         warn_undefined nonexistent
-        echo "str1 = 'val2'"
+        echo "val2"
     )"
     compare_output_expected
 }
