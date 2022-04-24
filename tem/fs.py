@@ -6,7 +6,7 @@ import subprocess
 from contextlib import suppress
 from functools import cached_property
 from subprocess import run
-from typing import List
+from typing import List, Optional, Union
 
 from tem import util
 from tem.errors import (
@@ -16,6 +16,8 @@ from tem.errors import (
     TemInitializedError,
 )
 from tem.shell import shell
+
+AnyPath = Union[str, pathlib.Path, os.PathLike]
 
 
 class TemDir(type(pathlib.Path())):
@@ -27,7 +29,7 @@ class TemDir(type(pathlib.Path())):
 
     Attributes
     ----------
-    path : os.PathLike
+    path: AnyPath
         Path to this temdir.
     isolated : bool
         If True, the environment can be activated only if this directory is the
@@ -37,7 +39,9 @@ class TemDir(type(pathlib.Path())):
         This variable exists only if a tem shell plugin is active.
     """
 
-    def __new__(cls, path=None):
+    path: AnyPath
+
+    def __new__(cls, path: AnyPath = None):
         if not path:
             # Use first parent directory that contains '.tem'
             path = next(
@@ -86,7 +90,7 @@ class TemDir(type(pathlib.Path())):
             return parent
 
     @property
-    def tem_parent(self):
+    def tem_parent(self) -> Optional["TemDir"]:
         """Get the first parent of this temdir that is also a temdir."""
         # Traverse the fs tree upwards until a parent temdir is found
         directory = self.parent
@@ -95,23 +99,22 @@ class TemDir(type(pathlib.Path())):
                 return TemDir(directory)
             except NotATemDirError:
                 directory = directory.parent
-                continue
         return None
 
     @staticmethod
-    def init(path: os.PathLike, force: bool = False):
+    def init(path: AnyPath, force: bool = False):
         """Initialize a temdir at ``path``.
 
         Parameters
         ----------
         path
             Path to initialize at.
-        force:
+        force
             Re-initialize temdir from scratch.
         Returns
         -------
         temdir: TemDir
-            Return the new temdir at ``path``.
+            The newly initialized temdir at ``path``.
         """
         path = pathlib.Path(path)
         dot_tem = path / ".tem"
@@ -172,7 +175,7 @@ class TemDir(type(pathlib.Path())):
 
 
 class DotDir(type(pathlib.Path())):
-    def __new__(cls, path: os.PathLike):
+    def __new__(cls, path: AnyPath):
         return super(DotDir, cls).__new__(cls, str(path))
 
     def __init__(self, *_):
@@ -248,7 +251,7 @@ class Environment:
 class Runnable(type(pathlib.Path())):
     """An abstraction for executables and shell (including python) scripts."""
 
-    def __init__(self, path):
+    def __init__(self, path: AnyPath):
         if not util.is_executable(path):
             raise
         super().__init__(path)
