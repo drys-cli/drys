@@ -1,0 +1,16 @@
+#!/usr/bin/env tuterm
+
+run() {
+    m "Let's print the value of a simple string variable"
+    c tem var github_url
+    c tem var environment=production
+    m "You can do any number of operations at once"
+    c tem var github_url environment=development
+    m "Print all active variants"
+    c tem var --active
+
+    m "What's next:"
+    m "- To learn how to define variables and constraints, see the docs."
+}
+
+# vim: filetype=sh

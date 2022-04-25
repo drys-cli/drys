@@ -11,4 +11,8 @@ is so versatile and general that it is best taught by use cases. Since most of
 tem's functionality is based around the filesystem, the CLI is the best
 environment for learning.
 
+.. include:: scripts.rst
+
 .. include:: variables.rst
+
+.. include:: environment.rst

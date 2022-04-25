@@ -6,7 +6,7 @@
 .. automodule:: tem.context
    :members:
 
-.. py:function:: tem.context() -> Context
+.. py:property:: tem.context.runtime
 
    Get the active context.
 

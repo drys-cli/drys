@@ -43,6 +43,11 @@ Internal environment variables
       which the shell wrapper is supposed to source. A more detailed explanation
       can be found in :ref:`Shell<dev_shell>`.
 
+   `__TEM_EXPORTED_ENVIRONMENT`
+      Keeps track of the exported environment, so that env scripts are not
+      executed multiple times. The value is the basedir and not the entire
+      environment, since the environment can be obtained from the basedir alone.
+
    `__TEM_SESSION_ID__`
       TODO use this at all?
       The id of the current tem session (TODO a long random string that

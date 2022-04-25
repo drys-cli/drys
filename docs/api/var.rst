@@ -45,6 +45,16 @@ Defining variables
    # The tem variable and the environment variable are bound together
    api_key3 = Variable(str, to_env="API_KEY3", from_env="API_KEY3")
 
+Documenting variables
++++++++++++++++++++++
+
+.. todo:: Not implemented
+
+.. code:: python
+   build_type.doc = "Build type"
+   build_type.doc["release"] = "Release build"
+   build_type.doc["debug"] = "Debug build"
+
 Handy tricks
 ************
 

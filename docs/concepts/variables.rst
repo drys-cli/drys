@@ -6,8 +6,8 @@ Variables
 Tutorial:
    ..
 
-Tem allows you to set variables on a per-directory basis, so that these
-variables are always available to you when you are in that directory.
+Tem allows you to set variables on a per-directory basis, making them available
+to you whenever you are in that directory.
 
 Use cases
 ---------
