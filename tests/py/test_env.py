@@ -14,9 +14,9 @@ class TestExecPath:
         cls.ep = ExecPath(cls.paths)
 
     def test_slicing(self):
-        assert self.ep[0:1].paths == [self.paths[0]]
-        assert self.ep[0:].paths == self.paths
-        assert self.ep[2:3].paths == self.paths[2:3]
+        assert list(self.ep[0:1]) == [str(self.paths[0])]
+        assert list(self.ep[0:]) == list(map(str, self.paths))
+        assert list(self.ep[2:3]) == list(map(str, self.paths[2:3]))
 
     def test_lookup(self):
         """Test lookup of nth"""

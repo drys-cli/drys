@@ -158,9 +158,7 @@ def process_simple_expressions():
         if not args.expressions and args.verbosity == 0:
             verbosity += 1
         for expr in expressions:
-            print_name_value(
-                expr.var_name, expr.variable, verbosity=verbosity
-            )
+            print_name_value(expr.var_name, expr.variable, verbosity=verbosity)
 
 
 def process_query_expressions():

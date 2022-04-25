@@ -5,11 +5,11 @@ import subprocess
 import weakref
 from functools import cached_property
 from itertools import islice
-from typing import List, Union, overload, Literal, Type
+from typing import Iterator, List, Literal, Type, Union, overload
 
 import tem.shell.commands as shell_commands
 from tem import context, find
-from tem.context import Context
+from tem.context import Runtime
 from tem.fs import AnyPath, TemDir
 
 __all__ = ["Environment", "ExecPath", "ExecutableLookup"]
@@ -74,8 +74,8 @@ class Environment:
     @cached_property
     def execpath(self) -> "ExecPath":
         """
-        Return the value that `os.environ["PATH"]` would have after exporting
-        this environment.
+        Return a convenient wrapper around the value that ``os.environ["PATH"]``
+        would have after exporting this environment.
         """
         envdirs_real = [os.path.realpath(path) for path in self.envdirs]
         execpath = [
@@ -100,7 +100,7 @@ class Environment:
         return True
 
     def export(self):
-        """Export this environment to the system environment variables."""
+        """Export this environment to ``os.environ["PATH"]``."""
         self.execpath.export()
         os.environ["_TEM_EXPORTED_ENVIRONMENT"] = str(self.basedir)
 
@@ -152,8 +152,9 @@ class ExecPath(list):
 
     """
 
-    #: Special value for parameter index in method :meth:`lookup`.
-    SYSTEM = type("SYSTEM", (), dict())
+    #: Special index value indicating that `PATH` entries injected by tem should
+    #: be ignored when looking up executables.
+    NO_TEM = type("NO_TEM", (), dict())
 
     def __init__(
         self,
@@ -161,14 +162,14 @@ class ExecPath(list):
         auto_export=True,
     ):
         if isinstance(source, str):
-            self.paths = self._abspaths(source.split(os.pathsep))
+            super().__init__(self._abspaths(source.split(os.pathsep)))
         elif isinstance(source, list):
-            self.paths = self._abspaths(source)
+            super().__init__(self._abspaths(source))
         elif isinstance(source, ExecPath):
-            self.paths = self._abspaths(source.paths)
+            super().__init__(self._abspaths(source))
         elif source is None:
-            self.paths = self._abspaths(
-                os.environ.get("PATH", "").split(os.pathsep)
+            super().__init__(
+                self._abspaths(os.environ.get("PATH", "").split(os.pathsep))
             )
         else:
             raise TypeError(
@@ -176,7 +177,6 @@ class ExecPath(list):
             )
 
         self.auto_export = auto_export
-        super().__init__(self.paths)
 
     @overload
     def __getitem__(self, item: str) -> "ExecutableLookup":
@@ -192,15 +192,30 @@ class ExecPath(list):
 
     def __getitem__(
         self, item: Union[str, int, slice]
-    ) -> Union["ExecPath", "ExecutableLookup", pathlib.Path, Type[SYSTEM]]:
+    ) -> Union["ExecPath", "ExecutableLookup", pathlib.Path, Type[NO_TEM]]:
         if isinstance(item, slice):
-            return ExecPath(self.paths[item], auto_export=self.auto_export)
+            return ExecPath(
+                super().__getitem__(item), auto_export=self.auto_export
+            )
         elif isinstance(item, int):
-            return self.paths[item]
+            return super().__getitem__(item)
         elif isinstance(item, str):
             return ExecutableLookup(self, item)
         else:
             raise TypeError("index has invalid type")
+
+    def __setitem__(self, key: Union[int, slice], value: AnyPath):
+        super().__setitem__(key, value)
+        if self.auto_export:
+            os.environ["PATH"] = str(self)
+
+    def __delitem__(self, key: Union[int, slice]):
+        super().__delitem__(key)
+        if self.auto_export:
+            os.environ["PATH"] = str(self)
+
+    def __iter__(self) -> Iterator[str]:
+        return super().__iter__()
 
     def __str__(self):
         """Convert to string representation suitable for os.environ."""
@@ -218,22 +233,25 @@ class ExecPath(list):
     def export(self):
         """
         Export to ``os.environ["PATH"]``. If the current context is
-        :data:`~tem.context.Context.SHELL`, the environment variable will be
+        :data:`~tem.context.Runtime.SHELL`, the environment variable will be
         exported to the shell also.
         """
         value = str(self)
         os.environ["PATH"] = value
-        if context() == Context.SHELL:
+        if context.runtime == Runtime.SHELL:
             shell_commands.export("PATH", value)
 
     @staticmethod
     def _abspaths(paths: List[AnyPath]):
-        return [pathlib.Path(os.path.abspath(path)) for path in paths]
+        return [os.path.abspath(path) for path in paths]
 
 
 class ExecutableLookup:
     """
     Lookup for an executable with a specified name.
+
+    You should avoid constructing instances of this class directly. Instead, you
+    can obtain an instance as ``ExecPath(...)["<executable_name>"]``.
 
     Parameters
     ----------
@@ -243,28 +261,35 @@ class ExecutableLookup:
         The name of the executable to find.
     """
 
-    def __init__(self, execpath: ExecPath, executable_name: str):
-        self._execpath = weakref.ref(execpath)
+    def __init__(self, execpath: Union[ExecPath, list], executable_name: str):
+        self._execpath = execpath
         self.executable_name = executable_name
         self._index = 0
 
     def __getitem__(self, index: int) -> "ExecutableLookup":
         """
-        Return a modified lookup that finds the ``index``-th number of
+        Return a modified lookup that finds the ``index``-th executable instead
+        of the first one in the :class:`ExecPath`.
 
         Example
         -------
-        Hello there
-        >>> ExecutableLookup("")
+        Assuming that `/a` and `/c` contain an executable named `script` and
+        `/b` doesn't, then:
+
+        >>> el = ExecutableLookup(["/a", "/b", "/c"], "script")
+        >>> print(el[0].lookup())
+        /a/script
+        >>> print(el[1].lookup())
+        /c/script
         """
-        new_spec = ExecutableLookup(self._execpath(), self.executable_name)
+        new_spec = ExecutableLookup(self._execpath, self.executable_name)
         new_spec._index = index
         return new_spec
 
     def __call__(self, *args, **kwargs):
         """
         Execute the found executable, passing ``args`` as positional arguments
-        and ``kwargs`` converted to CLI options.
+        and ``kwargs`` as CLI options.
 
         The ``kwargs`` are passed to the command as options in the following
         way:
@@ -296,8 +321,11 @@ class ExecutableLookup:
 
         Example
         -------
-        >>> executable_lookup = ExecPath()["git"]("commit", m="Initial commit")
-        # Will call subprocess.run(["git", "commit", "-m", "Initial commit", "--amend")
+        >>> executable_lookup = ExecPath()["git"]
+        >>> print(type(executable_lookup))
+        ExecutableLookup
+        >>> executable_lookup("commit", m="Initial commit", amend=True])
+        # Will call subprocess.run(["git", "commit", "-m", "Initial commit", "--amend"])
         """
         arguments = [self.lookup()]
         for k, v in kwargs.items():
@@ -313,7 +341,7 @@ class ExecutableLookup:
         arguments += list(map(str, args))
         return subprocess.run(arguments, check=False)
 
-    def lookup(self):
+    def lookup(self) -> str:
         """
         Lookup the executable that would be executed by ``__call__``, and
         return its path.
@@ -323,12 +351,13 @@ class ExecutableLookup:
                 islice(
                     (
                         exe_path
-                        for path in self._execpath()
+                        for path in self._execpath
                         if os.path.exists(
                             exe_path := os.path.join(
                                 path, self.executable_name
                             )
                         )
+                        and os.access(exe_path, os.X_OK)
                     ),
                     self._index,
                     None,

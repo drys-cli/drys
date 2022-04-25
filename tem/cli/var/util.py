@@ -75,7 +75,6 @@ def edit_values(value_dict: Dict[str, Any], var_container: VariableContainer):
 
     # Populate `lines`
     for k, value in value_dict.items():
-        var = var_container[k]
         line = f"{k} = {repr(value)}"
         if len(line) > longest_line_length:
             longest_line_length = len(line)
