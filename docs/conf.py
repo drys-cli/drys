@@ -30,6 +30,8 @@ extensions = [
     "sphinx_copybutton",
     "sphinx-prompt",
     "sphinx_toolbox.source",
+    "sphinx_toolbox.collapse",
+    "sphinx_tabs.tabs",
 ]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "man"]
 todo_include_todos = True
@@ -66,10 +68,20 @@ rst_prolog = generate_description_substitutions(rst_prolog)
 # ┃ Python doc ┃
 # ┗━━━━━━━━━━━━┛
 autodoc_member_order = "bysource"
+autodoc_typehints = "description"
+autodoc_typehints_description_target = "documented_params"
 autodoc_typehints_format = "short"
 add_module_names = False
+add_function_parentheses = False
 autosummary_generate = True
-napoleon_custom_sections = ["Constants", "Attributes", "Returns", "Methods"]
+python_use_unqualified_type_hints = True
+napoleon_custom_sections = [
+    "Constants",
+    "Attributes",
+    "Returns",
+    "Methods",
+    "Indexing and lookup",
+]
 
 # ┏━━━━━━━━━━━━━━━━┓
 # ┃ Sphinx toolbox ┃
