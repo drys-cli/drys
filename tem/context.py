@@ -47,9 +47,11 @@ class Runtime(enum.Enum):
         _runtime.reset(self._context_reset_token)
 
 
+_runtime = ContextVar("_context", default=Runtime.PYTHON)
+
+
 class __ContextModule(types.ModuleType):
 
-    _runtime = ContextVar("_context", default=Runtime.PYTHON)
     _env = ContextVar("_context_env", default=None)
 
     @property

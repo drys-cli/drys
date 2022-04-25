@@ -324,7 +324,7 @@ class ExecutableLookup:
         >>> executable_lookup = ExecPath()["git"]
         >>> print(type(executable_lookup))
         ExecutableLookup
-        >>> executable_lookup("commit", m="Initial commit", amend=True])
+        >>> executable_lookup("commit", m="Initial commit", amend=True)
         # Will call subprocess.run(["git", "commit", "-m", "Initial commit", "--amend"])
         """
         arguments = [self.lookup()]
