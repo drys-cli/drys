@@ -6,10 +6,7 @@ from tem import config, util, errors, repo as repo_module
 from tem.cli import common as cli
 from tem.cli import config as config_cli
 
-from ..repo import (
-    Repo,
-    resolve as resolve_repo,
-)
+from ..repo import Repo
 
 
 def setup_parser(parser):
@@ -66,7 +63,7 @@ def print_repo(repo: Repo, args):
         pr(repo.abspath())
 
     if not args.name and not args.path:
-        pr("{} @ {}".format(repo.name(), repo.abspath()))
+        pr(f"{repo.name()} @ {repo.abspath()}")
     print()  # New line at the end
     if not os.path.exists(repo.abspath()):
         raise errors.RepoDoesNotExistError(repo.abspath())

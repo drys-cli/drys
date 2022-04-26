@@ -1,3 +1,5 @@
+"""Context variables for the tem CLI."""
+
 from typing import Union, Type, ContextManager, List
 from contextvars import ContextVar
 

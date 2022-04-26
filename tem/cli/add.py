@@ -1,6 +1,5 @@
 """tem add subcommand"""
 import os
-import sys
 
 from tem import util
 from tem.cli import common as cli

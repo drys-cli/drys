@@ -22,6 +22,7 @@ var_container: var.VariableContainer
 
 
 def setup_parser(p: ArgumentParser):
+    """Set up argument parser for the subcommand."""
     p.add_argument(
         "expressions", nargs="*", help="variable names or assignments"
     )
@@ -90,8 +91,8 @@ def parse_simple_expressions(expressions: Iterable[str]) -> List[Expression]:
 
 class handle_expression_exceptions:
     """
-    A reusable try block for raising SyntaxErrors with descriptions from various
-    exceptions.
+    A reusable try block for raising SyntaxErrors with descriptions from
+    various exceptions.
     """
 
     def __enter__(self):
@@ -113,12 +114,20 @@ class handle_expression_exceptions:
 
 
 def process_simple_expressions():
+    """
+    Process all expressions passed to command `tem var` (provided `--query`
+    and `--reset` were not specified).
+
+    Expressions are parsed and classified as :class:`Assign`, :class:`Cycle`
+    or :class:`Get`, and then their corresponding actions are executed.
+    """
     # An empty expressions CLI argument means get the values of all variables
     args = cli.args()
     expressions = parse_simple_expressions(args.expressions or var_container)
     any_succeeded = False
 
     if args.edit or args.editor:
+        # Edit the expressions in a text editor beforehand
         values = {}
         for expr in expressions:
             value = None
@@ -135,7 +144,7 @@ def process_simple_expressions():
             {expr.var_name: expr.value for expr in expressions},
             var_container,
         )
-        for i, expr in enumerate(expressions):
+        for expr in expressions:
             var_name = expr.var_name
             expr = Assign.from_pair(var_name, values[var_name], var_container)
             expr.execute()
@@ -162,6 +171,7 @@ def process_simple_expressions():
 
 
 def process_query_expressions():
+    """Process expressions passed to `tem var --query`."""
     args = cli.args()
     for expr in args.expressions:
         try:
@@ -177,11 +187,12 @@ def process_query_expressions():
 
 
 def reset_to_defaults():
+    """Reset variables to their default values."""
     args = cli.args()
-    global var_container
     # No positional args => delete the variable store
     if not args.expressions and not (args.edit or args.editor):
         try:
+            # pylint: disable-next=protected-access
             os.remove(TemDir()._internal / "vars")
         except FileNotFoundError:
             pass
@@ -227,6 +238,7 @@ def reset_to_defaults():
 
 
 def edit_defaults():
+    """Open `.tem/vars.py` in the user-configured text editor."""
     args = cli.args()
     if args.expressions:
         cli.print_cli_err(

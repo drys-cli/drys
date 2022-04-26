@@ -24,8 +24,8 @@ def _default_cwd(func):
 def parents_with_subdir(path, subdir: str):
     """
     Iterate over the directory hierarchy from ``path`` upwards, including only
-    directories  that contain a subdirectory tree as in ``subdir``. Output paths
-    are absolute.
+    directories  that contain a subdirectory tree as in ``subdir``. Output
+    paths are absolute.
     """
     return (p for p in fs.iterate_hierarchy(path) if os.path.isdir(p / subdir))
 

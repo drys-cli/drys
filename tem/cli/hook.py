@@ -46,8 +46,7 @@ def cmd(args):
     if not (args.new or args.add or args.edit or args.editor or args.list):
         args.exec = True
     if args.new:
-        if os.path.exists(".tem"):
-            open(".tem/hooks/")
+        raise NotImplementedError
     elif args.add:
         pass  # TODO
     if args.list:

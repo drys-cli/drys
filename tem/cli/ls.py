@@ -106,6 +106,7 @@ def fill_in_gaps(incomplete_paths):
 
 
 def print_repo_header(repo: Repo):
+    """Print repo header as 'name @ path'."""
     name = repo.name()
     path = repo.abspath()
     if os.isatty(1):

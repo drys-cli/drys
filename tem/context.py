@@ -26,6 +26,8 @@ import sys
 import types
 from contextvars import ContextVar
 
+from tem import Environment
+
 
 class Runtime(enum.Enum):
     """*[Enum]* The runtime context of `tem`."""
@@ -38,32 +40,31 @@ class Runtime(enum.Enum):
     SHELL = 0b100
 
     def __enter__(self):
-        global _runtime
         token = _runtime.set(self)
+        # pylint: disable-next=attribute-defined-outside-init
         self._context_reset_token = token
 
     def __exit__(self, _1, _2, _3):
-        global _runtime
         _runtime.reset(self._context_reset_token)
 
 
 _runtime = ContextVar("_context", default=Runtime.PYTHON)
+_env = ContextVar("_context_env", default=None)
+
+runtime: Runtime
+env: Environment
 
 
 class __ContextModule(types.ModuleType):
-
-    _env = ContextVar("_context_env", default=None)
-
     @property
     def runtime(self) -> Runtime:
+        """Get the runtime context."""
         return _runtime.get()
 
     @property
     def env(self):
         """Get the environment of the active context."""
-        from tem.env import Environment
-
-        return self._env.get() or Environment()
+        return _env.get() or Environment()
 
 
 sys.modules[__name__].__class__ = __ContextModule

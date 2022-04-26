@@ -82,7 +82,7 @@ def write_config(config_file):
     On error, print a standard error message to stderr.
     """
 
-    with open(config_file, "w") as file_object:
+    with open(config_file, "w", encoding="utf-8") as file_object:
         try:
             config.cfg.write(file_object)
         except Exception as e:
@@ -97,7 +97,7 @@ def cmd(args):
 
     if args.edit or args.editor:
         p = cli.edit_files(files, override_editor=args.editor)
-        sys.exit(p.process_data.returncode)
+        sys.exit(p.returncode)
     elif args.option:  # A config option was specified
         # Form value by concatenating arguments
         value = " ".join(args.value) if args.value else ""
@@ -110,7 +110,7 @@ def cmd(args):
             if not os.path.exists(os.path.dirname(file)):
                 os.makedirs(os.path.dirname(file))
             # Write the changes
-            with open(file, "w") as file_object:
+            with open(file, "w", encoding="utf-8") as file_object:
                 cfg.write(file_object)
     else:  # No config options were specified
         # We add an imaginary file that contains all the configuration that has

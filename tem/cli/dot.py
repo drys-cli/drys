@@ -3,13 +3,13 @@ import os
 import select
 import subprocess
 import sys
-from typing import List
+from typing import List, Iterable
 
-import tem
-from tem import ext, repo, util, env, errors
+from tem import ext, util, env, errors
 from tem.errors import TemError
 
 from . import common as cli
+from ..fs import AnyPath
 
 
 def setup_common_parser(parser):
@@ -103,8 +103,7 @@ def validate_file_arguments_as_script_names(files):
     any_invalid_files = False
     for file in files:
         if "/" in file:
-            raise TemError("'{}' is an invalid script name".format(file))
-            any_invalid_files = True
+            raise TemError(f"'{file}' is an invalid script name")
     if any_invalid_files:
         sys.exit(1)
 
@@ -171,7 +170,8 @@ def no_action(args):
     )
 
 
-def create_new_files(dotdir, file_names, force):
+def create_new_files(dotdir: AnyPath, file_names: Iterable[str], force):
+    """Create files with names from ``file_names`` inside ``dotdir``."""
     # TODO This should only be used in some dot derivatives
     # (path, env, maybe others)
     dest_files = []
@@ -216,7 +216,7 @@ def add_existing_files(
         Relative paths to the newly created files.
     """
     dest_files = []
-    any_nonexisting = False
+    any_nonexistent = False
     any_conflicts = False
     for src in files:
         dest = dotdir + "/" + util.basename(src)
@@ -224,19 +224,29 @@ def add_existing_files(
             if not os.path.exists(dest) or force:
                 util.copy(src, dest, symlink=create_symlinks)
             else:
-                cli.print_cli_warn("file '{}' already exists".format(dest))
+                cli.print_cli_warn(f"file '{dest}' already exists")
                 any_conflicts = True
         else:
-            cli.print_cli_warn("file '{}' does not exist".format(src))
-            any_nonexisting = True
+            cli.print_cli_warn(f"file '{src}' does not exist")
+            any_nonexistent = True
         dest_files.append(dest)
-    if any_nonexisting or any_conflicts:
+    if any_nonexistent or any_conflicts:
         sys.exit(1)
 
     return dest_files
 
 
 def execute_files(files, verbose):
+    """
+    Execute all ``files``.
+
+    Parameters
+    ----------
+    files
+        List of files to execute.
+    verbose
+        Print each successful file execution.
+    """
     env.ExecPath().prepend(".tem/path").export()
     for file in files:
         if os.path.isdir(file):
@@ -244,11 +254,9 @@ def execute_files(files, verbose):
         try:
             subprocess.run(file, check=False)
             if verbose:
-                cli.print_cli_info(
-                    "script '{}' was run successfully".format(file)
-                )
+                cli.print_cli_info(f"script '{file}' was run successfully")
         except Exception:
-            cli.print_cli_err("script `{}` could not be run".format(file))
+            cli.print_cli_err(f"script `{file}` could not be run")
             sys.exit(1)
 
 
@@ -269,15 +277,16 @@ def list_files(dotdir: str, file_names: List[str]):
 
 
 def delete_files(dotdir: str, file_names: List[str]):
+    """Delete files from ``file_names`` inside ``dotdir``."""
     any_problems = False
     for file in file_names:
         target_file = dotdir + "/" + file
         if os.path.isfile(target_file):
             os.remove(target_file)
         elif os.path.isdir(target_file):
-            cli.print_cli_warn("'{}' is a directory".format(target_file))
+            cli.print_cli_warn(f"'{target_file}' is a directory")
         else:
-            cli.print_cli_warn("'{}' does not exist".format(target_file))
+            cli.print_cli_warn(f"'{target_file}' does not exist")
     if any_problems:
         sys.exit(1)
 

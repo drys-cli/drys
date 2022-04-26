@@ -2,15 +2,13 @@
 import os
 import pathlib
 import subprocess
-import weakref
 from functools import cached_property
 from itertools import islice
-from typing import Iterator, List, Literal, Type, Union, overload
+from typing import Iterator, List, Type, Union, overload
 
-import tem.shell.commands as shell_commands
-from tem import context, find
-from tem.context import Runtime
+from tem import find
 from tem.fs import AnyPath, TemDir
+from tem.shell import commands as shell_commands
 
 __all__ = ["Environment", "ExecPath", "ExecutableLookup"]
 
@@ -39,7 +37,8 @@ class Environment:
     @property
     def envdirs(self) -> List[TemDir]:
         """
-        All :class:`TemDir<tem.fs.TemDir>`\\s participating in this environment.
+        All :class:`TemDir<tem.fs.TemDir>`\\s participating in this
+        environment.
 
         The directories are sorted from :attr:`basedir` to :attr:`rootdir`.
         """
@@ -74,8 +73,8 @@ class Environment:
     @cached_property
     def execpath(self) -> "ExecPath":
         """
-        Return a convenient wrapper around the value that ``os.environ["PATH"]``
-        would have after exporting this environment.
+        Return a convenient wrapper around the value that
+        ``os.environ["PATH"]`` would have after exporting this environment.
         """
         envdirs_real = [os.path.realpath(path) for path in self.envdirs]
         execpath = [
@@ -114,17 +113,18 @@ class Environment:
             subdir = envdir["env"]
             for entry in os.scandir(subdir):
                 if os.path.isfile(entry):
-                    subprocess.run(entry)
+                    subprocess.run(entry, check=False)
 
     def __enter__(self):
-        from tem import context
+        from tem import context  # pylint: disable=import-outside-toplevel
 
+        # pylint: disable-next=attribute-defined-outside-init
         self._context_reset_token = context._env.set(self)
         if not self.is_exported:
             self.export()
 
     def __exit__(self, _1, _2, _3):
-        from tem import context
+        from tem import context  # pylint: disable=import-outside-toplevel
 
         context._env.reset(self._context_reset_token)
 
@@ -152,9 +152,9 @@ class ExecPath(list):
 
     """
 
-    #: Special index value indicating that `PATH` entries injected by tem should
-    #: be ignored when looking up executables.
-    NO_TEM = type("NO_TEM", (), dict())
+    #: Special index value indicating that `PATH` entries injected by tem
+    #: should be ignored when looking up executables.
+    NO_TEM = type("NO_TEM", (), {})
 
     def __init__(
         self,
@@ -173,7 +173,8 @@ class ExecPath(list):
             )
         else:
             raise TypeError(
-                "parameter 'source' must be an instance of str, list or ExecPath"
+                "parameter 'source' must be an instance of str, list"
+                " or ExecPath"
             )
 
         self.auto_export = auto_export
@@ -214,7 +215,9 @@ class ExecPath(list):
         if self.auto_export:
             os.environ["PATH"] = str(self)
 
+    # pylint: disable-next=useless-super-delegation
     def __iter__(self) -> Iterator[str]:
+        # Method overridden just to change its signature
         return super().__iter__()
 
     def __str__(self):
@@ -225,9 +228,11 @@ class ExecPath(list):
         return f"ExecPath({super().__repr__()})"
 
     def prepend(self, path):
+        """Prepend a path."""
         return ExecPath([os.path.abspath(path)] + list(self))
 
     def dedupe(self):
+        """Remove duplicate paths."""
         return ExecPath(list(dict.fromkeys(self).keys()))
 
     def export(self):
@@ -236,9 +241,11 @@ class ExecPath(list):
         :data:`~tem.context.Runtime.SHELL`, the environment variable will be
         exported to the shell also.
         """
+        from tem import context  # pylint: disable=import-outside-toplevel
+
         value = str(self)
         os.environ["PATH"] = value
-        if context.runtime == Runtime.SHELL:
+        if context.runtime == context.Runtime.SHELL:
             shell_commands.export("PATH", value)
 
     @staticmethod
@@ -250,8 +257,8 @@ class ExecutableLookup:
     """
     Lookup for an executable with a specified name.
 
-    You should avoid constructing instances of this class directly. Instead, you
-    can obtain an instance as ``ExecPath(...)["<executable_name>"]``.
+    You should avoid constructing instances of this class directly. Instead,
+    you can obtain an instance as ``ExecPath(...)["<executable_name>"]``.
 
     Parameters
     ----------
@@ -316,8 +323,8 @@ class ExecutableLookup:
 
         Notes
         -----
-        Options are always placed before the positional arguments when executing
-        the command.
+        Options are always placed before the positional arguments when
+        executing the command.
 
         Example
         -------
@@ -325,7 +332,8 @@ class ExecutableLookup:
         >>> print(type(executable_lookup))
         ExecutableLookup
         >>> executable_lookup("commit", m="Initial commit", amend=True)
-        # Will call subprocess.run(["git", "commit", "-m", "Initial commit", "--amend"])
+        # Will call
+        # subprocess.run(["git", "commit", "-m", "Initial commit", "--amend"])
         """
         arguments = [self.lookup()]
         for k, v in kwargs.items():
@@ -364,4 +372,4 @@ class ExecutableLookup:
                 )
             )
         except StopIteration:
-            raise LookupError(self.executable_name)
+            raise LookupError(self.executable_name) from None

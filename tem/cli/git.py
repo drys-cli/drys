@@ -75,7 +75,7 @@ def get_tem_branch():
     # Prompt the user for a choice
     print("The following branches are available:")
     for i, b in enumerate(branches):
-        print("{})".format(i + 1), b)
+        print(f"{i + 1})", b)
     choice = input("Enter a choice (default: 1): ")
 
     if not choice:  # Default choice
@@ -123,7 +123,7 @@ def cmd(args):
 
     # Note: tem_branch == '' is treated as tem_branch == None
     if tem_branch and tem_branch not in valid_branches:
-        print("tem: error: branch '{}' not valid".format(tem_branch))
+        print(f"tem: error: branch '{tem_branch}' not valid")
     # As a fallback, we try to find branches whose names start with 'tem'.
     # Actually, the regex pattern is slightly more complicated than that.
     if not tem_branch:

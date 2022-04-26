@@ -5,17 +5,19 @@ import pathlib
 import subprocess
 from contextlib import suppress
 from functools import cached_property
-from subprocess import run
-from typing import List, Optional, Union
+from typing import Iterable, Optional, Union
 
-from tem import util
+from tem import __prefix__, __version__, util
+from tem.errors import FileNotFoundError as FileNotFoundError_
 from tem.errors import (
-    FileNotFoundError,
     NotATemDirError,
     NoTemDirInHierarchy,
     TemInitializedError,
 )
 from tem.shell import shell
+
+__all__ = ("AnyPath", "TemDir", "DotDir", "Runnable", "iterate_hierarchy")
+
 
 AnyPath = Union[str, pathlib.Path, os.PathLike]
 
@@ -41,6 +43,7 @@ class TemDir(type(pathlib.Path())):
 
     path: AnyPath
 
+    # pylint: disable-next=arguments-differ
     def __new__(cls, path: AnyPath = None):
         if not path:
             # Use first parent directory that contains '.tem'
@@ -137,8 +140,6 @@ class TemDir(type(pathlib.Path())):
             os.makedirs(dot_tem / f"{sh}-env", exist_ok=True)
             os.makedirs(dot_tem / f"{sh}-hooks", exist_ok=True)
 
-        from tem import __prefix__, __version__
-
         share_dir = (
             pathlib.Path(__prefix__ + "/share/tem")
             if __version__ not in ("develop", "0.0.0")
@@ -163,32 +164,25 @@ class TemDir(type(pathlib.Path())):
         os.makedirs(path, exist_ok=True)
         return path
 
-    def __enter__(self):
-        import tem
-
-        self._context_reset_token = tem.context._temdir.set(self)
-
-    def __exit__(self, _1, _2, _3):
-        from tem import context
-
-        context._temdir.reset(self._context_reset_token)
-
 
 class DotDir(type(pathlib.Path())):
+    """Represents a directory under `.tem/`."""
+
+    # pylint: disable-next=arguments-differ
     def __new__(cls, path: AnyPath):
         return super(DotDir, cls).__new__(cls, str(path))
 
     def __init__(self, *_):
         super().__init__()
 
-    def exec(self, files: List = ["."], ignore_nonexistent=False):
+    def exec(self, files: Iterable = tuple("."), ignore_nonexistent=False):
         """
         Execute the given file(s) as programs. Relative paths are relative to
         the dotdir.
 
         ``files`` can also contain directories. Each file in those directories
-        will be executed, recursively. If ``ignore_nonexistent`` is ``True``, no
-        exception is raised by nonexistent files.
+        will be executed, recursively. If ``ignore_nonexistent`` is ``True``,
+        no exception is raised by nonexistent files.
 
         Examples
         --------
@@ -204,26 +198,27 @@ class DotDir(type(pathlib.Path())):
         ``exec(['program1'])`` or `exec(['program1'])` will run 'program1'.
         ``exec(['dir'])`` will run programs 2 through 4.
         ``exec(['dir/subdir'])`` will run `program3` and `program4`.
-        ``exec(['program1', 'dir/subdir'])`` will run `program3` and `program4`.
+        ``exec(['program1', 'dir/subdir'])`` will run `program3` and
+        `program4`.
         """
         files = sorted(files)
         with util.chdir(self):
             for file in files:
                 if not os.path.exists(file):
                     if not ignore_nonexistent:
-                        raise FileNotFoundError(file)
+                        raise FileNotFoundError_(file)
                 elif os.path.isdir(directory := file):
                     for _file in os.scandir(directory):
                         if os.path.isfile(_file):
-                            subprocess.run(_file)
+                            subprocess.run(_file, check=False)
                         elif os.path.isdir(_file):
                             DotDir(directory).exec(
                                 ignore_nonexistent=ignore_nonexistent
                             )
                 else:
-                    run(file)
+                    subprocess.run(file, check=False)
 
-    def executables(self):
+    def executables(self):  # pylint: disable=no-self-use
         """Recursively iterate over all executable files in this dotdir."""
         return (
             file
@@ -232,28 +227,12 @@ class DotDir(type(pathlib.Path())):
         )
 
 
-class Environment:
-    class Path(List[str]):
-        """A convenient abstraction of the PATH environment variable."""
-
-        _path = os.environ.get("PATH", "")
-
-        @staticmethod
-        def apply():
-            """Apply changes to the PATH environment variable."""
-            raise NotImplementedError  # TODO
-
-    @property
-    def path(self) -> Path:
-        raise NotImplementedError
-
-
 class Runnable(type(pathlib.Path())):
     """An abstraction for executables and shell (including python) scripts."""
 
     def __init__(self, path: AnyPath):
         if not util.is_executable(path):
-            raise
+            raise PermissionError(f"File '{path}' must be executable")
         super().__init__(path)
 
     def brief(self):

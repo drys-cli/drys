@@ -1,7 +1,7 @@
 """Repository operations"""
 import os
 
-from tem import util
+from tem import config, util
 
 
 class Repo:
@@ -30,7 +30,6 @@ class Repo:
         is used. This works even if the repository does not exist on the
         filesystem.
         """
-        from tem import config
 
         # TODO put this entry in the local config file
         cfg = config.Parser(self.path + "/.tem/repo")
@@ -46,9 +45,9 @@ class Repo:
     @staticmethod
     def named(name):
         """
-        Return absolute path to the repository with the given name if it exists;
-        otherwise return `name` unmodified. To find the repo, `registered_repos`
-        is looked up.
+        Return absolute path to the repository with the given name if it
+        exists; otherwise return `name` unmodified. To find the repo,
+        `registered_repos` is looked up.
         """
         # TODO decide how to handle ambiguity
         for repo in lookup_path:
@@ -227,9 +226,8 @@ class RepoSpec:
                         spec
                         for spec in result
                         if spec
-                        not in item._abspaths(  # pylint: disable=protected-access disable=line-too-long
-                            False
-                        )
+                        # pylint: disable-next=protected-access,line-too-long
+                        not in item._abspaths(False)
                     ]
                 else:
                     result += item.repos()

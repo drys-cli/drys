@@ -1,11 +1,10 @@
 """Variables defined per directory."""
 import functools
-import inspect
 import os
 import shelve
 from contextlib import ExitStack
 from textwrap import TextWrapper
-from typing import Any, Dict, Iterable, List, Mapping, Union
+from typing import Any, Dict, Iterable, Union
 
 import tem
 from tem import util
@@ -43,9 +42,11 @@ class Variable(metaclass=__NoInit):
         the environment variable named ``to_env``.
     Notes
     -----
-        - If you try instantiating this class with a ``var_type`` of ``bool``, a
-          :class:`Variant` will be created instead.
+        - If you try instantiating this class with a ``var_type`` of ``bool``,
+          a :class:`Variant` will be created instead.
     """
+
+    # TODO __slots__ = ("var_type", "value", "_to_env", "doc")
 
     @property
     def value(self):
@@ -81,6 +82,7 @@ class Variable(metaclass=__NoInit):
                 "The type of 'default' must match 'var_type'"
             )
 
+        _ = from_env  # TODO use
         self._to_env = to_env
         self.var_type = var_type
         self.value = default or self._default_value_for_type(var_type)
@@ -107,6 +109,7 @@ class Variable(metaclass=__NoInit):
 
     def __setattr__(self, key, value):
         if key == "doc":
+            # pylint: disable-next=no-member
             self.doc.description = value
         else:
             super().__setattr__(key, value)
@@ -115,10 +118,9 @@ class Variable(metaclass=__NoInit):
     def _matches_type(value, var_type):
         if var_type == Any:
             return True
-        elif isinstance(var_type, type):
+        if isinstance(var_type, type):
             return isinstance(value, var_type)
-        else:
-            return value in var_type
+        return value in var_type
 
     @staticmethod
     def _default_value_for_type(var_type):
@@ -130,11 +132,13 @@ class Variable(metaclass=__NoInit):
             return None
 
     @staticmethod
-    def _parse_from_env(self):
+    def _parse_from_env():
         raise NotImplementedError
 
 
 class VariableDoc(str):
+    """Glorified string used to document a :class:`Variable`."""
+
     def __init__(self, variable: Variable):
         self._value_docs: Dict[Any, str] = {}
         self._variable = variable
@@ -171,7 +175,12 @@ class VariableDoc(str):
         ):
             if doc:
                 doc += "\n\n"
-            doc += f"Type: {self._variable.var_type.__name__ if self._variable.var_type else 'Any'}"
+            type_ = (
+                self._variable.var_type.__name__
+                if self._variable.var_type
+                else "Any"
+            )
+            doc += f"Type: {type_}"
             # If at least one value is documented
             if self._value_docs:
                 doc += "\n"
@@ -216,8 +225,8 @@ class VariableDoc(str):
                 f"  {repr(value)}\n"
                 + TextWrapper(
                     initial_indent="    ", subsequent_indent="    "
-                ).fill(self._value_docs[value])
-                for value in self._value_docs
+                ).fill(doc)
+                for value, doc in self._value_docs.items()
             ]
         )
         return doc
@@ -258,7 +267,7 @@ class Variant(Variable):
         if not value:
             Variable.value.fset(self, value)
             return
-        # If we want to set the value to True, we have to check mutual exclusion
+        # In order to set the value to True, we have to check mutual exclusion
         _excluded_by = (
             v for v in self._mutually_exclusive.get(self, []) if v.value
         )
@@ -288,7 +297,7 @@ def when(condition: str):
         else:
             try:
                 # If the function is already defined, return it
-                return eval(func.__name__)
+                return eval(func.__name__)  # pylint: disable=eval-used
             except NameError:
                 # Otherwise, return a function that throws ...
                 def raise_name_error():
@@ -310,7 +319,7 @@ class VariableContainer:
 
     Parameters
     ----------
-    variable_dict: default=dict()
+    variable_dict: default={}
         A dictionary of variables to be wrapped by this container. The
         dictionary will automatically be filtered to contain only instances of
         :class:`Variable`.
@@ -318,7 +327,7 @@ class VariableContainer:
 
     def __init__(self, variable_dict=None):
         # Get all public variables (of type `Variable`) from `variable_dict`
-        variable_dict = variable_dict or dict()
+        variable_dict = variable_dict or {}
         __dict__ = _filter_variables(variable_dict)
         object.__setattr__(self, "__dict__", __dict__)
 
@@ -366,8 +375,8 @@ def load(source=None, defaults=False) -> VariableContainer:
     ----------
     source: optional, TemDir, Environment
         Temdir or environment whose variables to load. Loading from an
-        environment will just load from each temdir in the environment. Defaults
-        to :data:`tem.context.env`.
+        environment will just load from each temdir in the environment.
+        Defaults to :data:`tem.context.env`.
     defaults
         Use default variable values instead of stored values.
     Returns
@@ -387,7 +396,7 @@ def load(source=None, defaults=False) -> VariableContainer:
         )
 
     # Dict of variable names and loaded variable definitions
-    definitions: Dict[str, Variable] = dict()
+    definitions: Dict[str, Variable] = {}
 
     for temdir in reversed(source.envdirs):
         _definitions = _load(temdir, defaults=defaults)
@@ -404,8 +413,8 @@ def save(variable_container: VariableContainer, target=None):
     Parameters
     ----------
     variable_container
-        Instance of :class:`VariableContainer` containing the variable values to
-        save.
+        Instance of :class:`VariableContainer` containing the variable values
+        to save.
     target: TemDir or Environment
         Temdir or environment where to save variables. If unspecified, the
         currently active environment is used.
@@ -439,13 +448,14 @@ def save(variable_container: VariableContainer, target=None):
     with ExitStack() as stack:
         for temdir in temdirs:
             store = stack.enter_context(
+                # pylint: disable-next=protected-access
                 shelve.open(str(temdir._internal / "vars"), writeback=True)
             )
             # We store only those variables that are in `variable_container`.
             # Even then, the new value is stored inside `temdir` only if it is
             # the lowest directory that defines the variable. Otherwise, the
             # directory retains the old value for the variable.
-            values = store["values"] if "values" in store else dict()
+            values = store["values"] if "values" in store else {}
             for vname in variable_container:
                 if var_definition_sources[vname] == temdir:
                     values[vname] = variable_container[vname].value
@@ -459,7 +469,8 @@ def _load(temdir: TemDir, defaults=False) -> Dict[str, Variable]:
     returns them.
     """
     if not os.path.isfile(temdir / ".tem/vars.py"):
-        return dict()
+        return {}
+    # pylint: disable-next=protected-access
     saved_vars_path = str(temdir._internal / "vars")
     definitions = _load_variable_definitions(temdir / ".tem/vars.py")
     # Try to load variables from temdir's variable store
@@ -473,14 +484,14 @@ def _load_variable_definitions(path) -> Dict[str, Variable]:
     try:
         definitions = util.import_path("__tem_var_definitions", path)
     except FileNotFoundError:
-        return dict()
+        return {}
     return _filter_variables(definitions.__dict__)
 
 
 def _load_from_shelf(file) -> Dict[str, Variable]:
     """Load a variable namespace object from variable store ``file``."""
     shelf = shelve.open(file)
-    variables = shelf.get("values", dict())
+    variables = shelf.get("values", {})
     shelf.close()
     return variables
 

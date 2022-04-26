@@ -1,3 +1,4 @@
+"""Representations for expressions used with the `tem var` command."""
 import ast
 from itertools import dropwhile, cycle
 from abc import ABC
@@ -24,7 +25,7 @@ class Expression:
             if len(parsed.body) != 1:
                 raise SyntaxError
         except SyntaxError:
-            raise SyntaxError
+            raise SyntaxError from None
         return parsed.body[0]
 
     @classmethod
@@ -69,7 +70,7 @@ class Expression:
             elif variable.var_type is None:
                 return expr
             else:
-                raise SyntaxError
+                raise SyntaxError from None
 
     @property
     def value(self):
@@ -77,7 +78,7 @@ class Expression:
         return self.variable.value
 
     def execute(self):
-        pass
+        """Execute the action associated with the expression."""
 
 
 class SimpleExpression(Expression, ABC):
@@ -95,10 +96,12 @@ class SimpleExpression(Expression, ABC):
                 return Get(expr, var_container)
         except SyntaxError as e:
             text = expr + (f" ({e})" if str(e) != "None" else "")
-            raise SyntaxError(text)
+            raise SyntaxError(text) from None
 
 
 class Assign(SimpleExpression):
+    """A variable assignment expression of the form `variable=value`."""
+
     def __init__(self, expr: str, var_container: VariableContainer):
         _left, _right = expr.split("=", maxsplit=1)
         left = self._ast_name(_left).id
@@ -116,6 +119,10 @@ class Assign(SimpleExpression):
 
     @classmethod
     def from_pair(cls, var_name, value, var_container):
+        """
+        Create an Assign expression for a variable from ``var_container``
+        named ``var_name`` to value ``value``.
+        """
         expr = Assign("dummy=1", VariableContainer({"dummy": Variable(int)}))
         expr.var_name = var_name
         expr.rhs = value
@@ -124,6 +131,8 @@ class Assign(SimpleExpression):
 
 
 class Cycle(SimpleExpression):
+    """Expression for cycling among a variable's allowed values."""
+
     def __init__(self, expr: str, var_container: VariableContainer):
         if not expr.endswith("!"):
             raise SyntaxError(expr)
@@ -137,7 +146,7 @@ class Cycle(SimpleExpression):
                 "only variables with a finite set of values can be cycled"
             )
 
-    def execute(self, no_echo=False):
+    def execute(self):
         if self.variable.var_type == bool:
             self.variable.value = not self.variable.value
         else:
@@ -150,12 +159,19 @@ class Cycle(SimpleExpression):
 
 
 class Get(SimpleExpression):
+    """
+    A get expression, simply corresponds to a variable name specified on the
+    command line.
+    """
+
     def __init__(self, expr: str, var_container: VariableContainer):
         self.var_name = self._ast_name(expr).id
         self.variable = var_container[self.var_name]
 
 
 class Query(Expression):
+    """A query expression (used with the `--query` flag)"""
+
     def __init__(self, expr: str, var_container):
         try:
             if ":" not in expr:
@@ -171,7 +187,7 @@ class Query(Expression):
                 )
             self.variable = var_container[self.var_name]
         except SyntaxError:
-            raise SyntaxError(expr)
+            raise SyntaxError(expr) from None
 
     def execute(self):
         if not hasattr(self, "rhs"):

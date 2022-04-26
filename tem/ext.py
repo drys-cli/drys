@@ -15,7 +15,7 @@ def parse_args(args):
     # Use the system shell to parse the string
     #   - the last element is a blank line which is popped before returning
     return sp.run(
-        ["sh", "-c", r'printf "%s\n" {}'.format(args)],
+        ["sh", "-c", rf'printf "%s\n" {args}'],
         stdout=sp.PIPE,
         encoding="utf-8",
         check=False,
@@ -46,6 +46,7 @@ def run(command, *args, override=None, **kwargs):
         return sp.run(parsed_args + command[1:], *args, check=False, **kwargs)
     except Exception as e:
         # TODO create front end in cli
+        # pylint: disable-next=import-outside-toplevel
         from .cli import common as cli
 
         cli.print_exception_message(e)
@@ -64,7 +65,7 @@ def shell_arglist(commandline):
     .. note:: The shell is run as a subcommand for this.
     """
     p = sp.run(
-        "printf '%%s\n' %s" % commandline,
+        f"printf '%s\n' {commandline}",
         shell=True,
         stdout=sp.PIPE,
         encoding="utf-8",

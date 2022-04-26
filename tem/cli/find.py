@@ -1,16 +1,10 @@
 """Find various tem-related stuff"""
-import os
-import sys
-
-from tem import env, find, repo, util
+from tem import find, repo, util
 from tem.cli import common as cli
-
-from .common import print_err, print_cli_err, print_cli_warn
-
-# TODO DOCUMENT IN MANPAGE
 
 
 def setup_parser(parser):
+    """Set up parser for this subcommand."""
     cli.add_general_options(parser)
 
     # (make it the directory that we are looking from)
@@ -47,6 +41,7 @@ def setup_parser(parser):
 
 @cli.subcommand
 def cmd(args):
+    """Execute this subcommand."""
     # TODO Add tests for this subcommand
     # TODO consider a way to make this work with coreutils 'find' or 'fd'
     # TODO Handle explicit paths differently

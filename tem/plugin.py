@@ -2,7 +2,8 @@
 import glob
 import os
 import re
-from importlib.machinery import SourceFileLoader
+
+from .util import import_path
 
 
 def load_all():
@@ -13,7 +14,7 @@ def load_all():
         plugins = []
         for plugin_file in glob.glob(".tem/plugin/*.py"):
             plugin_name = re.sub(r"\.py$", "", os.path.basename(plugin_file))
-            plugin = SourceFileLoader(plugin_name, plugin_file).load_module()
+            plugin = import_path(plugin_name, plugin_file)
             plugins.append(plugin)
         return plugins
     return []

@@ -3,14 +3,11 @@ import contextlib
 import contextvars
 import importlib.util
 import os
-import pathlib
 import re
 import shutil
 import sys
 import types
-from typing import Any, Union
-
-import tem
+from typing import Any, Iterable
 
 
 def print_err(*args, **kwargs):
@@ -125,13 +122,13 @@ def chdir(new_dir):
         os.chdir(old_dir)
 
 
-def unique(iterable):
+def unique(iterable: Iterable):
     """Remove duplicates from `iterable`."""
     return type(iterable)(x for x in dict.fromkeys(iterable))
 
 
 def import_path(
-    module_name: str, path: pathlib.Path, add_to_sys=False
+    module_name: str, path: "tem.fs.AnyPath", add_to_sys=False
 ) -> types.ModuleType:
     """Import a python file from ``path``."""
     if not os.path.exists(path):
@@ -153,8 +150,13 @@ def raise_or_warn(exception: Exception):
     :func:`tem.cli.context.as_warning` is set for the given exception, in the
     current context.
     """
-    if tem.context in (tem.Context.CLI, tem.Context.SHELL):
+    from tem import context  # pylint: disable=import-outside-toplevel
+
+    if context.runtime in (context.Runtime.CLI, context.Runtime.SHELL):
+        # pylint: disable-next=import-outside-toplevel
         from tem.cli.context import as_warnings
+
+        # pylint: disable-next=import-outside-toplevel
         from tem.cli import common as cli
 
         if as_warnings([exception]):

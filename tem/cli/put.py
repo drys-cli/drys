@@ -50,7 +50,8 @@ def destinations_from_args(args, template):
 
 
 def pre_hooks(dest):
-    environment = {"TEM_DESTDIR": util.abspath(dest)}
+    """Execute "pre.put" hooks."""
+    _environment = {"TEM_DESTDIR": util.abspath(dest)}
     # TODO debug, creates dest as a directory
     # cli.run_hooks("put.pre", src, dest, environment)
 

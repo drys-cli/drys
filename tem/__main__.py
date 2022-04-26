@@ -19,9 +19,7 @@ necessary to understand the fine details.
 """
 
 import argparse
-import glob
 import os
-import re
 import sys
 from importlib import import_module
 
@@ -47,6 +45,7 @@ def init_user():
 
 
 def print_help_exit(parser):
+    """Print help and exit."""
     parser.print_help()
     sys.exit(0)
 
@@ -58,7 +57,7 @@ def cmd_lazy_load(subcommand, parsers):
     """
 
     def func():
-        module = import_module("tem.cli.%s" % subcommand)
+        module = import_module(f"tem.cli.{subcommand}")
         module.setup_parser(parsers[subcommand])
         parsers[subcommand].set_defaults(func=module.cmd)
 
@@ -66,6 +65,10 @@ def cmd_lazy_load(subcommand, parsers):
 
 
 def minimum_parser_setup(subparsers, parsers, subcommand, *args, **kwargs):
+    """
+    Set up a minimal parser whose module will be loaded only after it is
+    specified as a subcommand.
+    """
     # This is the local variable ``parsers`` in the main function
     parsers[subcommand] = subparsers.add_parser(
         subcommand, *args, add_help=False, **kwargs
@@ -90,7 +93,7 @@ def main():
             "-v",
             "--version",
             action="version",
-            version="%(prog)s version {}".format(tem.__version__),
+            version=f"%(prog)s version {tem.__version__}",
         )
         cli.add_general_options(p, dummy=(i == 1))
         p.add_argument(
@@ -112,7 +115,7 @@ def main():
 
     # Bare minimum setup for subcommand parsers
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    parsers = dict()
+    parsers = {}
     # fmt: off
     minimum_parser_setup(subparsers, parsers, "add",
                          help="add templates to a repository")
@@ -139,10 +142,11 @@ def main():
                          help="find anything tem-related")
     minimum_parser_setup(subparsers, parsers, "var",
                          help="manipulate tem variants")
+    minimum_parser_setup(subparsers, parsers, "run",
+                         help="run programs in a tem-aware way")
     minimum_parser_setup(subparsers, parsers, "dot")
     # fmt: on
     for plug in plugin.load_all():
-        description = plug.__doc__.split("\n", maxsplit=1)[0]
         p = subparsers.add_parser(
             plug.__name__,
             add_help=True,

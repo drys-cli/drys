@@ -7,8 +7,6 @@ import os
 
 from tem.util import abspath, print_err
 
-# pylint: disable=redefined-builtin
-
 
 class TemError(Exception):
     """Base class for all tem errors."""
@@ -34,6 +32,7 @@ class TemError(Exception):
 
     def print(self):
         """Print the error to the CLI."""
+        # pylint: disable-next=import-outside-toplevel
         from tem.cli.common import print_cli_err
 
         print_cli_err(self.cli())
@@ -56,7 +55,7 @@ class RepoDoesNotExistError(PathError):
         return f"repository '{self.path}' does not exist"
 
 
-class FileNotFoundError(PathError):
+class FileNotFoundError(PathError):  # pylint: disable=redefined-builtin
     def cli(self):
         return f"file '{abspath(self.path)}' was not found"
 
@@ -76,6 +75,7 @@ class FileNotDirError(PathError):
         return f"'{abspath(self.path)}' exists and is not a directory"
 
 
+# pylint: disable-next=redefined-builtin
 class FileExistsError(PathError):
     def cli(self):
         return f"file '{abspath(self.path)}' already exists"
@@ -113,9 +113,8 @@ class TemLookupError(TemError):
     """Base class for errors related to lookup."""
 
     def __init__(self, *args):  # pylint: disable=super-init-not-called
-        Exception.__init__(  # pylint: disable=non-parent-init-called
-            self, *args
-        )
+        # pylint: disable-next=non-parent-init-called
+        Exception.__init__(self, *args)
 
 
 class RepoNotFoundError(TemLookupError):
@@ -140,6 +139,7 @@ class TemplateNotFoundError(TemError):
 
 
 class NotARunnable(TemError):
+    # pylint: disable-next=useless-super-delegation
     def __init__(self, path):
         super().__init__(path)
 
@@ -166,10 +166,11 @@ class TemVariableNotDefinedError(TemError):
         super().__init__()
 
     def cli(self):
-        if self.name:
-            return f"variable '{self.name}' is not defined"
-        else:
-            return "variable is not defined"
+        return (
+            f"variable '{self.name}' is not defined"
+            if self.name
+            else "variable is not defined"
+        )
 
 
 #: Tuple of all tem error classes

@@ -2,7 +2,7 @@
 import configparser
 import os
 
-from . import __prefix__, repo
+from . import __prefix__
 
 
 class Parser(configparser.ConfigParser):  # pylint: disable=too-many-ancestors
@@ -19,9 +19,8 @@ class Parser(configparser.ConfigParser):  # pylint: disable=too-many-ancestors
             self.add_section(section)
         super().set(section, option, value=value)
 
-    def items(
-        self, section=configparser.DEFAULTSECT, raw=False, vars=None
-    ):  # pylint: disable=line-too-long,redefined-builtin
+    # pylint: disable-next=redefined-builtin
+    def items(self, section=configparser.DEFAULTSECT, raw=False, vars=None):
         if self.has_section(section):
             return super().items(section, raw=raw, vars=vars)
         return []
@@ -86,10 +85,12 @@ def load(paths):
     failed_paths
         List of config files that could not be read
     """
+    # pylint: disable-next=import-outside-toplevel
+    from . import repo
+
     if not paths:
         return {}
 
-    global cfg
     successful = cfg.read(paths)
     repo.lookup_path += get_repo_path(cfg)
     repo.lookup_path = list(

@@ -1,8 +1,11 @@
+"""Tem shell plugin functionality."""
 import enum
 import os
 
 
 class Shell(enum.Enum):
+    """*[Enum]* Shell plugin."""
+
     FISH = "fish"
     BASH = "bash"
     ZSH = "zsh"

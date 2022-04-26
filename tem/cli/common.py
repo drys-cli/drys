@@ -51,11 +51,11 @@ def load_user_config():
         print_cli_warn("The following files were tried:", *failed, sep="\n\t")
 
 
-def load_config_from_args(args):
+def load_config_from_args(args_):
     """
     Load configuration files specified as command arguments in ``args``.
     If any of the files can't be read, print an error and exit."""
-    failed = config.load(args.config)
+    failed = config.load(args_.config)
     if failed:
         print_cli_err(
             "the following configuration files could not be read:",
@@ -69,15 +69,15 @@ def subcommand(cmd):
     """Decorator for tem subcommand functions."""
 
     @functools.wraps(cmd)
-    def wrapper(args):
+    def wrapper(args_):
         try:
             with Runtime.CLI:
                 # Transform RepoSpecs into absolute paths
-                global repo, exit_code
-                repo.lookup_path = args.repo.repos()
+                global repo
+                repo.lookup_path = args_.repo.repos()
                 # Convert the RepoSpec into a list of repos
-                args.repo = args.repo.repos()
-                for repo in args.repo:
+                args_.repo = args_.repo.repos()
+                for repo in args_.repo:
                     abspath = repo.abspath()
                     if not os.path.isdir(abspath) and (
                         os.path.realpath(abspath)
@@ -85,10 +85,10 @@ def subcommand(cmd):
                     ):
                         raise errors.RepoDoesNotExistError(repo.abspath())
 
-                with util.contextvar_as(_args, args):
-                    cmd(args)
+                with util.contextvar_as(_args, args_):
+                    cmd(args_)
                 sys.exit(exit_code)
-        except tem.errors.all_errors as e:
+        except tem.errors.TemError as e:
             print_exception_message(e)
             sys.exit(1)
 
@@ -222,7 +222,7 @@ def edit_files(
     """
     if initial_content is not None:
         for file in files:
-            with open(file, mode="w") as f:
+            with open(file, mode="w", encoding="utf-8") as f:
                 f.write(initial_content)
 
     call_args = ext.parse_args(get_editor(override_editor)) + files
@@ -282,33 +282,33 @@ def run_hooks(trigger, src_dir, dest_dir=".", environment=None):
 
     with util.chdir(dest_dir):
         # Execute matching hooks
-        for file in glob.glob(src_dir + "/.tem/hooks/*.{}".format(trigger)):
+        for file in glob.glob(src_dir + f"/.tem/hooks/*.{trigger}"):
             subprocess.run(
                 [file] + sys.argv, cwd=os.path.dirname(file), check=False
             )
 
 
-def expand_alias(index, args):
+def expand_alias(index, args_):
     """
     Expand alias in ``args`` and return the modified argument list.
     :param index: the index of the argument that is to be expanded as an alias
         If the argument isn't aliased to anything, the list is returned
         unmodified.
-    :param args: list of command arguments
+    :param args_: list of command arguments
     """
-    alias = args[index]
-    aliased = config.cfg["alias.%s" % alias]
+    alias = args_[index]
+    aliased = config.cfg[f"alias.{alias}"]
 
     if not aliased:  # No alias found in config
-        return args
+        return args_
 
     expanded_alias = ext.shell_arglist(aliased)  # Expand alias into arg list
     if index == -1:
-        args[-1:] = expanded_alias
+        args_[-1:] = expanded_alias
     else:
-        args[index : index + 1] = expanded_alias
+        args_[index : index + 1] = expanded_alias
 
-    return args
+    return args_
 
 
 # Used only in print_cli_err and print_cli_warn
@@ -324,7 +324,7 @@ def set_active_subcommand(subcmd):
     _active_subcommand = subcmd
 
 
-def print_cli_err(*args, sep=" ", **kwargs):
+def print_cli_err(*args_, sep=" ", **kwargs):
     """
     Print an error with conventional formatting. The first line starts with
     '<subcommand>: error:'.
@@ -332,25 +332,25 @@ def print_cli_err(*args, sep=" ", **kwargs):
     kwargs1 = kwargs.copy()
     kwargs1["end"] = ""
     print_err("tem " + _active_subcommand + ": error: ", **kwargs1)
-    print_err(*args, sep=sep, **kwargs)
+    print_err(*args_, sep=sep, **kwargs)
 
 
-def print_cli_warn(*args, sep=" ", **kwargs):
+def print_cli_warn(*args_, sep=" ", **kwargs):
     """
     Print a warning with conventional formatting. The first line starts with
     '<subcommand>: warning:'.
     """
     print_err("tem " + _active_subcommand + ": warning: ", end="", **kwargs)
-    print_err(*args, sep=sep, **kwargs)
+    print_err(*args_, sep=sep, **kwargs)
 
 
-def print_cli_info(*args, sep=" ", **kwargs):
+def print_cli_info(*args_, sep=" ", **kwargs):
     """
     Print an info message with conventional formatting. The first line starts
     with '<subcommand>: info:'.
     """
     print_err("tem " + _active_subcommand + ": info: ", end="", **kwargs)
-    print_err(*args, sep=sep, **kwargs)
+    print_err(*args_, sep=sep, **kwargs)
 
 
 def print_exception_message(exception: Exception):
@@ -365,14 +365,14 @@ def print_exception_message(exception: Exception):
         print_func(re.sub(r"^\[Errno [0-9]*\] ", "", str(exception)))
 
 
-def copy(*args, ignore_nonexistent=False, **kwargs):
+def copy(*args_, ignore_nonexistent=False, **kwargs):
     """
     CLI front end to :func:`util.copy`.
     If an error occurs and ``ignore_nonexistent`` is ``True``, print an error
     and exit.
     """
     try:
-        util.copy(*args, **kwargs)
+        util.copy(*args_, **kwargs)
     except Exception as exception:
         # TODO use more specific error
         if not ignore_nonexistent:
@@ -380,14 +380,14 @@ def copy(*args, ignore_nonexistent=False, **kwargs):
             sys.exit(1)
 
 
-def move(*args, ignore_nonexistent=False, **kwargs):
+def move(*args_, ignore_nonexistent=False, **kwargs):
     """
     CLI front end to :func:`util.move`.
     If an error occurs and ``ignore_nonexistent`` is ``True``, print an error
     and exit.
     """
     try:
-        util.move(*args, **kwargs)
+        util.move(*args_, **kwargs)
     except Exception as exception:
         # TODO use more specific error
         if not ignore_nonexistent:

@@ -1,3 +1,5 @@
+"""Utility functions for `tem var` subcommand."""
+
 import enum
 import textwrap
 from typing import Dict, Any
@@ -52,11 +54,16 @@ def print_name_value(var_name, variable, *args_, verbosity=0, **kwargs):
 
 
 def print_all_values(var_container, verbosity=0):
+    """
+    Print name-value pairs for all variables in ``var_container``, each on its
+    own line.
+    """
     for name, variable in var_container.__dict__.items():
         print_name_value(name, variable, verbosity=verbosity)
 
 
 def print_default_and_old_value(var_name, variable, default, old_value):
+    """Print `<var_name> = <value> | was <default>`."""
     if old_value != default or cli.args().verbosity > 0:
         additional_args = (
             ["\033[1;33m\t| was:\033[0m", old_value]
@@ -68,7 +75,7 @@ def print_default_and_old_value(var_name, variable, default, old_value):
 
 def edit_values(value_dict: Dict[str, Any], var_container: VariableContainer):
     """Return the `value_dict` after being edited in a text editor."""
-    result_dict = dict()
+    result_dict = {}
     # Contains an assignment text for each variable
     lines = []
     longest_line_length = 0

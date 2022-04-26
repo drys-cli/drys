@@ -1,5 +1,6 @@
-import enum
-from typing import Callable
+"""Tem hooks."""
+
+from typing import Callable, Literal
 
 from tem.env import Environment
 
@@ -15,8 +16,8 @@ def hook(subcommand: str = "*", when: int = PRE):
     subcommand: optional
         Subcommand for which this hook should run.
     when: {PRE, POST, PRE & POST}, optional
-        Whether the hook should run before (PRE) or after (POST) the subcommand,
-        or both.
+        Whether the hook should run before (PRE) or after (POST) the
+        subcommand, or both.
     """
 
     def decorator(func):
@@ -27,16 +28,16 @@ def hook(subcommand: str = "*", when: int = PRE):
 
 
 def run_hooks(
-    env: Environment, subcommand: str, type: {PRE, POST, PRE & POST}
+    env: Environment, _subcommand: str, _type: Literal[PRE, POST, PRE & POST]
 ):
     """Run hooks from the given environment."""
     for envdir in env.envdirs:
         envdir.exec()
 
 
-def register_hook(hook: Callable, subcommand: str = "*", when: int = PRE):
+def register_hook(hook_: Callable, subcommand: str = "*", when: int = PRE):
     """Register a pythonic hook. This is in contrast to an executable hook."""
-    _registered_hooks[when][subcommand] = hook
+    _registered_hooks[when][subcommand] = hook_
 
 
 class _HookDict(dict):
