@@ -4,7 +4,7 @@ if [ -z "$___WAS_RUN_BEFORE" ]; then
     begin_test 'env'
     rm -rf ~/.tem 2>/dev/null
     mkdir -p ~/.tem
-    cp -r tem/env ~/.tem/env
+    cp -r dottem/env ~/.tem/env
 fi
 
 
@@ -80,7 +80,7 @@ fi
 
 # @test "tem env --add --root [DIR] [MULTIPLE FILES]" {
 #     rm -f ~/.tem/env/*
-#     run tem env --add --root ~ tem/env/*
+#     run tem env --add --root ~ dottem/env/*
 #     expected=''
 
 #     compare_output_expected
@@ -90,13 +90,13 @@ fi
 @test "tem env --add --force [MULTIPLE FILES]" {
     cd ~
     rm -f .tem/env/*
-    cp "$TESTDIR/cli/tem/env/unexecutable.sh" .tem/env/
+    cp "$TESTDIR/cli/dottem/env/unexecutable.sh" .tem/env/
 
-    run tem env --add --force "$TESTDIR"/cli/tem/env/*
+    run tem env --add --force "$TESTDIR"/cli/dottem/env/*
 
     expected=''
     compare_output_expected
-    [ "$(ls .tem/env)" = "$(ls "$TESTDIR/cli/tem/env")" ]
+    [ "$(ls .tem/env)" = "$(ls "$TESTDIR/cli/dottem/env")" ]
 }
 
 @test "tem env --add [NONEXISTENT FILE]" {
@@ -111,7 +111,7 @@ fi
 }
 
 @test "tem env --delete [MULTIPLE FILES]" {
-    cp -r tem/env ~/.tem/
+    cp -r dottem/env ~/.tem/
     cd ~
 
     run tem env --delete print.sh unexecutable.sh
@@ -123,7 +123,7 @@ fi
 
 @test "tem env" {
     rm -f ~/.tem/env/*
-    cp tem/env/print.sh ~/.tem/env
+    cp dottem/env/print.sh ~/.tem/env
     cd ~
 
     run tem env

@@ -5,6 +5,7 @@
 import inspect
 import os
 
+import tem
 from tem.util import abspath, print_err
 
 
@@ -45,9 +46,9 @@ class TemError(Exception):
 class PathError(TemError):
     """An error that has a path as an argument."""
 
-    def __init__(self, path):
+    def __init__(self, path: "tem.fs.AnyPath"):
         super().__init__(self, path)
-        self.path = path
+        self.path = str(path)
 
 
 class RepoDoesNotExistError(PathError):
@@ -91,6 +92,14 @@ class NotATemDirError(PathError):
         return (
             f"'{abspath(self.path)}' is not a temdir\n"
             f"Try running `tem init` first."
+        )
+
+
+class NotADotDirError(PathError):
+    def cli(self):
+        return (
+            f"'{abspath(self.path)}' is not a dotdir\n"
+            f"A dotdir is a directory located under a '.tem/' directory"
         )
 
 

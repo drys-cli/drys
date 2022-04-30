@@ -5,9 +5,10 @@ import pathlib
 import subprocess
 from contextlib import suppress
 from functools import cached_property
-from typing import Iterable, Optional, Union
+from typing import Iterable, Literal, Optional
 
-from tem import __prefix__, __version__, util
+import tem.util.fs
+from tem import __prefix__, __version__, errors, util
 from tem.errors import FileNotFoundError as FileNotFoundError_
 from tem.errors import (
     NotATemDirError,
@@ -16,10 +17,17 @@ from tem.errors import (
 )
 from tem.shell import shell
 
-__all__ = ("AnyPath", "TemDir", "DotDir", "Runnable", "iterate_hierarchy")
+__all__ = (
+    "AnyPath",
+    "TemDir",
+    "DotDir",
+    "Runnable",
+    "Executable",
+    "iterate_hierarchy",
+)
 
 
-AnyPath = Union[str, pathlib.Path, os.PathLike]
+AnyPath = tem.util.fs.AnyPath
 
 
 class TemDir(type(pathlib.Path())):
@@ -67,7 +75,9 @@ class TemDir(type(pathlib.Path())):
         self.isolated = False
         self.autoenv = False
 
-    def __getitem__(self, dotdir: str) -> "DotDir":
+    def __getitem__(
+        self, dotdir: Literal["path", "env", "hooks", "files", "tmp"]
+    ) -> "DotDir":
         return DotDir(self / f".tem/{dotdir}")
 
     @property
@@ -174,6 +184,12 @@ class DotDir(type(pathlib.Path())):
 
     def __init__(self, *_):
         super().__init__()
+        if not self.exists():
+            raise errors.FileNotFoundError(self.absolute())
+        if not self.is_dir():
+            raise errors.FileNotDirError(self.absolute())
+        if os.path.basename(self.parent) != ".tem":
+            raise errors.NotADotDirError(self.absolute())
 
     def exec(self, files: Iterable = tuple("."), ignore_nonexistent=False):
         """
@@ -230,14 +246,28 @@ class DotDir(type(pathlib.Path())):
 class Runnable(type(pathlib.Path())):
     """An abstraction for executables and shell (including python) scripts."""
 
-    def __init__(self, path: AnyPath):
-        if not util.is_executable(path):
-            raise PermissionError(f"File '{path}' must be executable")
-        super().__init__(path)
+    # pylint: disable-next=arguments-differ
+    def __new__(cls, path: AnyPath):
+        return super(Runnable, cls).__new__(cls, str(path))
+
+    def __init__(self, *_):
+        super().__init__()
 
     def brief(self):
         """Extract the brief comment from the runnable."""
-        raise NotImplementedError
+        _ = self  # prevents warning
+        return NotImplemented
+
+
+class Executable(Runnable):
+    """An executable file."""
+
+    def __init__(self, path: AnyPath):
+        if not pathlib.Path(path).exists():
+            raise errors.FileNotFoundError(path.absolute())
+        if not util.is_executable(path):
+            raise PermissionError(f"File '{path}' must be executable")
+        super().__init__(path)
 
 
 def iterate_hierarchy(path):

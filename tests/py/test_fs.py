@@ -1,9 +1,9 @@
 import pytest
-import shutil as sh
 
 import tem.util
 from common import *
-from tem.fs import TemDir
+from common import setup_module as _setup_module
+from tem.fs import TemDir, DotDir
 from tem.errors import NotATemDirError
 
 
@@ -16,15 +16,17 @@ TEMDIR2 = TEMDIR1 / "dir2"
 NOT_A_TEMDIR2 = TEMDIR2 / "not_a_temdir2"
 
 
+def setup_module():
+    _setup_module()
+    for directory in TEMDIR, TEMDIR1, TEMDIR2, NOT_A_TEMDIR, NOT_A_TEMDIR2:
+        os.makedirs(directory)
+    TemDir.init(TEMDIR)
+    assert os.path.isdir(TEMDIR / ".tem")
+    TemDir.init(TEMDIR1)
+    TemDir.init(TEMDIR2)
+
+
 class TestTemDir:
-    @classmethod
-    def setup_class(cls):
-        for directory in TEMDIR, TEMDIR1, TEMDIR2, NOT_A_TEMDIR, NOT_A_TEMDIR2:
-            os.makedirs(directory)
-        TemDir.init(TEMDIR)
-        assert os.path.isdir(TEMDIR / ".tem")
-        TemDir.init(TEMDIR1)
-        TemDir.init(TEMDIR2)
 
     def test_constructor(self):
         TemDir(TEMDIR)
@@ -50,3 +52,14 @@ class TestTemDir:
             temdir.tem_parent is None
             or str(temdir.tem_parent) != OUTDIR.absolute()
         )
+
+
+class TestDotDir:
+    def test_constructor(self):
+        DotDir(TEMDIR / ".tem/path")
+        with pytest.raises(tem.errors.FileNotFoundError):
+            DotDir(TEMDIR / ".tem" / "__not_a_dotdir__")
+        with pytest.raises(tem.errors.FileNotDirError):
+            DotDir(TEMDIR / ".tem" / "config")
+        with pytest.raises(tem.errors.NotADotDirError):
+            DotDir("/tmp")

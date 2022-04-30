@@ -4,6 +4,7 @@ import contextvars
 import importlib.util
 import os
 import re
+import select
 import shutil
 import sys
 import types
@@ -107,6 +108,16 @@ def cat(file):
 def make_file_executable(path):
     """Equivalent to performing `chmod u+x` on ``path``."""
     os.chmod(path, os.stat(path).st_mode | 0o100)
+
+
+def read_stdin():
+    """Return the contents of stdin, or ``None`` if there are none."""
+    # TODO: non-portable
+    return (
+        sys.stdin.read()
+        if sys.stdin in select.select([sys.stdin], [], [], 0)[0]
+        else None
+    )
 
 
 @contextlib.contextmanager

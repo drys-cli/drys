@@ -7,6 +7,7 @@ from typing import List, Iterable
 
 from tem import ext, util, env, errors
 from tem.errors import TemError
+from tem.util import fs as fs_util
 
 from . import common as cli
 from ..fs import AnyPath
@@ -95,19 +96,6 @@ def setup_parser(parser):
     )
 
 
-def validate_file_arguments_as_script_names(files):
-    """
-    Verify that ``files`` are base names, i.e. do not contain path delimiters.
-    Otherwise, print an error and exit.
-    """
-    any_invalid_files = False
-    for file in files:
-        if "/" in file:
-            raise TemError(f"'{file}' is an invalid script name")
-    if any_invalid_files:
-        sys.exit(1)
-
-
 def validate_and_get_dotdir(subdir, rootdir=None, recursive=False):
     """
     Make sure that ``rootdir`` and ``subdir`` can form a valid dotdir, and then
@@ -175,25 +163,19 @@ def create_new_files(dotdir: AnyPath, file_names: Iterable[str], force):
     # TODO This should only be used in some dot derivatives
     # (path, env, maybe others)
     dest_files = []
-    validate_file_arguments_as_script_names(file_names)
 
     # File contents are taken from stdin, if it has data
-    contents = ""
-    # NOTE: non-portable
-    if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
-        contents = sys.stdin.read()
+    contents = util.read_stdin() or ""
 
     for file in file_names:
         dest = dotdir + "/" + file
 
-        if not os.path.exists(dest) or force:
-            with open(dest, "w", encoding="utf-8") as f:
+        try:
+            with fs_util.create_file(dest, permissions=744, force=True) as f:
                 f.write(contents)
-            util.make_file_executable(dest)
-        else:
-            raise errors.FileExistsError(dest).append(
-                "\nTry running with --force."
-            )
+        except errors.FileExistsError as e:
+            raise e.append("\nTry running with --force.")
+
         dest_files.append(dest)
 
     return dest_files
