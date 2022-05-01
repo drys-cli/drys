@@ -171,7 +171,7 @@ def create_new_files(dotdir: AnyPath, file_names: Iterable[str], force):
         dest = dotdir + "/" + file
 
         try:
-            with fs_util.create_file(dest, permissions=744, force=True) as f:
+            with fs_util.create_file(dest, permissions=0o744, force=True) as f:
                 f.write(contents)
         except errors.FileExistsError as e:
             raise e.append("\nTry running with --force.")

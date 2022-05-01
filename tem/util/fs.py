@@ -32,7 +32,7 @@ def create_file(path: AnyPath, permissions=0o644, force=False) -> type(open):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     if os.path.exists(path) and not force:
         raise errors.FileExistsError(path)
-    handle = open(path, "a", encoding="utf-8")
+    handle = open(path, "w", encoding="utf-8")
     os.chmod(path, permissions)
 
     return handle

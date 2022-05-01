@@ -28,9 +28,10 @@ __all__ = (
 
 
 AnyPath = tem.util.fs.AnyPath
+SystemPath = type(pathlib.Path())
 
 
-class TemDir(type(pathlib.Path())):
+class TemDir(SystemPath):
     """
     A directory that supports tem features. Supports all ``pathlib.Path``
     features.
@@ -175,7 +176,7 @@ class TemDir(type(pathlib.Path())):
         return path
 
 
-class DotDir(type(pathlib.Path())):
+class DotDir(SystemPath):
     """Represents a directory under `.tem/`."""
 
     # pylint: disable-next=arguments-differ
@@ -238,12 +239,15 @@ class DotDir(type(pathlib.Path())):
         """Recursively iterate over all executable files in this dotdir."""
         return (
             file
-            for file in glob.iglob("**/*", recursive=True)
+            for file in glob.iglob(str(self / "**/*"), recursive=True)
             if os.path.isfile(file) and os.access(file, os.X_OK)
         )
 
+    def __iter__(self):
+        return os.scandir(self)
 
-class Runnable(type(pathlib.Path())):
+
+class Runnable(SystemPath):
     """An abstraction for executables and shell (including python) scripts."""
 
     # pylint: disable-next=arguments-differ
