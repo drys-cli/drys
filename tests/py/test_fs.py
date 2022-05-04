@@ -27,7 +27,6 @@ def setup_module():
 
 
 class TestTemDir:
-
     def test_constructor(self):
         TemDir(TEMDIR)
         with pytest.raises(NotATemDirError):

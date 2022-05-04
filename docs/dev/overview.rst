@@ -36,20 +36,8 @@ CLI here.
 Internal environment variables
 ------------------------------
 
-.. glossary::
+In addition to the environment variables documented in the config, tem uses some
+internal environment variables. They are documented in :mod:`tem.env.vars`. This
+module should always be used to access environment variables instead of using
+raw ``os.environ``.
 
-   `__TEM_SHELL_SOURCE`
-      Path to a file (preferably a FIFO) to which tem will echo shell commands,
-      which the shell wrapper is supposed to source. A more detailed explanation
-      can be found in :ref:`Shell<dev_shell>`.
-
-   `__TEM_EXPORTED_ENVIRONMENT`
-      Keeps track of the exported environment, so that env scripts are not
-      executed multiple times. The value is the basedir and not the entire
-      environment, since the environment can be obtained from the basedir alone.
-
-   `__TEM_SESSION_ID__`
-      TODO use this at all?
-      The id of the current tem session (TODO a long random string that
-      guarantees no collisions). It's used so that different shell sessions can
-      have separate environments.

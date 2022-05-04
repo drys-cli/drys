@@ -1,16 +1,38 @@
 """Work with tem environments."""
+import functools
 import os
 import pathlib
 import subprocess
 from functools import cached_property
 from itertools import islice
-from typing import Iterator, List, Type, Union, overload
+from types import ModuleType
+from typing import Iterator, List, Type, Union, overload, Optional
 
 from tem import find
 from tem.fs import AnyPath, TemDir
 from tem.shell import commands as shell_commands
+from . import vars
 
 __all__ = ["Environment", "ExecPath", "ExecutableLookup"]
+
+__envvars = []
+
+
+def _envvar(name):
+    __envvars.append(name)
+
+    def decorator(func):
+        @functools.wraps(func)
+        def getter(_: object):
+            return os.environ.get(name)
+
+        def setter(_, value: str):
+            os.environ[name] = value
+
+        getter.__doc__ += f"\n\t*Environment variable*: `{name}`"
+        return property(getter).setter(setter)
+
+    return decorator
 
 
 class Environment:
@@ -101,7 +123,7 @@ class Environment:
     def export(self):
         """Export this environment to ``os.environ["PATH"]``."""
         self.execpath.export()
-        os.environ["_TEM_EXPORTED_ENVIRONMENT"] = str(self.basedir)
+        vars.shell_source(str(self.basedir))
 
     def execute(self):
         """
