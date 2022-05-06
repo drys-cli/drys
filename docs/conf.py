@@ -1,4 +1,3 @@
-import glob
 import os
 import sys
 
@@ -23,9 +22,10 @@ release = tem.__version__
 extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.autodoc",
-    "sphinx_codeautolink",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "sphinx.ext.ifconfig",
+    "sphinx_codeautolink",
     "sphinx_rtd_dark_mode",
     "sphinx_copybutton",
     "sphinx-prompt",
@@ -33,6 +33,7 @@ extensions = [
     "sphinx_toolbox.collapse",
     "sphinx_tabs.tabs",
     "hoverxref.extension",
+    "local_plugins",
 ]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "man"]
 todo_include_todos = True
