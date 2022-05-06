@@ -1,4 +1,3 @@
-import glob
 import os
 import sys
 
@@ -23,9 +22,10 @@ release = tem.__version__
 extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.autodoc",
-    "sphinx_codeautolink",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "sphinx.ext.ifconfig",
+    "sphinx_codeautolink",
     "sphinx_rtd_dark_mode",
     "sphinx_copybutton",
     "sphinx-prompt",
@@ -33,6 +33,7 @@ extensions = [
     "sphinx_toolbox.collapse",
     "sphinx_tabs.tabs",
     "hoverxref.extension",
+    "local_plugins",
 ]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "man"]
 todo_include_todos = True
@@ -42,7 +43,7 @@ if os.environ.get("READTHEDOCS"):
     rtd_project = os.environ.get("READTHEDOCS_PROJECT")
     rtd_lang = os.environ.get("READTHEDOCS_LANGUAGE")
     rtd_version = os.environ.get("READTHEDOCS_VERSION")
-    manpages_url = "https://{rtd_project}.readthedocs.io/{rtd_lang}/{rtd_version}/man/"
+    manpages_url = f"https://{rtd_project}.readthedocs.io/{rtd_lang}/{rtd_version}/man/"
 else:
     manpages_url = f"file://{os.path.dirname(__file__)}/_build/html/_intermediate/man/{{page}}.html"
 
@@ -103,7 +104,6 @@ source_link_target = "GitHub"
 # ┗━━━━━━━━━━━┛
 hoverxref_auto_ref = True
 hoverxref_sphinxtabs = True
-hoverxref_modal_hover_delay = 0
 hoverxref_tooltip_animation_duration = 250
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓

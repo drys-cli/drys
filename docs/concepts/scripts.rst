@@ -29,4 +29,4 @@ The `.tem/path/` directory can be organized into a hierarchy, for example:
        ├── PR
        └── todos
 
-You can create those files manually, or you can use the :manpage:`tem path<tem-path>` command.
+You can create those files manually, or you can use the :ref:`tem path<man_tem_path>` command.
