@@ -32,11 +32,19 @@ extensions = [
     "sphinx_toolbox.source",
     "sphinx_toolbox.collapse",
     "sphinx_tabs.tabs",
+    "hoverxref.extension",
 ]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "man"]
 todo_include_todos = True
 
 default_role = "envvar"  # Like :code: role, but the text is black
+if os.environ.get("READTHEDOCS"):
+    rtd_project = os.environ.get("READTHEDOCS_PROJECT")
+    rtd_lang = os.environ.get("READTHEDOCS_LANGUAGE")
+    rtd_version = os.environ.get("READTHEDOCS_VERSION")
+    manpages_url = "https://{rtd_project}.readthedocs.io/{rtd_lang}/{rtd_version}/man/"
+else:
+    manpages_url = f"file://{os.path.dirname(__file__)}/_build/html/_intermediate/man/{{page}}.html"
 
 sys.path.insert(0, os.path.abspath(".."))
 # ┏━━━━━━┓
@@ -89,6 +97,14 @@ napoleon_custom_sections = [
 github_username = "tem-cli"
 github_repository = "tem"
 source_link_target = "GitHub"
+
+# ┏━━━━━━━━━━━┓
+# ┃ Hoverxref ┃
+# ┗━━━━━━━━━━━┛
+hoverxref_auto_ref = True
+hoverxref_sphinxtabs = True
+hoverxref_modal_hover_delay = 0
+hoverxref_tooltip_animation_duration = 250
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 # ┃ Specific steps for ReadTheDocs ┃

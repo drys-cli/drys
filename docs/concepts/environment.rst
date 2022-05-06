@@ -1,13 +1,29 @@
 Environment
 ===========
 
-When you are in a temdir, you can run `tem env` to load the local environment
-for that temdir. To simplify things, what happens is that all the files in
-`.tem/env/` are executed.
+Tem introduces the concept of local environments -- environments that are active
+only when you are located in a particular directory.
+
+When you are in a temdir or any of its subdirectories, run `tem env` to load the
+local environment for that temdir. This will execute all files located in
+`.tem/env/` recursively.
+
+If you are using a :ref:`shell plugin<shell>`, some subdirectories of
+`.tem/env/` will be treated in a special way. All files located under
+`.tem/env/@\<shell_name\>` will be sourced by the shell instead of being
+executed.
+
+.. hint::
+
+   Replace `\<shell_name\>` with the name of the shell you are using. For
+   example if you are using `bash`, put those files inside `.tem/env/@bash/`.
+
+We highly recommend using a shell plugin, as it provides great convenience by
+automating some tasks for you. And it allows you to save the state of the
+environment to the shell, so that subsequent runs of `tem env` will not run the
+same scripts again. There are many
 
 Suppose that we have the following structure:
-
-TODO...
 
 Detailed description
 --------------------

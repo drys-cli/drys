@@ -16,3 +16,5 @@ environment for learning.
 .. include:: variables.rst
 
 .. include:: environment.rst
+
+.. include:: shell.rst

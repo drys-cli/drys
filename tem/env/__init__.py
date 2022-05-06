@@ -5,8 +5,7 @@ import pathlib
 import subprocess
 from functools import cached_property
 from itertools import islice
-from types import ModuleType
-from typing import Iterator, List, Type, Union, overload, Optional
+from typing import Iterator, List, Type, Union, overload
 
 from tem import find
 from tem.fs import AnyPath, TemDir

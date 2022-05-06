@@ -5,7 +5,7 @@ import pathlib
 import subprocess
 from contextlib import suppress
 from functools import cached_property
-from typing import Iterable, Literal, Optional
+from typing import Iterable, Literal, Optional, Union
 
 import tem.util.fs
 from tem import __prefix__, __version__, errors, util
@@ -95,8 +95,13 @@ class TemDir(SystemPath):
         raise NotImplementedError
 
     @property
-    def parent(self):
-        """Parent directory. An instance of ``pathlib.Path``."""
+    def parent(self) -> Union[pathlib.Path, "TemDir"]:
+        """
+        Parent directory.
+
+        If the parent is a valid temdir, the returned path will be an instance
+        of :class:`TemDir`.
+        """
         parent = pathlib.Path(super().parent)
         try:
             return TemDir(parent)
@@ -105,7 +110,7 @@ class TemDir(SystemPath):
 
     @property
     def tem_parent(self) -> Optional["TemDir"]:
-        """Get the first parent of this temdir that is also a temdir."""
+        """Get the first parent directory that is also a temdir."""
         # Traverse the fs tree upwards until a parent temdir is found
         directory = self.parent
         while str(directory) != "/":
