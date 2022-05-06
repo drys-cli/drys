@@ -104,7 +104,6 @@ source_link_target = "GitHub"
 # ┗━━━━━━━━━━━┛
 hoverxref_auto_ref = True
 hoverxref_sphinxtabs = True
-hoverxref_modal_hover_delay = 0
 hoverxref_tooltip_animation_duration = 250
 
 # ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
