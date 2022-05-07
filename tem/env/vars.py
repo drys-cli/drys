@@ -1,60 +1,61 @@
-"""Registry of environment variables used by tem."""
-import functools
-import inspect
+"""
+Registry of environment variables used to control the behavior of tem
+environments.
+"""
 import os
-import sys
-from types import ModuleType
-from typing import Optional, Callable, Union
-
-__envvars = []
+from typing import Optional
 
 
-def _envvar(name):
-    __envvars.append(name)
+class EnvVar:
+    """An environment variable.
 
-    def decorator(func):
-        @functools.wraps(func)
-        def getter(_: object):
-            return os.environ.get(name)
-
-        def setter(_, value: str):
-            os.environ[name] = value
-
-        getter.__doc__ += f"\n\t*Environment variable*: `{name}`"
-        return property(getter).setter(setter)
-
-    return decorator
-
-
-class __Vars(ModuleType):
-    """
-    Registry of environment variables used to control the behavior of tem
-    environments.
+    Attributes
+    ----------
+    name
+        The name of the environment variable.
     """
 
-    @_envvar("__TEM_SHELL_SOURCE")
-    def shell_source(self) -> Optional[str]:
+    def __init__(self, name: str):
+        self.name = name
+
+    @property
+    def value(self):
         """
-        Path to the file where tem should output commands that the parent shell
-        will then source.
+        Value of the environment variable. Assigning to this property will
+        update the corresponding entry in ``os.environ``.
         """
+        return os.environ.get(self.name)
 
-    @_envvar("__TEM_EXPORTED_ENVIRONMENT")
-    def exported_environment(self) -> Optional[str]:
-        """
-        List of paths exported to `PATH` as part of the tem environment.
+    @value.setter
+    def value(self, value: Optional[str]):
+        if value is None:
+            del os.environ[self.name]
+        else:
+            os.environ[self.name] = value
 
-        This variable exists to clearly separate those paths in `PATH` that were
-        added by tem as part of an :class:`~tem.env.Environment` from those that
-        existed beforehand.
-        """
-
-    def __iter__(self):
-        return iter(self.__all__)
-
-    __all__ = tuple(
-        x for x in locals() if not x.startswith("_") and inspect.isfunction(x)
-    )
+    def __str__(self):
+        return self.value or ""
 
 
-sys.modules[__name__].__class__ = __Vars
+shell_source = EnvVar("__TEM_SHELL_SOURCE")
+"""
+Path to the file where tem should output commands that the parent shell
+will then source.
+
+*Environment variable:* :envvar:`__TEM_SHELL_SOURCE`
+"""
+
+exported_environment = EnvVar("__TEM_EXPORTED_ENVIRONMENT")
+"""
+List of paths exported to `PATH` as part of the tem environment.
+
+This variable exists to clearly separate those paths in `PATH` that were
+added by tem as part of an :class:`~tem.env.Environment` from those that
+existed beforehand.
+
+*Environment variable:* :envvar:`__TEM_EXPORTED_ENVIRONMENT`
+"""
+
+# __all__ = tuple(
+#    x for x in globals() if isinstance(x, EnvVar) or x == EnvVar
+# )

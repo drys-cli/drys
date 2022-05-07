@@ -1,17 +1,8 @@
 """Run scripts defined on a temdir level."""
 import functools
-import subprocess
 from typing import Callable
 
 from tem import TemDir
-from tem.fs import Executable
-
-
-def run(script_name: str, *args, temdir: TemDir = None):
-    """Run script with path ``script_name`` relative to `.tem/path`."""
-    temdir = temdir or TemDir()
-    executable = Executable(temdir["path"] / script_name)
-    subprocess.run([str(executable.absolute()), *args], check=False)
 
 
 def script(mount_point: str):

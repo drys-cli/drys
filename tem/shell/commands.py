@@ -24,6 +24,10 @@ class _Util:
             print(text, file=file)
 
 
+def set(variable_name: str, value: str):
+    """Set a shell variable"""
+
+
 def export(variable, value):
     """Export a variable named ``variable`` with value ``value``."""
     _Util.eval(f"export {variable}={shlex.quote(value)}")
@@ -32,3 +36,9 @@ def export(variable, value):
 def command(cmd, *args):
     """Run shell command ``cmd`` with arguments ``args``."""
     _Util.eval(" ".join([shlex.quote(token) for token in [cmd] + list(args)]))
+
+
+def function(
+    name,
+):
+    pass

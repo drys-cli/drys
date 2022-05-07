@@ -2,6 +2,7 @@
 import functools
 import os
 import pathlib
+import re
 import subprocess
 from functools import cached_property
 from itertools import islice
@@ -13,25 +14,6 @@ from tem.shell import commands as shell_commands
 from . import vars
 
 __all__ = ["Environment", "ExecPath", "ExecutableLookup"]
-
-__envvars = []
-
-
-def _envvar(name):
-    __envvars.append(name)
-
-    def decorator(func):
-        @functools.wraps(func)
-        def getter(_: object):
-            return os.environ.get(name)
-
-        def setter(_, value: str):
-            os.environ[name] = value
-
-        getter.__doc__ += f"\n\t*Environment variable*: `{name}`"
-        return property(getter).setter(setter)
-
-    return decorator
 
 
 class Environment:
@@ -57,8 +39,8 @@ class Environment:
 
     @property
     def envdirs(self) -> List[TemDir]:
-        """
-        All :class:`TemDir<tem.fs.TemDir>`\\s participating in this
+        r"""
+        All :class:`TemDir<tem.fs.TemDir>`\s participating in this
         environment.
 
         The directories are sorted from :attr:`basedir` to :attr:`rootdir`.
@@ -122,7 +104,9 @@ class Environment:
     def export(self):
         """Export this environment to ``os.environ["PATH"]``."""
         self.execpath.export()
-        vars.shell_source(str(self.basedir))
+        vars.exported_environment.value = os.pathsep.join(
+            map(str, self.envdirs)
+        )
 
     def execute(self):
         """
@@ -173,9 +157,16 @@ class ExecPath(list):
 
     """
 
-    #: Special index value indicating that `PATH` entries injected by tem
-    #: should be ignored when looking up executables.
     NO_TEM = type("NO_TEM", (), {})
+    r"""
+    Special index value indicating that `PATH` entries ending in `.tem/path`
+    (`.tem\\path` on Windows) should be ignored when looking up executables.
+    """
+    NO_TEM_ENV = type("NO_TEM_ENV", (), {})
+    """
+    Special index value indicating that `PATH` entries injected by the active
+    tem environment should be ignored when looking up executables.
+    """
 
     def __init__(
         self,
@@ -223,6 +214,20 @@ class ExecPath(list):
             return super().__getitem__(item)
         elif isinstance(item, str):
             return ExecutableLookup(self, item)
+        elif item == self.NO_TEM:
+            return ExecPath(
+                [
+                    path
+                    for path in self
+                    if not re.match(
+                        ".*" + re.escape(os.path.join(".tem", "path")), path
+                    )
+                ]
+            )
+        elif item == self.NO_TEM_ENV:
+            return ExecPath(
+                str(self).replace(vars.exported_environment.value + ":", "", 1)
+            )
         else:
             raise TypeError("index has invalid type")
 
