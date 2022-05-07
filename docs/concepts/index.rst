@@ -18,3 +18,5 @@ environment for learning.
 .. include:: environment.rst
 
 .. include:: shell.rst
+
+.. include:: scopes.rst

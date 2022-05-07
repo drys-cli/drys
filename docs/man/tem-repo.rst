@@ -1,6 +1,8 @@
 .. _man_tem_repo:
 
+========
 tem-repo
+========
 
 SYNOPSIS
 ========

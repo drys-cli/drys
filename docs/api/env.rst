@@ -18,8 +18,6 @@
 Environment variables
 ---------------------
 
-.. todo:: Because of reassigning the module's ``__class__``, sphinx doesn't
-   recognize the properties. Find a way to show the documented properties.
-
+.. rubric:: Module: ``tem.env.vars``
 .. automodule:: tem.env.vars
    :members:

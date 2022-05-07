@@ -6,6 +6,7 @@ man_descriptions = {
     "tem-rm": "Remove templates from a tem repository",
     "tem-put": "Copy a template to a destination",
     "tem-ls": "List templates",
+    "tem-run": "Run scripts on a per-project basis",
     "tem-repo": "Perform operations on tem repositories",
     "tem-config": "Configure tem",
     "tem-init": "Generate a .tem directory",

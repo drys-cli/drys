@@ -12,7 +12,7 @@ html:
 	@${SPHINXBUILD} -M $@ "${SOURCEDIR}" "${BUILDDIR}" ${SPHINXOPTS} ${O}
 info:
 	@${SPHINXBUILD} -M $@ "${SOURCEDIR}" "${BUILDDIR}" ${SPHINXOPTS} ${O}
-man:
+man: prepare-man
 	@${SPHINXBUILD} -M $@ "${SOURCEDIR}/man" "${BUILDDIR}" ${SPHINXOPTS} ${O}
 	@# Replace <...> generic options with italic text
 	@sed -i 's:<\([A-Z]\+\)>:\\fI\1\\fR\\fR:g' "${BUILDDIR}/man"/*.1

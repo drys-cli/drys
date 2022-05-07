@@ -16,6 +16,14 @@ Welcome to tem's documentation!
 .. toctree::
    :maxdepth: 2
    :hidden:
+   :caption: FOR PROJECT CREATORS
+
+   creators/index.rst
+
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
    :caption: DEVELOPER DOCS
 
    dev/conventions.rst
@@ -23,3 +31,4 @@ Welcome to tem's documentation!
    dev/modules/index.rst
    dev/shell.rst
    dev/tests.rst
+   dev/docs.rst
