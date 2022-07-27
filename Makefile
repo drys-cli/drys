@@ -10,6 +10,7 @@ build: build-base
 
 build-base:
 	mkdir -p build/lib/tem
+	python3 setup.py build
 	@echo "__version__ = '${VERSION}'"               > build/lib/tem/_meta.py
 
 install: install-base
@@ -19,7 +20,7 @@ install: install-base
 	install -Dm444 docs/_build/man/*.1 	${MAN_DIR}
 	install -Dm444 LICENSE 				${DOC_DIR}
 	@# tuterm tutorial files
-	install -Dm644 docs/demo/tem    	${DESTDIR}/${PREFIX}/share/tuterm/scripts/tem
+	install -Dm644 docs/demo/tem.tut    ${DESTDIR}/${PREFIX}/share/tuterm/scripts/tem
 	cp -r 		   docs/demo/.tem-home  ${DESTDIR}/${PREFIX}/share/tuterm/scripts/.tem-home
 	chmod 755 ${DESTDIR}/${PREFIX}/share/tuterm/scripts/.tem-home
 

@@ -7,7 +7,7 @@ from tem import TemDir
 from tem.cli import common as cli
 from argparse import ArgumentParser
 
-from tem.env import ExecPath
+from tem.env import ExecPath, Environment
 from tem.fs import Executable
 
 
@@ -44,13 +44,17 @@ def setup_parser(p: ArgumentParser):
 def cmd(args):
     temdir = TemDir(args.temdir)
     if args.no_tem:
+        executable = ExecPath()[ExecPath.NO_TEM][args.script]
         if args.find:
-            print(ExecPath()[ExecPath.NO_TEM][args.script].lookup())
+            print(executable.lookup())
         else:
-            subprocess.run([args.script, *args], check=False)
+            executable(*args.arguments)
     else:
+        Environment().export()
         executable = Executable(temdir["path"] / args.script)
         if args.find:
             print(str(executable.absolute()))
         else:
-            subprocess.run([str(executable.absolute()), *args], check=False)
+            subprocess.run(
+                [str(executable.absolute()), *args.arguments], check=False
+            )

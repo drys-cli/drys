@@ -79,13 +79,16 @@ class Environment:
         Return a convenient wrapper around the value that
         ``os.environ["PATH"]`` would have after exporting this environment.
         """
-        envdirs_real = [os.path.realpath(path) for path in self.envdirs]
+        new_paths = [
+            os.path.realpath(os.path.join(path, ".tem", "path"))
+            for path in self.envdirs
+        ]
         execpath = [
             path
             for path in ExecPath()
-            if os.path.realpath(path) not in envdirs_real
+            if os.path.realpath(path) not in new_paths
         ]
-        return ExecPath(self.envdirs + execpath)
+        return ExecPath(new_paths + execpath)
 
     @cached_property
     def is_exported(self) -> bool:

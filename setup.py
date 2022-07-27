@@ -7,7 +7,7 @@ import tem
 
 setup(
     name="tem",
-    version=os.environ.get("VERSION", "0.0.0"),
+    version=os.environ.get("VERSION", tem.__version__),
     description="Don't Repeat Yourself. Ever. Again",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
