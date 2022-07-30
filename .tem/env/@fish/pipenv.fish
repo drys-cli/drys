@@ -1,6 +1,6 @@
 # Produce the same effects in the environment as 'pipenv run' would
 
-if command -v pipenv >/dev/null
+if tem var -q use_pipenv 2>/dev/null
     if [ -z "$PIPENV_ACTIVE" ]
         set -le PIPENV_ACTIVE
         set -le VIRTUAL_ENV
