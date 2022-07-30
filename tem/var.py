@@ -1,5 +1,6 @@
 """Variables defined per directory."""
 import functools
+import glob
 import os
 import shelve
 from contextlib import ExitStack
@@ -10,7 +11,7 @@ import tem
 from tem import util
 from tem.env import Environment
 from tem.errors import TemVariableNotDefinedError, TemVariableValueError
-from tem.fs import TemDir
+from tem.fs import AnyPath, TemDir
 
 
 class __NoInit(type):
@@ -474,7 +475,7 @@ def _load(temdir: TemDir, defaults=False) -> Dict[str, Variable]:
     saved_vars_path = str(temdir._internal / "vars")
     definitions = _load_variable_definitions(temdir / ".tem/vars.py")
     # Try to load variables from temdir's variable store
-    if not defaults and os.path.isfile(saved_vars_path):
+    if not defaults and glob.glob(f"{saved_vars_path}*"):
         for var_name, value in _load_from_shelf(saved_vars_path).items():
             definitions[var_name].value = value
     return definitions
@@ -488,7 +489,7 @@ def _load_variable_definitions(path) -> Dict[str, Variable]:
     return _filter_variables(definitions.__dict__)
 
 
-def _load_from_shelf(file) -> Dict[str, Variable]:
+def _load_from_shelf(file: AnyPath) -> Dict[str, Variable]:
     """Load a variable namespace object from variable store ``file``."""
     shelf = shelve.open(file)
     variables = shelf.get("values", {})
