@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+cd "$(tem find --root tem)"
+make clean
+rm -rf _inst/ _tmp/

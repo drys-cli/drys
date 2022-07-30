@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+cd "$(tem find -b tem)"
+
+shopt -s globstar
+
+isort tem/**.py
+black .
+pylint tem/**.py
+mypy tem/**.py

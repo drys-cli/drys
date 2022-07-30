@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+# Make docs. Format is specified via "$1", or "html" by default.
+
+cd "$(tem find --root tem)"
+if [ "$#" = 0 ]; then
+    make -C docs html
+else
+    make -C docs "$@"
+fi
+

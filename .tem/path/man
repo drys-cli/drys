@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+file="$(tem find --root tem)/docs/_build/man/$1.1"
+
+[ -f "$file" ] && /usr/bin/man -l "$file" || /usr/bin/man "$@"

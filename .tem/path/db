@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+cd "$(tem find --root tem)"
+
+if [ -z "$1" ]; then
+    docker build -t tem .
+elif [ "$1" = "tests" ]; then
+    docker build -t tem-tests tests/
+fi

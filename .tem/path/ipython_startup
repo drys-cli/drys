@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+# Usage: ipython_startup [-t | --tmp]
+#   -t, --tmp   Edit the temporary startup file
+
+cd "$(tem find -b tem)"
+
+[ "$1" =  "-t" -o "$1" = "--tmp" ] \
+    && vim .tem/files/ipython/startup.tmp.py \
+    || vim .tem/files/ipython/startup.py

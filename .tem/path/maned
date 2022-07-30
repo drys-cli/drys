@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+# Edit a tem manpage with the specified name
+
+cd "$(tem find --root tem)"
+vim docs/man/"$1".rst

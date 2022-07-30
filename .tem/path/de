@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+alacritty -e fish -C "cd $TEM_PROJECTROOT; clear" &
+sleep 0.3
+alacritty -e fish -C "cd $TEM_PROJECTROOT; clear" &
+sleep 0.3
+xdotool key Super+h
+sleep 0.3
+alacritty -e fish -C "cd $TEM_PROJECTROOT; clear" &

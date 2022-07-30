@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+# Inside the running test docker container, cd to the test output directory
+
+docker exec -it tem-tests sh -c 'cd /t; sh -i'
+

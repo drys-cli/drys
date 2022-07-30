@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+# Convenience script that installs tem on the system.
+
+cd "$(tem find -r tem)"
+
+make && sudo make install PREFIX=/usr
+

@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+# Build sphinx HTML doc and listen for changes
+
+cd "$(tem find --root tem)"/docs
+sphinx-autobuild . _build/html --watch ../tem

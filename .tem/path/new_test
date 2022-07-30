@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+# Create a new test for a subcommand
+
+TEM_PROJECTROOT="$(tem find --root tem)"
+tem put -R "$TEM_PROJECTROOT" test.bats -o "$TEM_PROJECTROOT/tests/$1.bats" -v
+echo "Remember to edit tests/Makefile"

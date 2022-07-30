@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+# Explore tests in docker container
+
+docker exec -it tem-tests sh

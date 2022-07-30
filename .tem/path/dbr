@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+# Docker build and run -- a combination of 'db' and 'dr'
+db "$1" && dr "$@"

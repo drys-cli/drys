@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+
+echo "This script needs to be updated to work"
+exit 1
+
+# Convenience script for docker run
+
+DRUN="docker run -it -a stdout"
+arg1="$1"
+
+if [ -z "$arg1" ]; then
+    $DRUN tem "$@"
+else
+    shift
+    $DRUN tem-"$arg1" "$@"
+fi

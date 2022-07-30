@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+# Run ipython, loading tem's project-specific startup files
+
+if [ "$#" = 0 ]; then
+    tem run --no-tem ipython -i "$(tem find -r tem)/.tem/files/ipython/startup.py"
+else
+    tem run --no-tem ipython "$@"
+fi

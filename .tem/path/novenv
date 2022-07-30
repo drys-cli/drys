@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+export PATH="$(
+    echo "$PATH" |
+    sed -e 's/:[^:]*virtualenvs[^:]*//g' \
+        -e 's/[^:]*virtualenvs[^:]*://g'
+)"
+
+export PIPENV_ACTIVE="" VIRTUAL_ENV=""
+
+"$@"

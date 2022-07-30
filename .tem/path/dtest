@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+# Run a docker container based on the tem-tests image
+
+docker rm -f tem-tests
+docker run -it --name tem-tests tem-tests
