@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+novenv tem run --no-tem pipenv "$@"
