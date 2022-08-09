@@ -21,4 +21,6 @@ disable=invalid-name,
         # Often times else after return aids readability
         no-else-return,
         # Often times else after raise aids readability
-        no-else-raise
+        no-else-raise,
+        # Classes are sometimes useful as sentinel values
+        too-few-public-methods

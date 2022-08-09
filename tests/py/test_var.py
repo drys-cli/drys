@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from tem import var
@@ -21,12 +23,9 @@ class TestVar:
         # String with explicit default value
         v = var.Variable(str, default="default")
         assert v.value == "default"
-        # Variable with a list of allowed values, no explicit default
-        v = var.Variable([1, "2", True])
-        assert v.value == 1
-        # Variable with a list of allowed values, with explicit default
+        # Variable with a list of allowed values
         v = var.Variable([1, "2", True], True)
-        assert v.value
+        assert v.value is True
         v = var.Variable()
         assert v.value is None
         # Variable with Any type, with explicit default
@@ -42,10 +41,57 @@ class TestVar:
         v = var.Variant(True)
         assert v.value
 
+    def test_from_env(self):
+        if "v" in os.environ:
+            del os.environ["v"]
+
+        # No environment variable, take value from `default` argument
+        v = var.Variable(int, 0, from_env="v")
+        assert v.value == 0
+
+        os.environ["v"] = "1"
+
+        # Any variable type
+        v = var.Variable(Any, from_env="v")
+        assert v.value == "1"
+
+        # Simple string, no conversion
+        v = var.Variable(str, "0", from_env="v")
+        assert v.value == "1"
+        # Conversion to integer
+        v = var.Variable(int, 0, from_env="v")
+        assert v.value == 1
+        # Allowed values are from a list of strings
+        v = var.Variable(["0", "1"], default="0", from_env="v")
+        assert v.value == "1"
+        # Allowed values are from a list of integers
+        v = var.Variable([0, 1], default=0, from_env="v")
+        assert v.value == 1
+        # Allowed values are from a heterogeneous list of values
+        v = var.Variable(["0", 1], default="0", from_env="v")
+        assert v.value == 1
+
+    def test_from_env_errors(self):
+        os.environ["v"] = "a"
+        # Value doesn't match type
+        with pytest.raises(errors.TemVariableValueError):
+            var.Variable(int, 0, from_env="v")
+        # Value has right type but is not in list of allowed values
+        os.environ["v"] = "2"
+        with pytest.raises(errors.TemVariableValueError):
+            var.Variable([0, 1], 0, from_env="v")
+        # Value not in heterogeneous list of allowed values
+        os.environ["v"] = "3"
+        with pytest.raises(errors.TemVariableValueError):
+            var.Variable(["0", 1], 0, from_env="v")
+
     def test_errors(self):
         # Variable type is not a type or list of values
         with pytest.raises(TypeError):
             var.Variable("type")
+        # List-type variable without a default value
+        with pytest.raises(errors.TemVariableValueError):
+            var.Variable(["a", "b"])
         # Unmatched variable type and default value
         with pytest.raises(errors.TemVariableValueError):
             var.Variable(bool, 1)
@@ -54,10 +100,9 @@ class TestVar:
         with pytest.raises(errors.TemVariableValueError):
             v.value = 1
         # Calling setter with unmatched type (type is a list of values)
-        v = var.Variable([1, "2", 3.0])
+        v = var.Variable([1, "2", 3.0], 1)
         with pytest.raises(errors.TemVariableValueError):
             v.value = 4
-        # Both default and from_env specified
 
     def test_variable_container_utility_functions(self):
         """TODO"""

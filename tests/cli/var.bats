@@ -283,6 +283,10 @@ err_invalid_expressions() {
     : # TODO
 }
 
+@test "TODO_ENV_VAR=value tem var ..." {
+    : # TODO
+}
+
 export ___WAS_RUN_BEFORE=true
 
 # vim: ft=sh sw=4

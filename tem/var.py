@@ -5,7 +5,7 @@ import os
 import shelve
 from contextlib import ExitStack
 from textwrap import TextWrapper
-from typing import Any, Dict, Iterable, Union
+from typing import Any, Dict, Iterable, Union, cast
 
 import tem
 from tem import util
@@ -47,7 +47,7 @@ class Variable(metaclass=__NoInit):
           a :class:`Variant` will be created instead.
     """
 
-    # TODO __slots__ = ("var_type", "value", "_to_env", "doc")
+    # TODO __slots__ = ("var_type", "value", "to_env", "doc")
 
     @property
     def value(self):
@@ -60,8 +60,8 @@ class Variable(metaclass=__NoInit):
         if not self._matches_type(value, self.var_type):
             raise TemVariableValueError(value=value)
         self._value = value
-        if self._to_env:
-            os.environ[self._to_env] = str(value)
+        if self.to_env:
+            os.environ[self.to_env] = str(value)
 
     def __init__(
         self,
@@ -75,18 +75,27 @@ class Variable(metaclass=__NoInit):
             var_type = Any
         if var_type != Any and not isinstance(var_type, (type, list)):
             raise TypeError(
-                "'var_type' must be a type or a list containing allowed"
-                "values"
+                "'var_type' must be a type or a list containing allowed values"
+            )
+        if isinstance(var_type, list) and default is None:
+            raise TemVariableValueError(
+                "'default' value is mandatory if 'var_type' is a list of "
+                "allowed values"
             )
         if default is not None and not self._matches_type(default, var_type):
             raise TemVariableValueError(
-                "The type of 'default' must match 'var_type'"
+                "The type of 'default' must match 'var_type'", value=default
             )
 
-        _ = from_env  # TODO use
-        self._to_env = to_env
+        self.from_env = from_env
+        self.to_env = to_env
         self.var_type = var_type
-        self.value = default or self._default_value_for_type(var_type)
+        if not self.set_from_env():
+            self.value = (
+                default
+                if default is not None
+                else self._default_value_for_type(var_type)
+            )
         super().__setattr__("doc", VariableDoc(self))
 
     def __new__(
@@ -116,7 +125,7 @@ class Variable(metaclass=__NoInit):
             super().__setattr__(key, value)
 
     @staticmethod
-    def _matches_type(value, var_type):
+    def _matches_type(value, var_type: Union[type, Any, list]):
         if var_type == Any:
             return True
         if isinstance(var_type, type):
@@ -132,9 +141,49 @@ class Variable(metaclass=__NoInit):
         else:
             return None
 
-    @staticmethod
-    def _parse_from_env():
-        raise NotImplementedError
+    def _convert_to_var_type(self, value):
+        if self.var_type == Any:
+            return value
+
+        # Variable type is a regular type
+        if isinstance(self.var_type, type):
+            try:
+                return self.var_type(value)
+            except Exception:
+                raise TemVariableValueError(value=value) from None
+        exception = None
+        # Variable type is an array of possible values.
+        # Go through all allowed values and see if `value` can be converted to
+        # any of those.
+        for allowed_value in cast(Iterable, self.var_type):
+            try:
+                converted_value = type(allowed_value)(value)
+                if converted_value == allowed_value:
+                    return converted_value
+            except Exception as e:
+                exception = e
+
+        raise TemVariableValueError(value=value) from exception
+
+    def set_from_env(self):
+        """
+        Set the variable value based on the content of the `from_env`
+        environment variable, if it exists.
+        Returns
+        -------
+        True, if the value was set from the environment.
+        """
+        if not self.from_env:
+            return False
+
+        class NonExistent:
+            """Special sentinel value."""
+
+        raw_value = os.environ.get(self.from_env, NonExistent)
+        if raw_value != NonExistent:
+            self.value = self._convert_to_var_type(raw_value)
+            return True
+        return False
 
 
 class VariableDoc(str):
@@ -368,13 +417,15 @@ class VariableContainer:
         return (variable for variable in self.__dict__)
 
 
-def load(source=None, defaults=False) -> VariableContainer:
+def load(
+    source: Union[TemDir, Environment] = None, defaults=False
+) -> VariableContainer:
     """
-    Load variables for the given ``temdir``.
+    Load variables from the given ``source``.
 
     Parameters
     ----------
-    source: optional, TemDir, Environment
+    source
         Temdir or environment whose variables to load. Loading from an
         environment will just load from each temdir in the environment.
         Defaults to :data:`tem.context.env`.
@@ -477,7 +528,8 @@ def _load(temdir: TemDir, defaults=False) -> Dict[str, Variable]:
     # Try to load variables from temdir's variable store
     if not defaults and glob.glob(f"{saved_vars_path}*"):
         for var_name, value in _load_from_shelf(saved_vars_path).items():
-            definitions[var_name].value = value
+            if not definitions[var_name].set_from_env():
+                definitions[var_name].value = value
     return definitions
 
 
