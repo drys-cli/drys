@@ -300,42 +300,6 @@ class Variant(Variable):
         variant.__init__(*args, **kwargs)
         return variant
 
-    @classmethod
-    def mutex(cls, variants):
-        """Make the decorated variant mutually exclusive with ``variants``."""
-
-        def decorator(variant: Variant):
-            if variant in cls._mutually_exclusive:
-                cls._mutually_exclusive[variant] = []
-            cls._mutually_exclusive[variant] += variants
-            return variant
-
-        return decorator
-
-    @Variable.value.setter
-    def value(self, value):
-        if not value:
-            Variable.value.fset(self, value)
-            return
-        # In order to set the value to True, we have to check mutual exclusion
-        _excluded_by = (
-            v for v in self._mutually_exclusive.get(self, []) if v.value
-        )
-        if next((v for v in _excluded_by if v), None):
-            # TODO define custom error class
-            raise ValueError(
-                f"Variable {self.__name__} is excluded by:"
-                f" {', '.join(_excluded_by)}"
-            )
-        Variable.value.fset(self, value)
-
-    value.__doc__ = ""  # Do not repeat it in sphinx autodoc output
-
-    # An undirected graph that keeps track of variants that are mutually
-    # exclusive. Implemented as a dict[Variant, list[Variant]] that maps each
-    # variant to a list of variants that exclude it.
-    _mutually_exclusive = {}
-
 
 def when(condition: str):
     """Decorator that allows the decorated object to be created only when the
