@@ -75,15 +75,15 @@ class TestVar:
         os.environ["v"] = "a"
         # Value doesn't match type
         with pytest.raises(errors.TemVariableValueError):
-            var.Variable(int, 0, from_env="v")
+            var.Variable(int, 0, from_env="v").value
         # Value has right type but is not in list of allowed values
         os.environ["v"] = "2"
         with pytest.raises(errors.TemVariableValueError):
-            var.Variable([0, 1], 0, from_env="v")
+            var.Variable([0, 1], 0, from_env="v").value
         # Value not in heterogeneous list of allowed values
         os.environ["v"] = "3"
         with pytest.raises(errors.TemVariableValueError):
-            var.Variable(["0", 1], 0, from_env="v")
+            var.Variable(["0", 1], 0, from_env="v").value
 
     def test_errors(self):
         # Variable type is not a type or list of values

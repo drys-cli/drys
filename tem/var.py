@@ -21,6 +21,16 @@ class __NoInit(type):
         return cls.__new__(cls, *args, **kwargs)
 
 
+class FromEnv:
+    """
+    Special sentinel value indicating that a variable's value should be
+    determined from its corresponding environment variable, if applicable.
+    """
+
+    def __init__(self, fallback=None):
+        self.fallback = fallback
+
+
 class Variable(metaclass=__NoInit):
     """A tem variable.
 
@@ -50,9 +60,30 @@ class Variable(metaclass=__NoInit):
     # TODO __slots__ = ("var_type", "value", "to_env", "doc")
 
     @property
-    def value(self):
+    def value(self, *, ignore_env=False):
         """Value of the variable."""
-        return self._value
+        # If value should be taken from environment variable
+        if (
+            not ignore_env
+            and self.from_env
+            and isinstance(self._value, FromEnv)
+        ):
+
+            class NonExistent:
+                """Special sentinel value."""
+
+            raw_value = os.environ.get(self.from_env, NonExistent)
+            return (
+                self._convert_to_var_type(raw_value)
+                if raw_value != NonExistent
+                else self._value.fallback
+            )
+
+        return (
+            self._value
+            if not isinstance(self._value, FromEnv)
+            else self._value.fallback
+        )
 
     @value.setter
     def value(self, value):
@@ -90,12 +121,12 @@ class Variable(metaclass=__NoInit):
         self.from_env = from_env
         self.to_env = to_env
         self.var_type = var_type
-        if not self.set_from_env():
-            self.value = (
-                default
-                if default is not None
-                else self._default_value_for_type(var_type)
-            )
+        self.default = default
+        self.value = FromEnv(
+            default
+            if default is not None
+            else self._default_value_for_type(var_type)
+        )
         super().__setattr__("doc", VariableDoc(self))
 
     def __new__(
@@ -126,7 +157,7 @@ class Variable(metaclass=__NoInit):
 
     @staticmethod
     def _matches_type(value, var_type: Union[type, Any, list]):
-        if var_type == Any:
+        if var_type == Any or isinstance(value, FromEnv):
             return True
         if isinstance(var_type, type):
             return isinstance(value, var_type)
@@ -164,26 +195,6 @@ class Variable(metaclass=__NoInit):
                 exception = e
 
         raise TemVariableValueError(value=value) from exception
-
-    def set_from_env(self):
-        """
-        Set the variable value based on the content of the `from_env`
-        environment variable, if it exists.
-        Returns
-        -------
-        True, if the value was set from the environment.
-        """
-        if not self.from_env:
-            return False
-
-        class NonExistent:
-            """Special sentinel value."""
-
-        raw_value = os.environ.get(self.from_env, NonExistent)
-        if raw_value != NonExistent:
-            self.value = self._convert_to_var_type(raw_value)
-            return True
-        return False
 
 
 class VariableDoc(str):
@@ -382,7 +393,9 @@ class VariableContainer:
 
 
 def load(
-    source: Union[TemDir, Environment] = None, defaults=False
+    source: Union[TemDir, Environment] = None,
+    defaults=False,
+    override_env: bool = None,
 ) -> VariableContainer:
     """
     Load variables from the given ``source``.
@@ -395,6 +408,11 @@ def load(
         Defaults to :data:`tem.context.env`.
     defaults
         Use default variable values instead of stored values.
+    override_env
+        If ``False``, environment variables will take priority in determining
+        the values of the loaded tem variables, if the tem variable has
+        :data:`~Variable.from_env` set. If unspecified, ``override_env`` will
+        be equal to the negation of ``defaults``.
     Returns
     -------
     variable_container
@@ -402,9 +420,13 @@ def load(
         variables.
     """
     source = source or tem.context.env
+    if override_env is None:
+        override_env = not defaults
 
     if isinstance(source, TemDir):
-        return VariableContainer(_load(source, defaults=defaults))
+        return VariableContainer(
+            _load(source, defaults=defaults, override_env=override_env)
+        )
 
     if not isinstance(source, Environment):
         raise TypeError(
@@ -415,7 +437,9 @@ def load(
     definitions: Dict[str, Variable] = {}
 
     for temdir in reversed(source.envdirs):
-        _definitions = _load(temdir, defaults=defaults)
+        _definitions = _load(
+            temdir, defaults=defaults, override_env=override_env
+        )
         definitions = {**definitions, **_definitions}
 
     return VariableContainer(definitions)
@@ -474,27 +498,37 @@ def save(variable_container: VariableContainer, target=None):
             values = store["values"] if "values" in store else {}
             for vname in variable_container:
                 if var_definition_sources[vname] == temdir:
-                    values[vname] = variable_container[vname].value
+                    variable = variable_container[vname]
+                    # pylint: disable-next=unexpected-keyword-arg
+                    values[vname] = variable.__class__.value.fget(
+                        variable,
+                        ignore_env=True,
+                    )
             store["values"] = values
             store["tem_version"] = tem.__version__
 
 
-def _load(temdir: TemDir, defaults=False) -> Dict[str, Variable]:
+def _load(
+    temdir: TemDir, defaults=False, override_env=True
+) -> Dict[str, Variable]:
     """
     Helper function for :func:`load` that loads variables from ``temdir`` and
     returns them.
+
+    For the other arguments, see the documentation of :func:`load`.
     """
     if not os.path.isfile(temdir / ".tem/vars.py"):
         return {}
     # pylint: disable-next=protected-access
     saved_vars_path = str(temdir._internal / "vars")
-    definitions = _load_variable_definitions(temdir / ".tem/vars.py")
+    variables = _load_variable_definitions(temdir / ".tem/vars.py")
     # Try to load variables from temdir's variable store
     if not defaults and glob.glob(f"{saved_vars_path}*"):
         for var_name, value in _load_from_shelf(saved_vars_path).items():
-            if not definitions[var_name].set_from_env():
-                definitions[var_name].value = value
-    return definitions
+            variables[var_name].value = (
+                value if override_env else FromEnv(value)
+            )
+    return variables
 
 
 def _load_variable_definitions(path) -> Dict[str, Variable]:

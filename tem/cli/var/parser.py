@@ -262,8 +262,10 @@ def cmd(args):
     """Execute this subcommand."""
     with env.Environment():
 
+        defaults = args.defaults and not args.reset
         global var_container
-        var_container = var.load(defaults=(args.defaults and not args.reset))
+        if not args.reset:
+            var_container = var.load(defaults=defaults, override_env=False)
 
         # Handle conflicting/ineffectual option combinations
         if args.query and (args.edit or args.editor):
