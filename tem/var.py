@@ -8,7 +8,7 @@ from textwrap import TextWrapper
 from typing import Any, Dict, Iterable, Union, cast
 
 import tem
-from tem import util
+from tem import context, util
 from tem.env import Environment
 from tem.errors import TemVariableNotDefinedError, TemVariableValueError
 from tem.fs import AnyPath, TemDir
@@ -419,7 +419,7 @@ def load(
         Instance of :class:`VariableContainer` that contains the loaded
         variables.
     """
-    source = source or tem.context.env
+    source = source or context.env
     if override_env is None:
         override_env = not defaults
 
