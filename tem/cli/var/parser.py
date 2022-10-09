@@ -245,12 +245,20 @@ def edit_defaults():
             "'tem --default --edit/--editor' accepts no arguments"
         )
         sys.exit(1)
+    files = [temdir / ".tem/vars.py" for temdir in context.env.envdirs]
+
+    for i, file in enumerate(files):
+        if not file.exists():
+            with open(file, mode="w", encoding="utf-8") as f:
+                f.write("from tem.var import Variable, Variant")
+        elif not file.is_file():
+            cli.print_cli_warn(f"cannot edit '{file}': not a regular file")
+            files[i] = None
+
+    files = [f for f in files if f is not None]
+
     cli.edit_files(
-        [
-            temdir / ".tem/vars.py"
-            for temdir in context.env.envdirs
-            if (temdir / ".tem/vars.py").is_file()
-        ],
+        files,
         override_editor=args.editor,
     )
     if args.verbosity:

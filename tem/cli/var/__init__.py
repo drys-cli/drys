@@ -1,2 +1,2 @@
 """`tem var` subcommand module."""
-from .parser import *
+from .parser import cmd, setup_parser
