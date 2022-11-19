@@ -21,23 +21,25 @@ platform-dependent:
 
       .. tabs::
 
-         .. tab:: Bash
-
-            .. code:: shell
-
-               pacman -S tem-bash
-
          .. tab:: Fish
 
             .. code:: shell
 
                pacman -S tem-fish
 
-         .. tab:: Zsh
+         ..
+            TODO
+            .. tab:: Bash
 
-            .. code:: shell
+               .. code:: shell
 
-               pacman -S tem-zsh
+                  pacman -S tem-bash
+
+            .. tab:: Zsh
+
+               .. code:: shell
+
+                  pacman -S tem-zsh
 
 
    .. tab:: ...rest

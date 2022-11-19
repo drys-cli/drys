@@ -23,4 +23,4 @@ purpose of this file is the following:
 - After vanilla tem exits, the parent shell sources this file
 
 This is merely a simple and cheap way to provide vanilla tem with the ability to
-manipulate the state of the calling shell. A more obvious way would be to let 
+manipulate the state of the calling shell.

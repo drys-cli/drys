@@ -27,7 +27,7 @@ Style guide
 
 Always use ``functools.wraps`` around the wrapper function in a decorator, so
 that the wrapper inherits the identity of the wrapee. This improves the
-documentation.
+generated documentation.
 
 Miscellaneous
 -------------
