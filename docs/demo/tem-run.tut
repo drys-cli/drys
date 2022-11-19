@@ -1,0 +1,76 @@
+#!/usr/bin/env tuterm
+
+TUTERM_NAME="tem-run"
+
+init() {
+    mkdir project
+    cd project
+    tem init >/dev/null
+}
+
+cat_stats_script() {
+    cat <<EOF
+#!/usr/bin/env sh
+
+echo "Number of files and directories: \$(tree --noreport | tail -n +1 | wc -l)"
+EOF
+}
+
+cat_lint_script() {
+    cat <<EOF
+#!/usr/bin/env sh
+
+pylint src/
+EOF
+}
+
+cat_ssh_script() {
+    cat <<EOF
+#!/usr/bin/env sh
+
+tem run --no-tem ssh -i ~/.ssh/my_key "\$@"
+EOF
+}
+
+unalias m M
+
+m() {
+    message "# $*"
+}
+
+M() {
+    Message "# $*"
+}
+
+# TODO: The script currently implements only the demo
+run() {
+    init
+
+    # m "Welcome to 'tem run' tutorial!"
+    M "Tem allows you to create and use local scripts for each directory/project."
+    sleep 1
+    M "Let's create a simple local script:"
+    e tem path --edit stats
+    cat_stats_script > .tem/path/stats
+    chmod u+x .tem/path/stats
+    # An improvised way to display an editor and close it after a timeout
+    timeout 3 tmux new-session "tmux set status off; $EDITOR .tem/path/stats" >/dev/null
+    M "We can run this script like this:"
+    c tem run stats
+    M "When using a shell plugin, you can omit 'tem run':"
+    e stats
+    echo "Number of files and directories: 14"
+    M "Scripts can be organized neatly under directories."
+    e tem path --edit code/lint
+
+    mkdir -p .tem/path/code
+    cat_lint_script > .tem/path/code/lint
+    chmod u+x .tem/path/code/lint
+    timeout 3 tmux new-session "tmux set status off; $EDITOR .tem/path/code/lint" >/dev/null
+
+    M "You can also override existing commands."
+    e tem path --edit ssh
+    cat_ssh_script > .tem/path/ssh
+    chmod u+x .tem/path/ssh
+    timeout 4 tmux new-session "tmux set status off; $EDITOR .tem/path/ssh" >/dev/null
+}

@@ -1,35 +1,54 @@
 #!/usr/bin/env tuterm
 
+TUTERM_NAME="tem"
+
 cat_greetme_script() {
+    local comment
+    comment=''
+    if mode tut; then
+        comment="# This file was created for you. You can just save it and quit."
+    fi
     cat <<EOF
 #!/usr/bin/env sh
 
-# This file was created for you
+"$comment"
 echo "Welcome to 'project'"
 
 EOF
 }
 
+demo() {
+    M "Let's enable tem for this directory"
+    c tem init
+    M "Let's create a script that you can run any time you are in this directory"
+    e tem path --edit stats
+    if mode tut; then
+        cat_greetme_script | tem path --edit greetme
+    else
+        cat_greetme_script > .tem/path/greetme
+        # An improvised way to display an editor and close it after a timeout
+        timeout 4 tmux new-session "$EDITOR " >/dev/null
+    fi
+    M "The greetme script is now in tem's local PATH for this directory. Run it."
+    c tem run greetme
+    M "If you have a tem shell plugin installed, you can omit 'tem run'"
+    e greetme
+    tem run greetme
+}
+
 run() {
     # Setup
-    tem --init-user
     mkdir project
 
     m "Welcome to tem's tutorial!"
     c cd project
-    M "Let's enable tem for this directory"
-    c tem init
-    M "Let's create a script that you can run any time you are in this directory"
-    e tem path --new --edit greetme
-    cat_greetme_script | tem path --new --edit greetme
-    M "The greetme script is now in tem's local PATH for this directory. Run it."
     if mode tutorial; then
         color 1 # Bold
         echo "Next steps:"
         echo "1. Run 'tem --help' to see a list of available commands"
         echo "2. Run 'tuterm tem-<command>' (for example 'tuterm tem-add')"
         echo " or"
-        echo "View the manual pages like 'man tem-<command>'"
+        echo "View the manual pages, like this: 'man tem-<command>'"
     fi
 }
 

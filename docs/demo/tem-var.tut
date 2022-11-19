@@ -1,6 +1,24 @@
 #!/usr/bin/env tuterm
 
+setup() {
+    tem init
+    cat >.tem/vars.py <<EOF
+        from tem import Variable, Variant
+        github_url = Variable(str, "https://github.com/tem-cli/tem")
+        env = Variant(["dev", "staging", "production"], "dev")
+        db_user = Variable(str, "postgres")
+        db_pass = Variable(str, "TemIsAwesome")
+EOF
+}
+
 run() {
+    [ -z "$TEM_SKIP_GREETING" ] && M "Welcome to the tutorial for 'tem var'!"
+    m "'tem var' allows you to store variables per directory. It's a bit like dotenv, but backed by the full power of python."
+    m "For starters, let's assume we are in a project that has some tem variables set up."
+    m "This command will list them:"
+    c tem var
+    m "Let's define a simple string variable for our project."
+    c tem var --default --edit
     m "Let's print the value of a simple string variable"
     c tem var github_url
     c tem var environment=production
