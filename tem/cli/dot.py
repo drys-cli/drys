@@ -158,7 +158,7 @@ def no_action(args):
     )
 
 
-def create_new_files(dotdir: AnyPath, file_names: Iterable[str], force):
+def create_new_files(dotdir: AnyPath, file_names: Iterable[str]):
     """Create files with names from ``file_names`` inside ``dotdir``."""
     # TODO This should only be used in some dot derivatives
     # (path, env, maybe others)
@@ -308,7 +308,7 @@ def cmd_common(args, subdir=None):
             cli.print_cli_err(
                 "FILES must not be empty with the '--new' option"
             )
-        dest_files += create_new_files(dotdir, args.files, args.force)
+        dest_files += create_new_files(dotdir, args.files)
     elif args.add or args.symlink:  # --add or --symlink
         add_existing_files(dotdir, args.files, args.force, args.symlink)
     elif args.delete:  # --delete
